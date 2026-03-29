@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "score_cripto",
+  "project_id": "a328e272-e342-4d6a-90fe-8406bcf98329"
+}
