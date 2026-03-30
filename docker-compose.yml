@@ -1,0 +1,93 @@
+services:
+  process-data-ia-postgres:
+    image: postgres:17-alpine
+    container_name: score-cripto-process-data-ia-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PROCESS_DATA_IA_POSTGRES_DB:-score_cripto_scoring}
+      POSTGRES_USER: ${PROCESS_DATA_IA_POSTGRES_USER:-score_cripto}
+      POSTGRES_PASSWORD: ${PROCESS_DATA_IA_POSTGRES_PASSWORD:-score_cripto}
+    ports:
+      - "${PROCESS_DATA_IA_POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - process_data_ia_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PROCESS_DATA_IA_POSTGRES_USER:-score_cripto} -d ${PROCESS_DATA_IA_POSTGRES_DB:-score_cripto_scoring}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  data-search-redis:
+    image: redis:7-alpine
+    container_name: score-cripto-data-search-redis
+    restart: unless-stopped
+    ports:
+      - "${DATA_SEARCH_REDIS_HOST_PORT:-6380}:6379"
+    volumes:
+      - data_search_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: score-cripto-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
+    ports:
+      - "${RABBITMQ_HOST_PORT:-5673}:5672"
+      - "${RABBITMQ_MANAGEMENT_HOST_PORT:-15673}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  process-data-ia:
+    build:
+      context: ./services/process-data-ia
+    container_name: score-cripto-process-data-ia
+    restart: unless-stopped
+    depends_on:
+      process-data-ia-postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      PORT: 3002
+      DATABASE_URL: postgresql://${PROCESS_DATA_IA_POSTGRES_USER:-score_cripto}:${PROCESS_DATA_IA_POSTGRES_PASSWORD:-score_cripto}@process-data-ia-postgres:5432/${PROCESS_DATA_IA_POSTGRES_DB:-score_cripto_scoring}?schema=public
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
+      SCORE_VALIDITY_HOURS: ${SCORE_VALIDITY_HOURS:-24}
+    ports:
+      - "${PROCESS_DATA_IA_HOST_PORT:-3002}:3002"
+
+  data-search:
+    build:
+      context: ./services/data-search
+    container_name: score-cripto-data-search
+    restart: unless-stopped
+    depends_on:
+      data-search-redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      REDIS_URL: redis://data-search-redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
+      ETHERSCAN_API_KEY: ${ETHERSCAN_API_KEY:-}
+      CACHE_TTL_MINUTES: ${CACHE_TTL_MINUTES:-20}
+    ports:
+      - "${DATA_SEARCH_HOST_PORT:-8080}:8080"
+
+volumes:
+  process_data_ia_postgres_data:
+  data_search_redis_data:
+  rabbitmq_data:

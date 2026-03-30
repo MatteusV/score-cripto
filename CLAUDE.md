@@ -142,6 +142,32 @@ For more details, see README.md and docs/QUICKSTART.md.
 - **process-data-ia**: Consolida o contexto estruturado da carteira, chama a IA para gerar o score e persiste o resultado processado da inferência
 - **users**: Gerencia usuários, carteiras vinculadas, autenticação, assinatura, limites de uso e integração com Stripe
 
+### Infraestrutura por Serviço
+
+- **data-search**
+  - Infra dedicada: `data-search-redis`
+  - Não depende de PostgreSQL
+- **process-data-ia**
+  - Infra dedicada: `process-data-ia-postgres`
+  - Não depende de Redis
+- **users**
+  - Deve ter banco próprio quando for implementado, sem compartilhar Postgres com outros serviços
+- **rabbitmq**
+  - Continua compartilhado entre os serviços orientados a eventos
+
+### Ambiente Docker Local
+
+- O ambiente local é orquestrado pelo [docker-compose.yml](/home/matteus-varlesse/www/score-cripto/docker-compose.yml) na raiz
+- Cada serviço deve ter seu próprio `Dockerfile`
+- O `docker-compose` da raiz é a fonte de verdade para subir a stack completa em desenvolvimento
+- Portas locais padrão atuais:
+  - `process-data-ia`: `3002`
+  - `data-search`: `8080`
+  - `process-data-ia-postgres`: `5433`
+  - `data-search-redis`: `6380`
+  - `rabbitmq`: `5673`
+  - `rabbitmq management`: `15673`
+
 ### Fluxo de Dados (Exemplo: Consultar Score)
 
 ```
@@ -179,7 +205,7 @@ For more details, see README.md and docs/QUICKSTART.md.
 
 ### Blockchain Data
 
-- **Rate Limiting**: APIs blockchain (Etherscan, etc) têm limites. Use cache Redis.
+- **Rate Limiting**: APIs blockchain (Etherscan, etc) têm limites. Use o Redis dedicado do `data-search`.
 - **Chain Support**: Sistema deve suportar múltiplos blockchains (Ethereum, Bitcoin, Polygon, Solana, etc)
 - **Address Normalization**: Normalizar endereços por rede antes de cachear ou processar
 - **Cache Strategy**: O `data-search` deve operar com cache temporário de 20 minutos para reduzir custo e latência
@@ -211,6 +237,7 @@ O score gerado por IA deve ser:
 - **Stripe**: Assinaturas pagas devem ser gerenciadas com Stripe Billing e Customer Portal
 - **Usage Tracking**: O serviço `users` deve controlar consumo por janela mensal e validar entitlement antes da análise
 - **Shared Score**: O resultado persistido da carteira pode ser reutilizado entre usuários; o consumo da análise continua pertencendo ao usuário que requisitou
+- **Database Ownership**: O serviço `users` deve ter banco próprio; não compartilhar PostgreSQL com `process-data-ia`
 
 ### Privacy & Compliance
 

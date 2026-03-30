@@ -2,9 +2,9 @@
 
 ## Objetivo
 
-Criar uma camada de abstração isolada para integração com **Vercel AI SDK** no serviço **scoring-engine** (Node.js). Isso permite:
+Criar uma camada de abstração isolada para integração com **Vercel AI SDK** no serviço **process-data-ia** (Node.js), que usa PostgreSQL dedicado para persistir inferências. Isso permite:
 
-1. **Provider agnosticism**: Trocar AI provider (OpenAI → Anthropic → custom) sem quebrar scoring-engine
+1. **Provider agnosticism**: Trocar AI provider (OpenAI → Anthropic → custom) sem quebrar process-data-ia
 2. **Structured output**: Garantir respostas padronizadas (score 0-100, confidence, risk_factors, etc)
 3. **Versioning**: Rastrear versão de prompt, modelo e schema de resposta
 4. **Observability**: Logging de custo, latência, tokens usados
@@ -14,7 +14,7 @@ Criar uma camada de abstração isolada para integração com **Vercel AI SDK** 
 
 ```
 ┌────────────────────────────────────────┐
-│   Scoring Engine (Node.js/Fastify)     │
+│   process-data-ia (Node.js/Fastify)     │
 └──────────────┬─────────────────────────┘
                │
                │ calls
@@ -375,7 +375,7 @@ export class AdapterWithFallback implements AIScoringAdapter {
 ### 5. Uso no Scoring Engine
 
 ```typescript
-// src/services/scoring-engine.ts
+// src/services/process-data-ia.ts
 
 import { AIScorerFactory } from '@/adapters/ai-scorer/factory'
 
@@ -537,7 +537,7 @@ export class AIMetricsCollector {
 
 ## Sumário
 
-✅ **Adapter Pattern**: Troca de provider sem quebrar scoring-engine
+✅ **Adapter Pattern**: Troca de provider sem quebrar process-data-ia
 ✅ **Structured Output**: Schema Zod garante respostas válidas
 ✅ **Fallback Strategy**: Heurístico em caso de falha
 ✅ **Observability**: Tokens, custo, latência rastreados
