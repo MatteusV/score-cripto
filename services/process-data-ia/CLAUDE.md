@@ -44,7 +44,7 @@ This project uses **Ultracite** (zero-config Biome preset) for strict code quali
 | **`useConsistentTypeDefinitions`** | Mix of `type` and `interface` | Prefer `interface` for object shapes (Biome default) |
 | **`noEvolvingTypes`** | Variable type evolves through assignments | Add explicit type annotation upfront |
 
-**Note**: The `useAwait` rule is **disabled** in the Ultracite preset (`ultracite/biome/core`), so async functions without await are allowed by default.
+**Note**: The `useAwait` rule is **disabled** in `biome.jsonc`, allowing async functions without await. This is necessary for in-memory repositories implementing async interfaces (Repository pattern).
 
 ### Fixing Async Functions
 
