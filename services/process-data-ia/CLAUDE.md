@@ -37,13 +37,14 @@ This project uses **Ultracite** (zero-config Biome preset) for strict code quali
 
 | Rule | Issue | Fix |
 |---|---|---|
-| **`useAwait`** | `async` function without `await` | Remove `async` keyword OR add `await` to a call |
 | **`noParameterProperties`** | Constructor parameter with visibility modifier: `constructor(private repo: Repo)` | Convert to explicit property: `private repo: Repo; constructor(repo: Repo) { this.repo = repo; }` |
 | **`useConsistentMemberAccessibility`** | Mix of `public`/implicit member access | Remove `public` keyword (implicit is default in TypeScript) |
 | **`noImplicitAnyLet`** | Variable without type: `let x;` | Add type annotation: `let x: SomeType;` OR initialize with value: `let x = value;` |
 | **`noBarrelFile`** | Re-exporting from index files | Avoid `export { x } from './file.js'` — import directly instead |
 | **`useConsistentTypeDefinitions`** | Mix of `type` and `interface` | Prefer `interface` for object shapes (Biome default) |
 | **`noEvolvingTypes`** | Variable type evolves through assignments | Add explicit type annotation upfront |
+
+**Note**: The `useAwait` rule is **disabled** in the Ultracite preset (`ultracite/biome/core`), so async functions without await are allowed by default.
 
 ### Fixing Async Functions
 
