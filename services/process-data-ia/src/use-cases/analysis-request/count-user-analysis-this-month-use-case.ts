@@ -11,9 +11,9 @@ export class CountUserAnalysisThisMonthUseCase {
     this.analysisRequestRepository = analysisRequestRepository;
   }
 
-  execute({
+  async execute({
     userId,
   }: CountUserAnalysisThisMonthUseCaseRequest): Promise<number> {
-    return this.analysisRequestRepository.countByUserThisMonth(userId);
+    return await this.analysisRequestRepository.countByUserThisMonth(userId);
   }
 }

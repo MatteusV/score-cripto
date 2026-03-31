@@ -7,7 +7,7 @@ export class AnalysisRequestInMemoryRepository
 {
   items: AnalysisRequest[] = [];
 
-  create(data: Omit<AnalysisRequest, "id">) {
+  async create(data: Omit<AnalysisRequest, "id">) {
     const id = randomUUID();
     const analysisRequest = { id, ...data };
 
@@ -22,7 +22,7 @@ export class AnalysisRequestInMemoryRepository
     return analysisRequest;
   }
 
-  findByIndex(data: { chain: string; address: string; userId: string }) {
+  async findByIndex(data: { chain: string; address: string; userId: string }) {
     const analysisRequest = this.items.find(
       (item) =>
         item.chain === data.chain &&
@@ -37,7 +37,7 @@ export class AnalysisRequestInMemoryRepository
     return analysisRequest;
   }
 
-  findById(id: string) {
+  async findById(id: string) {
     const analysisRequest = this.items.find((item) => item.id === id);
 
     if (!analysisRequest) {
@@ -47,7 +47,7 @@ export class AnalysisRequestInMemoryRepository
     return analysisRequest;
   }
 
-  update(id: string, data: Partial<AnalysisRequest>) {
+  async update(id: string, data: Partial<AnalysisRequest>) {
     const analysisRequest = this.items.find((item) => item.id === id);
 
     if (!analysisRequest) {
@@ -59,7 +59,7 @@ export class AnalysisRequestInMemoryRepository
     return analysisRequest;
   }
 
-  listByUserId(userId: string, page: number, limit: number) {
+  async listByUserId(userId: string, page: number, limit: number) {
     const userItems = this.items
       .filter((item) => item.userId === userId)
       .sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime());
@@ -70,7 +70,7 @@ export class AnalysisRequestInMemoryRepository
     return { items, total: userItems.length };
   }
 
-  countByUserThisMonth(userId: string) {
+  async countByUserThisMonth(userId: string) {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 

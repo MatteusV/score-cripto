@@ -7,7 +7,7 @@ export class ProcessedDataInMemoryRepository
 {
   items: ProcessedData[] = [];
 
-  create(data: Omit<ProcessedData, "id" | "createdAt">) {
+  async create(data: Omit<ProcessedData, "id" | "createdAt">) {
     const processedData: ProcessedData = {
       id: randomUUID(),
       createdAt: new Date(),
@@ -19,11 +19,11 @@ export class ProcessedDataInMemoryRepository
     return processedData;
   }
 
-  findCachedScore(data: {
+  async findCachedScore(data: {
     chain: string;
     address: string;
     walletContextHash: string;
-  }): ProcessedData | null {
+  }) {
     const now = new Date();
 
     const result = this.items
@@ -39,7 +39,7 @@ export class ProcessedDataInMemoryRepository
     return result ?? null;
   }
 
-  findByAnalysisRequestId(analysisRequestId: string): ProcessedData | null {
+  async findByAnalysisRequestId(analysisRequestId: string) {
     const result = this.items.find(
       (item) => item.analysisRequestId === analysisRequestId
     );

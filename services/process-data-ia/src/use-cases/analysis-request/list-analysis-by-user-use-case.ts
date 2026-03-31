@@ -21,7 +21,7 @@ export class ListAnalysisByUserUseCase {
     this.analysisRequestRepository = analysisRequestRepository;
   }
 
-  execute({
+  async execute({
     userId,
     page = 1,
     limit = 20,
@@ -29,7 +29,7 @@ export class ListAnalysisByUserUseCase {
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(limit, MAX_LIMIT);
 
-    return this.analysisRequestRepository.listByUserId(
+    return await this.analysisRequestRepository.listByUserId(
       userId,
       safePage,
       safeLimit

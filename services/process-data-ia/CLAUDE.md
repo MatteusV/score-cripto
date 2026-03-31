@@ -33,6 +33,41 @@ Run the full local stack from the repo root: `docker compose up`.
 
 This project uses **Ultracite** (zero-config Biome preset) for strict code quality. Run `pnpm fix` before committing.
 
+### Biome Configuration
+
+The project uses Ultracite (Biome preset) with one custom override:
+
+```jsonc
+// biome.jsonc
+{
+  "extends": ["ultracite/biome/core", "ultracite/biome/vitest"],
+  "linter": {
+    "rules": {
+      "suspicious": {
+        "useAwait": "off"  // ← Allow async without await
+      }
+    }
+  }
+}
+```
+
+**Why disable `useAwait`?** The Repository pattern uses async/Promise signatures for type compatibility (Liskov Substitution Principle), even though in-memory test implementations don't need await:
+
+```ts
+// Interface requires async signature
+interface Repository {
+  create(data: T): Promise<T>;  // async contract
+}
+
+// In-memory test implementation doesn't await internally
+export class InMemoryRepository implements Repository {
+  create(data: T): Promise<T> {
+    // No I/O, no await needed, but must return Promise
+    return Promise.resolve({ ...data, id: uuid() });
+  }
+}
+```
+
 ### Common Biome Lint Rules
 
 | Rule | Issue | Fix |
@@ -43,8 +78,6 @@ This project uses **Ultracite** (zero-config Biome preset) for strict code quali
 | **`noBarrelFile`** | Re-exporting from index files | Avoid `export { x } from './file.js'` — import directly instead |
 | **`useConsistentTypeDefinitions`** | Mix of `type` and `interface` | Prefer `interface` for object shapes (Biome default) |
 | **`noEvolvingTypes`** | Variable type evolves through assignments | Add explicit type annotation upfront |
-
-**Note**: The `useAwait` rule is **disabled** in `biome.jsonc`, allowing async functions without await. This is necessary for in-memory repositories implementing async interfaces (Repository pattern).
 
 ### Fixing Async Functions
 

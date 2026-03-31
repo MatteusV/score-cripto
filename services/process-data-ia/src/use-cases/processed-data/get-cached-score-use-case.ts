@@ -14,12 +14,12 @@ export class GetCachedScoreUseCase {
     this.processedDataRepository = processedDataRepository;
   }
 
-  execute({
+  async execute({
     chain,
     address,
     walletContextHash,
   }: GetCachedScoreUseCaseRequest): Promise<ProcessedData | null> {
-    return this.processedDataRepository.findCachedScore({
+    return await this.processedDataRepository.findCachedScore({
       chain,
       address,
       walletContextHash,
