@@ -15,9 +15,11 @@ interface CreateAnalysisUseCaseResponse {
 }
 
 export class CreateAnalysisRequestUseCase {
-  constructor(
-    private readonly analysisRequestRepository: AnalysisRequestRepository
-  ) {}
+  private readonly analysisRequestRepository: AnalysisRequestRepository;
+
+  constructor(analysisRequestRepository: AnalysisRequestRepository) {
+    this.analysisRequestRepository = analysisRequestRepository;
+  }
 
   async execute({
     userId,

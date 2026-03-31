@@ -8,11 +8,13 @@ interface GetCachedScoreUseCaseRequest {
 }
 
 export class GetCachedScoreUseCase {
-  constructor(
-    private readonly processedDataRepository: ProcessedDataRepository
-  ) {}
+  private readonly processedDataRepository: ProcessedDataRepository;
 
-  async execute({
+  constructor(processedDataRepository: ProcessedDataRepository) {
+    this.processedDataRepository = processedDataRepository;
+  }
+
+  execute({
     chain,
     address,
     walletContextHash,

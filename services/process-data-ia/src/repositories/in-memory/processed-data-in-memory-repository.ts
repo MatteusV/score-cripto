@@ -5,9 +5,9 @@ import type { ProcessedDataRepository } from "../processed-data-repository";
 export class ProcessedDataInMemoryRepository
   implements ProcessedDataRepository
 {
-  public items: ProcessedData[] = [];
+  items: ProcessedData[] = [];
 
-  async create(data: Omit<ProcessedData, "id" | "createdAt">) {
+  create(data: Omit<ProcessedData, "id" | "createdAt">) {
     const processedData: ProcessedData = {
       id: randomUUID(),
       createdAt: new Date(),
@@ -19,11 +19,11 @@ export class ProcessedDataInMemoryRepository
     return processedData;
   }
 
-  async findCachedScore(data: {
+  findCachedScore(data: {
     chain: string;
     address: string;
     walletContextHash: string;
-  }) {
+  }): ProcessedData | null {
     const now = new Date();
 
     const result = this.items
@@ -39,7 +39,7 @@ export class ProcessedDataInMemoryRepository
     return result ?? null;
   }
 
-  async findByAnalysisRequestId(analysisRequestId: string) {
+  findByAnalysisRequestId(analysisRequestId: string): ProcessedData | null {
     const result = this.items.find(
       (item) => item.analysisRequestId === analysisRequestId
     );

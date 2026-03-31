@@ -17,9 +17,11 @@ interface UpdateStatusToFailedUseCaseResponse {
 }
 
 export class UpdateStatusToFailedUseCase {
-  constructor(
-    private readonly analisysRequestRepository: AnalysisRequestRepository
-  ) {}
+  private readonly analisysRequestRepository: AnalysisRequestRepository;
+
+  constructor(analisysRequestRepository: AnalysisRequestRepository) {
+    this.analisysRequestRepository = analisysRequestRepository;
+  }
 
   async execute({
     analysisRequestId,

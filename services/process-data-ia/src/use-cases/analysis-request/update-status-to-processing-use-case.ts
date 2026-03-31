@@ -14,9 +14,11 @@ interface UpdateStatusToProcessingUseCaseResponse {
 }
 
 export class UpdateStatusToProcessingUseCase {
-  constructor(
-    private readonly analysisRequestRepository: AnalysisRequestRepository
-  ) {}
+  private readonly analysisRequestRepository: AnalysisRequestRepository;
+
+  constructor(analysisRequestRepository: AnalysisRequestRepository) {
+    this.analysisRequestRepository = analysisRequestRepository;
+  }
 
   async execute({
     analysisRequestId,

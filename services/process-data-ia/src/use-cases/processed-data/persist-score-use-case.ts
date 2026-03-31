@@ -23,10 +23,17 @@ interface PersistScoreUseCaseResponse {
 }
 
 export class PersistScoreUseCase {
+  private readonly processedDataRepository: ProcessedDataRepository;
+
+  private readonly scoreValidityHours: number;
+
   constructor(
-    private readonly processedDataRepository: ProcessedDataRepository,
-    private readonly scoreValidityHours: number
-  ) {}
+    processedDataRepository: ProcessedDataRepository,
+    scoreValidityHours: number
+  ) {
+    this.processedDataRepository = processedDataRepository;
+    this.scoreValidityHours = scoreValidityHours;
+  }
 
   async execute(
     data: PersistScoreUseCaseRequest

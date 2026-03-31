@@ -15,11 +15,13 @@ interface ListAnalysisByUserUseCaseResponse {
 }
 
 export class ListAnalysisByUserUseCase {
-  constructor(
-    private readonly analysisRequestRepository: AnalysisRequestRepository
-  ) {}
+  private readonly analysisRequestRepository: AnalysisRequestRepository;
 
-  async execute({
+  constructor(analysisRequestRepository: AnalysisRequestRepository) {
+    this.analysisRequestRepository = analysisRequestRepository;
+  }
+
+  execute({
     userId,
     page = 1,
     limit = 20,

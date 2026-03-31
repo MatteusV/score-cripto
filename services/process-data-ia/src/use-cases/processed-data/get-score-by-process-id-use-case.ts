@@ -11,9 +11,11 @@ interface GetScoreByProcessIdUseCaseResponse {
 }
 
 export class GetScoreByProcessIdUseCase {
-  constructor(
-    private readonly processedDataRepository: ProcessedDataRepository
-  ) {}
+  private readonly processedDataRepository: ProcessedDataRepository;
+
+  constructor(processedDataRepository: ProcessedDataRepository) {
+    this.processedDataRepository = processedDataRepository;
+  }
 
   async execute({
     processId,

@@ -5,11 +5,13 @@ interface CountUserAnalysisThisMonthUseCaseRequest {
 }
 
 export class CountUserAnalysisThisMonthUseCase {
-  constructor(
-    private readonly analysisRequestRepository: AnalysisRequestRepository
-  ) {}
+  private readonly analysisRequestRepository: AnalysisRequestRepository;
 
-  async execute({
+  constructor(analysisRequestRepository: AnalysisRequestRepository) {
+    this.analysisRequestRepository = analysisRequestRepository;
+  }
+
+  execute({
     userId,
   }: CountUserAnalysisThisMonthUseCaseRequest): Promise<number> {
     return this.analysisRequestRepository.countByUserThisMonth(userId);

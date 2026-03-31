@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { config } from "../config.js";
 import { publishScoreCalculated } from "../events/publisher.js";
 import { WalletContextInputSchema } from "../schemas/score.js";
-import { prisma } from "../services/database.js";
+import { prisma as prismaInstance } from "../services/database.js";
 import { scoreWithAI, scoreWithHeuristic } from "../services/scoring.js";
 
 function hashWalletContext(input: unknown): string {
@@ -16,7 +16,7 @@ function computeValidUntil(): Date {
   return validUntil;
 }
 
-export async function scoreRoutes(fastify: FastifyInstance): Promise<void> {
+export function scoreRoutes(fastify: FastifyInstance): void {
   fastify.post("/score", async (request, reply) => {
     const parseResult = WalletContextInputSchema.safeParse(request.body);
 
@@ -31,7 +31,7 @@ export async function scoreRoutes(fastify: FastifyInstance): Promise<void> {
     const contextHash = hashWalletContext(input);
 
     // Check for valid existing score
-    const existingScore = await prisma.processedData.findFirst({
+    const existingScore = await prismaInstance.processedData.findFirst({
       where: {
         chain: input.chain,
         address: input.address,
@@ -65,7 +65,7 @@ export async function scoreRoutes(fastify: FastifyInstance): Promise<void> {
     }
 
     // Create analysis request
-    const analysisRequest = await prisma.analysisRequest.create({
+    const analysisRequest = await prismaInstance.analysisRequest.create({
       data: {
         chain: input.chain,
         address: input.address,
@@ -74,7 +74,7 @@ export async function scoreRoutes(fastify: FastifyInstance): Promise<void> {
       },
     });
 
-    let scoringResult;
+    let scoringResult: Awaited<ReturnType<typeof scoreWithAI>>;
     let _usedFallback = false;
 
     try {
@@ -99,7 +99,7 @@ export async function scoreRoutes(fastify: FastifyInstance): Promise<void> {
     const validUntil = computeValidUntil();
 
     // Persist the result
-    const processedData = await prisma.processedData.create({
+    const processedData = await prismaInstance.processedData.create({
       data: {
         analysisRequestId: analysisRequest.id,
         chain: input.chain,
@@ -119,7 +119,7 @@ export async function scoreRoutes(fastify: FastifyInstance): Promise<void> {
     });
 
     // Update analysis request status
-    await prisma.analysisRequest.update({
+    await prismaInstance.analysisRequest.update({
       where: { id: analysisRequest.id },
       data: {
         status: "COMPLETED",
@@ -162,7 +162,7 @@ export async function scoreRoutes(fastify: FastifyInstance): Promise<void> {
     async (request, reply) => {
       const { processId } = request.params;
 
-      const processedData = await prisma.processedData.findFirst({
+      const processedData = await prismaInstance.processedData.findFirst({
         where: { analysisRequestId: processId },
         include: { analysisRequest: true },
       });
@@ -191,4 +191,4 @@ export async function scoreRoutes(fastify: FastifyInstance): Promise<void> {
 }
 
 // Export for testing
-export { computeValidUntil, hashWalletContext, type prisma };
+export { computeValidUntil, hashWalletContext };
