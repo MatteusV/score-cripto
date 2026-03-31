@@ -3,19 +3,21 @@ import type { AnalysisRequestRepository } from "../../repositories/analysis-requ
 import { AnalysisRequestIsNotProcessingError } from "../errors/analysis-request-is-not-processing-error";
 import { AnalysisRequestNotFoundError } from "../errors/analysis-request-not-found-error";
 
-type UpdateStatusToCompletedUseCaseRequest = {
+interface UpdateStatusToCompletedUseCaseRequest {
   analysisRequestId: string;
-};
+}
 
-type UpdateStatusToCompletedUseCaseResponse = {
+interface UpdateStatusToCompletedUseCaseResponse {
   analysisRequest: {
     status: AnalysisStatus;
     completedAt: Date | null;
   };
-};
+}
 
 export class UpdateStatusToCompletedUseCase {
-  constructor(private analysisRequestRepository: AnalysisRequestRepository) {}
+  constructor(
+    private readonly analysisRequestRepository: AnalysisRequestRepository
+  ) {}
 
   async execute({
     analysisRequestId,

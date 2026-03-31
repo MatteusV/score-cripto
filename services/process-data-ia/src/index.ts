@@ -8,7 +8,7 @@ const fastify = Fastify({
 });
 
 // Health check
-fastify.get("/health", async () => {
+fastify.get("/health", () => {
   return {
     status: "ok",
     service: "process-data-ia",

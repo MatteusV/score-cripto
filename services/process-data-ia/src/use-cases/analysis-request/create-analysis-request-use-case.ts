@@ -3,19 +3,21 @@ import type { AnalysisStatus } from "../../generated/prisma/enums";
 import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository";
 import { AnalysisRequestAlreadyExistsError } from "../errors/analysis-request-already-exists-error";
 
-type CreateAnalysisUseCaseRequest = {
-  userId: string;
-  chain: string;
+interface CreateAnalysisUseCaseRequest {
   address: string;
+  chain: string;
+  userId: string;
   walletContextHash: string;
-};
+}
 
-type CreateAnalysisUseCaseResponse = {
+interface CreateAnalysisUseCaseResponse {
   analysisRequest: AnalysisRequest;
-};
+}
 
 export class CreateAnalysisRequestUseCase {
-  constructor(private analysisRequestRepository: AnalysisRequestRepository) {}
+  constructor(
+    private readonly analysisRequestRepository: AnalysisRequestRepository
+  ) {}
 
   async execute({
     userId,

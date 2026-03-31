@@ -3,21 +3,23 @@ import type { AnalysisRequestRepository } from "../../repositories/analysis-requ
 import { AnalysisRequestIsNotProcessingError } from "../errors/analysis-request-is-not-processing-error";
 import { AnalysisRequestNotFoundError } from "../errors/analysis-request-not-found-error";
 
-type UpdateStatusToFailedUseCaseRequest = {
+interface UpdateStatusToFailedUseCaseRequest {
   analysisRequestId: string;
   failureReason: string;
-};
+}
 
-type UpdateStatusToFailedUseCaseResponse = {
+interface UpdateStatusToFailedUseCaseResponse {
   analysisRequest: {
     status: AnalysisStatus;
     failedAt: Date | null;
     failureReason: string;
   };
-};
+}
 
 export class UpdateStatusToFailedUseCase {
-  constructor(private analisysRequestRepository: AnalysisRequestRepository) {}
+  constructor(
+    private readonly analisysRequestRepository: AnalysisRequestRepository
+  ) {}
 
   async execute({
     analysisRequestId,

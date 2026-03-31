@@ -5,9 +5,9 @@ import type { AnalysisRequestRepository } from "../analysis-request-repository";
 export class AnalysisRequestInMemoryRepository
   implements AnalysisRequestRepository
 {
-  public items: AnalysisRequest[] = [];
+  items: AnalysisRequest[] = [];
 
-  async create(data: Omit<AnalysisRequest, "id">) {
+  create(data: Omit<AnalysisRequest, "id">) {
     const id = randomUUID();
     const analysisRequest = { id, ...data };
 
@@ -22,7 +22,7 @@ export class AnalysisRequestInMemoryRepository
     return analysisRequest;
   }
 
-  async findByIndex(data: { chain: string; address: string; userId: string }) {
+  findByIndex(data: { chain: string; address: string; userId: string }) {
     const analysisRequest = this.items.find(
       (item) =>
         item.chain === data.chain &&
@@ -37,7 +37,7 @@ export class AnalysisRequestInMemoryRepository
     return analysisRequest;
   }
 
-  async findById(id: string) {
+  findById(id: string) {
     const analysisRequest = this.items.find((item) => item.id === id);
 
     if (!analysisRequest) {
@@ -47,7 +47,7 @@ export class AnalysisRequestInMemoryRepository
     return analysisRequest;
   }
 
-  async update(id: string, data: Partial<AnalysisRequest>) {
+  update(id: string, data: Partial<AnalysisRequest>) {
     const analysisRequest = this.items.find((item) => item.id === id);
 
     if (!analysisRequest) {
@@ -57,5 +57,28 @@ export class AnalysisRequestInMemoryRepository
     Object.assign(analysisRequest, data);
 
     return analysisRequest;
+  }
+
+  listByUserId(userId: string, page: number, limit: number) {
+    const userItems = this.items
+      .filter((item) => item.userId === userId)
+      .sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime());
+
+    const offset = (page - 1) * limit;
+    const items = userItems.slice(offset, offset + limit);
+
+    return { items, total: userItems.length };
+  }
+
+  countByUserThisMonth(userId: string) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    return this.items.filter(
+      (item) =>
+        item.userId === userId &&
+        item.requestedAt >= startOfMonth &&
+        (item.status === "COMPLETED" || item.status === "FAILED")
+    ).length;
   }
 }

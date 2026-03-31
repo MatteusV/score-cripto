@@ -33,10 +33,7 @@ export async function connectRabbitMQ(): Promise<void> {
   }
 }
 
-export async function publishEvent(
-  routingKey: string,
-  payload: unknown
-): Promise<boolean> {
+export function publishEvent(routingKey: string, payload: unknown): boolean {
   if (!channel) {
     console.warn(
       `[RabbitMQ] No channel available, skipping event: ${routingKey}`
@@ -86,7 +83,7 @@ export function publishScoreCalculated(data: {
   confidence: number;
   modelVersion: string;
   promptVersion: string;
-}): Promise<boolean> {
+}): boolean {
   return publishEvent("wallet.score.calculated", {
     event: "wallet.score.calculated",
     timestamp: new Date().toISOString(),

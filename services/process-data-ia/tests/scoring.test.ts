@@ -112,7 +112,7 @@ describe("Heuristic Scoring", () => {
       token_diversity: 50,
     });
     const extremeBad = createRiskyWalletContext({
-      risk_flags: Array(20).fill("flag"),
+      risk_flags: new Array(20).fill("flag"),
     });
     expect(scoreWithHeuristic(extremeGood).score).toBeLessThanOrEqual(100);
     expect(scoreWithHeuristic(extremeBad).score).toBeGreaterThanOrEqual(0);

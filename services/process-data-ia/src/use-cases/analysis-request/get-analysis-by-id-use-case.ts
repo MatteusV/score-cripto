@@ -2,16 +2,20 @@ import type { AnalysisRequest } from "../../generated/prisma/client";
 import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository";
 import { AnalysisRequestNotFoundError } from "../errors/analysis-request-not-found-error";
 
-type GetAnalysisByIdUseCaseRequest = {
+interface GetAnalysisByIdUseCaseRequest {
   analysisRequestId: string;
-};
+}
 
-type GetAnalysisByIdUseCaseResponse = {
+interface GetAnalysisByIdUseCaseResponse {
   analysisRequest: AnalysisRequest;
-};
+}
 
 export class GetAnalysisByIdUseCase {
-  constructor(private analisysRequestRepository: AnalysisRequestRepository) {}
+  private readonly analisysRequestRepository: AnalysisRequestRepository;
+
+  constructor(analisysRequestRepository: AnalysisRequestRepository) {
+    this.analisysRequestRepository = analisysRequestRepository;
+  }
 
   async execute({
     analysisRequestId,

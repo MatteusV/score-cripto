@@ -75,7 +75,7 @@ export async function scoreRoutes(fastify: FastifyInstance): Promise<void> {
     });
 
     let scoringResult;
-    let usedFallback = false;
+    let _usedFallback = false;
 
     try {
       scoringResult = await scoreWithAI(input);
@@ -84,7 +84,7 @@ export async function scoreRoutes(fastify: FastifyInstance): Promise<void> {
         "[Score] AI scoring failed, using heuristic fallback:",
         (error as Error).message
       );
-      usedFallback = true;
+      _usedFallback = true;
       const heuristicOutput = scoreWithHeuristic(input);
       scoringResult = {
         output: heuristicOutput,

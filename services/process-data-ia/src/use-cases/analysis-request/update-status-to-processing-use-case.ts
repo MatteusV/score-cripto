@@ -2,19 +2,21 @@ import type { AnalysisStatus } from "../../generated/prisma/enums";
 import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository";
 import { AnalysisRequestNotFoundError } from "../errors/analysis-request-not-found-error";
 
-type UpdateStatusToProcessingUseCaseRequest = {
+interface UpdateStatusToProcessingUseCaseRequest {
   analysisRequestId: string;
-};
+}
 
-type UpdateStatusToProcessingUseCaseResponse = {
+interface UpdateStatusToProcessingUseCaseResponse {
   analysisRequest: {
     status: AnalysisStatus;
     processingAt: Date | null;
   };
-};
+}
 
 export class UpdateStatusToProcessingUseCase {
-  constructor(private analysisRequestRepository: AnalysisRequestRepository) {}
+  constructor(
+    private readonly analysisRequestRepository: AnalysisRequestRepository
+  ) {}
 
   async execute({
     analysisRequestId,

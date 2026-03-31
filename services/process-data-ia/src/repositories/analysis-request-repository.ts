@@ -1,19 +1,30 @@
 import type { AnalysisRequest } from "../generated/prisma/client";
 
-type FindByIndexData = {
-  chain: string;
+interface FindByIndexData {
   address: string;
+  chain: string;
   userId: string;
-};
+}
 
-export type AnalysisRequestRepository = {
+interface ListByUserResult {
+  items: AnalysisRequest[];
+  total: number;
+}
+
+export interface AnalysisRequestRepository {
+  countByUserThisMonth: (userId: string) => Promise<number>;
   create: (
-    chain: Omit<AnalysisRequest, "id">
+    data: Omit<AnalysisRequest, "id">
   ) => Promise<AnalysisRequest | null>;
-  findByIndex: (data: FindByIndexData) => Promise<AnalysisRequest | null>;
   findById: (id: string) => Promise<AnalysisRequest | null>;
+  findByIndex: (data: FindByIndexData) => Promise<AnalysisRequest | null>;
+  listByUserId: (
+    userId: string,
+    page: number,
+    limit: number
+  ) => Promise<ListByUserResult>;
   update: (
     id: string,
     data: Partial<AnalysisRequest>
   ) => Promise<AnalysisRequest | null>;
-};
+}
