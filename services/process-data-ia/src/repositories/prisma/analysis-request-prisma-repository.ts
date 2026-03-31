@@ -5,22 +5,20 @@ import type {
 	FindByIndexData,
 	ListByUserResult,
 } from "../analysis-request-repository";
-export class AnalysisRequestiPrismaRepository
+export class AnalysisRequestPrismaRepository
 	implements AnalysisRequestRepository
 {
 	async countByUserThisMonth(userId: string): Promise<number> {
 		const now = new Date();
 		const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-		const analysisRequests = await prisma.analysisRequest.count({
+		return await prisma.analysisRequest.count({
 			where: {
 				userId,
-				requestedAt: startOfMonth,
-				status: "COMPLETED",
+				requestedAt: { gte: startOfMonth },
+				status: { in: ["COMPLETED", "FAILED"] },
 			},
 		});
-
-		return analysisRequests;
 	}
 
 	async create(
@@ -77,21 +75,18 @@ export class AnalysisRequestiPrismaRepository
 		limit: number,
 	): Promise<ListByUserResult> {
 		const skip = (page - 1) * limit;
-		const analysisRequests = await prisma.analysisRequest.findMany({
-			where: {
-				userId,
-			},
-			skip,
-			take: limit,
-			orderBy: {
-				requestedAt: "desc",
-			},
-		});
 
-		return {
-			items: analysisRequests,
-			total: analysisRequests.length,
-		};
+		const [items, total] = await prisma.$transaction([
+			prisma.analysisRequest.findMany({
+				where: { userId },
+				skip,
+				take: limit,
+				orderBy: { requestedAt: "desc" },
+			}),
+			prisma.analysisRequest.count({ where: { userId } }),
+		]);
+
+		return { items, total };
 	}
 
 	async update(
