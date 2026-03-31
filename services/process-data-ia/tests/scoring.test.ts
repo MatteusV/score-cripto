@@ -1,6 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import {
+  ScoreOutputSchema,
+  WalletContextInputSchema,
+} from "../src/schemas/score.js";
 import { scoreWithHeuristic } from "../src/services/scoring.js";
-import { ScoreOutputSchema, WalletContextInputSchema } from "../src/schemas/score.js";
 import { createMockWalletContext, createRiskyWalletContext } from "./setup.js";
 
 describe("Heuristic Scoring", () => {
@@ -46,16 +49,24 @@ describe("Heuristic Scoring", () => {
     const cleanScore = scoreWithHeuristic(clean);
     const mixerScore = scoreWithHeuristic(mixer);
     expect(mixerScore.score).toBeLessThan(cleanScore.score);
-    expect(mixerScore.riskFactors).toContain("Interaction with known mixer services");
+    expect(mixerScore.riskFactors).toContain(
+      "Interaction with known mixer services"
+    );
   });
 
   it("should penalize sanctioned interactions", () => {
-    const clean = createMockWalletContext({ has_sanctioned_interaction: false });
-    const sanctioned = createMockWalletContext({ has_sanctioned_interaction: true });
+    const clean = createMockWalletContext({
+      has_sanctioned_interaction: false,
+    });
+    const sanctioned = createMockWalletContext({
+      has_sanctioned_interaction: true,
+    });
     const cleanScore = scoreWithHeuristic(clean);
     const sanctionedScore = scoreWithHeuristic(sanctioned);
     expect(sanctionedScore.score).toBeLessThan(cleanScore.score);
-    expect(sanctionedScore.riskFactors).toContain("Interaction with sanctioned addresses");
+    expect(sanctionedScore.riskFactors).toContain(
+      "Interaction with sanctioned addresses"
+    );
   });
 
   it("should reward older wallets", () => {
@@ -84,7 +95,9 @@ describe("Heuristic Scoring", () => {
 
   it("should penalize risk flags", () => {
     const clean = createMockWalletContext({ risk_flags: [] });
-    const flagged = createMockWalletContext({ risk_flags: ["suspicious_pattern", "unusual_volume"] });
+    const flagged = createMockWalletContext({
+      risk_flags: ["suspicious_pattern", "unusual_volume"],
+    });
     const cleanScore = scoreWithHeuristic(clean);
     const flaggedScore = scoreWithHeuristic(flagged);
     expect(flaggedScore.score).toBeLessThan(cleanScore.score);
@@ -92,7 +105,7 @@ describe("Heuristic Scoring", () => {
 
   it("should never exceed 0-100 range even with extreme values", () => {
     const extremeGood = createMockWalletContext({
-      tx_count: 10000,
+      tx_count: 10_000,
       wallet_age_days: 5000,
       unique_counterparties: 500,
       defi_interactions: 100,

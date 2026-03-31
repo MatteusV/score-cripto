@@ -1,16 +1,29 @@
-import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
+import { generateObject } from "ai";
 import { z } from "zod";
-import type { WalletContextInput, ScoreOutput } from "../schemas/score.js";
+import type { ScoreOutput, WalletContextInput } from "../schemas/score.js";
 
 const PROMPT_VERSION = "v1.0";
 const MODEL_ID = "gpt-4o-mini";
 
 const AI_SCORE_SCHEMA = z.object({
-  score: z.number().int().min(0).max(100).describe("Trust score from 0 (high risk) to 100 (highly trustworthy)"),
-  confidence: z.number().min(0).max(1).describe("Confidence level of the assessment from 0 to 1"),
-  reasoning: z.string().describe("Detailed explanation of the score assessment"),
-  positiveFactors: z.array(z.string()).describe("List of positive trust indicators found"),
+  score: z
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .describe("Trust score from 0 (high risk) to 100 (highly trustworthy)"),
+  confidence: z
+    .number()
+    .min(0)
+    .max(1)
+    .describe("Confidence level of the assessment from 0 to 1"),
+  reasoning: z
+    .string()
+    .describe("Detailed explanation of the score assessment"),
+  positiveFactors: z
+    .array(z.string())
+    .describe("List of positive trust indicators found"),
   riskFactors: z.array(z.string()).describe("List of risk indicators found"),
 });
 
@@ -45,15 +58,17 @@ SCORING RULES:
 }
 
 export interface ScoringResult {
-  output: ScoreOutput;
-  modelVersion: string;
-  promptVersion: string;
-  tokensUsed: number;
   cost: number;
   durationMs: number;
+  modelVersion: string;
+  output: ScoreOutput;
+  promptVersion: string;
+  tokensUsed: number;
 }
 
-export async function scoreWithAI(input: WalletContextInput): Promise<ScoringResult> {
+export async function scoreWithAI(
+  input: WalletContextInput
+): Promise<ScoringResult> {
   const start = Date.now();
 
   const result = await generateObject({
@@ -68,7 +83,7 @@ export async function scoreWithAI(input: WalletContextInput): Promise<ScoringRes
   const promptTokens = result.usage?.promptTokens ?? 0;
   const completionTokens = result.usage?.completionTokens ?? 0;
   // gpt-4o-mini pricing: $0.15/1M input, $0.60/1M output
-  const cost = (promptTokens * 0.00000015) + (completionTokens * 0.0000006);
+  const cost = promptTokens * 0.000_000_15 + completionTokens * 0.000_000_6;
 
   return {
     output: result.object,
@@ -160,7 +175,9 @@ export function scoreWithHeuristic(input: WalletContextInput): ScoreOutput {
   // Risk flags
   if (input.risk_flags.length > 0) {
     score -= input.risk_flags.length * 5;
-    riskFactors.push(`${input.risk_flags.length} risk flag(s) detected: ${input.risk_flags.join(", ")}`);
+    riskFactors.push(
+      `${input.risk_flags.length} risk flag(s) detected: ${input.risk_flags.join(", ")}`
+    );
   }
 
   // Clamp score
@@ -177,7 +194,8 @@ export function scoreWithHeuristic(input: WalletContextInput): ScoreOutput {
   ].filter(Boolean).length;
   const confidence = Math.round((dataPoints / 6) * 0.8 * 100) / 100; // max 0.8 for heuristic
 
-  const reasoning = `Heuristic score based on ${dataPoints}/6 available data signals. ` +
+  const reasoning =
+    `Heuristic score based on ${dataPoints}/6 available data signals. ` +
     `${positiveFactors.length} positive factor(s) and ${riskFactors.length} risk factor(s) identified.`;
 
   return {

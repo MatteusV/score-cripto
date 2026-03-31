@@ -1,12 +1,10 @@
+import { createHash } from "node:crypto";
 import type { FastifyInstance } from "fastify";
-import { createHash } from "crypto";
-import { PrismaClient } from "@prisma/client";
-import { WalletContextInputSchema } from "../schemas/score.js";
-import { scoreWithAI, scoreWithHeuristic } from "../services/scoring.js";
-import { publishScoreCalculated } from "../events/publisher.js";
 import { config } from "../config.js";
-
-const prisma = new PrismaClient();
+import { publishScoreCalculated } from "../events/publisher.js";
+import { WalletContextInputSchema } from "../schemas/score.js";
+import { prisma } from "../services/database.js";
+import { scoreWithAI, scoreWithHeuristic } from "../services/scoring.js";
 
 function hashWalletContext(input: unknown): string {
   return createHash("sha256").update(JSON.stringify(input)).digest("hex");
@@ -82,7 +80,10 @@ export async function scoreRoutes(fastify: FastifyInstance): Promise<void> {
     try {
       scoringResult = await scoreWithAI(input);
     } catch (error) {
-      console.error("[Score] AI scoring failed, using heuristic fallback:", (error as Error).message);
+      console.error(
+        "[Score] AI scoring failed, using heuristic fallback:",
+        (error as Error).message
+      );
       usedFallback = true;
       const heuristicOutput = scoreWithHeuristic(input);
       scoringResult = {
@@ -156,35 +157,38 @@ export async function scoreRoutes(fastify: FastifyInstance): Promise<void> {
     });
   });
 
-  fastify.get<{ Params: { processId: string } }>("/score/:processId", async (request, reply) => {
-    const { processId } = request.params;
+  fastify.get<{ Params: { processId: string } }>(
+    "/score/:processId",
+    async (request, reply) => {
+      const { processId } = request.params;
 
-    const processedData = await prisma.processedData.findFirst({
-      where: { analysisRequestId: processId },
-      include: { analysisRequest: true },
-    });
+      const processedData = await prisma.processedData.findFirst({
+        where: { analysisRequestId: processId },
+        include: { analysisRequest: true },
+      });
 
-    if (!processedData) {
-      return reply.status(404).send({ error: "Score not found" });
+      if (!processedData) {
+        return reply.status(404).send({ error: "Score not found" });
+      }
+
+      return reply.status(200).send({
+        processId: processedData.analysisRequestId,
+        chain: processedData.chain,
+        address: processedData.address,
+        score: processedData.score,
+        confidence: processedData.confidence,
+        reasoning: processedData.reasoning,
+        positiveFactors: processedData.positiveFactors,
+        riskFactors: processedData.riskFactors,
+        modelVersion: processedData.modelVersion,
+        promptVersion: processedData.promptVersion,
+        cachedResult: false,
+        validUntil: processedData.validUntil.toISOString(),
+        createdAt: processedData.createdAt.toISOString(),
+      });
     }
-
-    return reply.status(200).send({
-      processId: processedData.analysisRequestId,
-      chain: processedData.chain,
-      address: processedData.address,
-      score: processedData.score,
-      confidence: processedData.confidence,
-      reasoning: processedData.reasoning,
-      positiveFactors: processedData.positiveFactors,
-      riskFactors: processedData.riskFactors,
-      modelVersion: processedData.modelVersion,
-      promptVersion: processedData.promptVersion,
-      cachedResult: false,
-      validUntil: processedData.validUntil.toISOString(),
-      createdAt: processedData.createdAt.toISOString(),
-    });
-  });
+  );
 }
 
 // Export for testing
-export { prisma, hashWalletContext, computeValidUntil };
+export { computeValidUntil, hashWalletContext, type prisma };

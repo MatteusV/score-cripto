@@ -9,3 +9,5 @@ dist/
 # Environment files
 .env
 .env.local
+
+/src/generated/

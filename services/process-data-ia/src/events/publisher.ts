@@ -28,18 +28,18 @@ export async function connectRabbitMQ(): Promise<void> {
   } catch (error) {
     console.warn(
       "[RabbitMQ] Failed to connect, events will not be published:",
-      (error as Error).message,
+      (error as Error).message
     );
   }
 }
 
 export async function publishEvent(
   routingKey: string,
-  payload: unknown,
+  payload: unknown
 ): Promise<boolean> {
   if (!channel) {
     console.warn(
-      `[RabbitMQ] No channel available, skipping event: ${routingKey}`,
+      `[RabbitMQ] No channel available, skipping event: ${routingKey}`
     );
     return false;
   }
@@ -56,7 +56,7 @@ export async function publishEvent(
   } catch (error) {
     console.error(
       `[RabbitMQ] Failed to publish event ${routingKey}:`,
-      (error as Error).message,
+      (error as Error).message
     );
     return false;
   }
@@ -64,8 +64,12 @@ export async function publishEvent(
 
 export async function disconnectRabbitMQ(): Promise<void> {
   try {
-    if (channel) await channel.close();
-    if (connection) await connection.close();
+    if (channel) {
+      await channel.close();
+    }
+    if (connection) {
+      await connection.close();
+    }
   } catch {
     // Ignore close errors
   } finally {

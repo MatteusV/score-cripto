@@ -1,7 +1,7 @@
 import Fastify from "fastify";
-import { scoreRoutes } from "./routes/score.js";
-import { connectRabbitMQ, disconnectRabbitMQ } from "./events/publisher.js";
 import { config } from "./config.js";
+import { connectRabbitMQ, disconnectRabbitMQ } from "./events/publisher.js";
+import { scoreRoutes } from "./routes/score.js";
 
 const fastify = Fastify({
   logger: true,
@@ -9,7 +9,11 @@ const fastify = Fastify({
 
 // Health check
 fastify.get("/health", async () => {
-  return { status: "ok", service: "process-data-ia", timestamp: new Date().toISOString() };
+  return {
+    status: "ok",
+    service: "process-data-ia",
+    timestamp: new Date().toISOString(),
+  };
 });
 
 // Register routes

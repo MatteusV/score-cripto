@@ -12,7 +12,11 @@ services:
     volumes:
       - process_data_ia_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PROCESS_DATA_IA_POSTGRES_USER:-score_cripto} -d ${PROCESS_DATA_IA_POSTGRES_DB:-score_cripto_scoring}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${PROCESS_DATA_IA_POSTGRES_USER:-score_cripto} -d ${PROCESS_DATA_IA_POSTGRES_DB:-score_cripto_scoring}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

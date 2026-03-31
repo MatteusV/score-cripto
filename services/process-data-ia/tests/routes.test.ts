@@ -1,18 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import Fastify from "fastify";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockWalletContext } from "./setup.js";
 
-const { mockPrismaProcessedData, mockPrismaAnalysisRequest } = vi.hoisted(() => {
-  const mockPrismaProcessedData = {
-    findFirst: vi.fn(),
-    create: vi.fn(),
-  };
-  const mockPrismaAnalysisRequest = {
-    create: vi.fn(),
-    update: vi.fn(),
-  };
-  return { mockPrismaProcessedData, mockPrismaAnalysisRequest };
-});
+const { mockPrismaProcessedData, mockPrismaAnalysisRequest } = vi.hoisted(
+  () => {
+    const mockPrismaProcessedData = {
+      findFirst: vi.fn(),
+      create: vi.fn(),
+    };
+    const mockPrismaAnalysisRequest = {
+      create: vi.fn(),
+      update: vi.fn(),
+    };
+    return { mockPrismaProcessedData, mockPrismaAnalysisRequest };
+  }
+);
 
 vi.mock("@prisma/client", () => {
   return {
@@ -88,7 +90,7 @@ describe("POST /score", () => {
   });
 
   it("should return cached score when valid score exists", async () => {
-    const validUntil = new Date(Date.now() + 3600000);
+    const validUntil = new Date(Date.now() + 3_600_000);
     const createdAt = new Date();
 
     mockPrismaProcessedData.findFirst.mockResolvedValueOnce({
@@ -127,7 +129,7 @@ describe("POST /score", () => {
             }),
           },
         }),
-      }),
+      })
     );
   });
 
@@ -222,7 +224,7 @@ describe("GET /score/:processId", () => {
   });
 
   it("should return existing score by processId", async () => {
-    const validUntil = new Date(Date.now() + 3600000);
+    const validUntil = new Date(Date.now() + 3_600_000);
     const createdAt = new Date();
 
     mockPrismaProcessedData.findFirst.mockResolvedValueOnce({
