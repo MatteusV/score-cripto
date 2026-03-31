@@ -29,6 +29,68 @@ pnpm fix                  # Auto-fix lint issues
 
 Run the full local stack from the repo root: `docker compose up`.
 
+## Code Quality (Biome/Ultracite)
+
+This project uses **Ultracite** (zero-config Biome preset) for strict code quality. Run `pnpm fix` before committing.
+
+### Common Biome Lint Rules
+
+| Rule | Issue | Fix |
+|---|---|---|
+| **`useAwait`** | `async` function without `await` | Remove `async` keyword OR add `await` to a call |
+| **`noParameterProperties`** | Constructor parameter with visibility modifier: `constructor(private repo: Repo)` | Convert to explicit property: `private repo: Repo; constructor(repo: Repo) { this.repo = repo; }` |
+| **`useConsistentMemberAccessibility`** | Mix of `public`/implicit member access | Remove `public` keyword (implicit is default in TypeScript) |
+| **`noImplicitAnyLet`** | Variable without type: `let x;` | Add type annotation: `let x: SomeType;` OR initialize with value: `let x = value;` |
+| **`noBarrelFile`** | Re-exporting from index files | Avoid `export { x } from './file.js'` — import directly instead |
+| **`useConsistentTypeDefinitions`** | Mix of `type` and `interface` | Prefer `interface` for object shapes (Biome default) |
+| **`noEvolvingTypes`** | Variable type evolves through assignments | Add explicit type annotation upfront |
+
+### Fixing Async Functions
+
+**Problem**: Function marked `async` but never calls `await`
+```ts
+// ❌ Wrong
+async execute(req: Request): Promise<Response> {
+  return this.repo.get(id);  // No await
+}
+
+// ✅ Right - remove async
+execute(req: Request): Promise<Response> {
+  return this.repo.get(id);  // Promise returned directly
+}
+```
+
+### Fixing Parameter Properties
+
+**Problem**: Constructor parameter with visibility modifier
+```ts
+// ❌ Wrong
+constructor(private readonly repo: Repository) {}
+
+// ✅ Right - explicit property
+private readonly repo: Repository;
+
+constructor(repo: Repository) {
+  this.repo = repo;
+}
+```
+
+### Fixing Variable Types
+
+**Problem**: Variable without type annotation
+```ts
+// ❌ Wrong
+let result;  // implicitly any
+result = await someFunction();
+
+// ✅ Right - declare type upfront
+let result: SomeType;
+result = await someFunction();
+
+// OR - initialize with value
+const result = await someFunction();  // type inferred from return
+```
+
 ## Architecture
 
 This service follows a layered architecture with a clear separation between HTTP, use-cases, repositories, and external services.
