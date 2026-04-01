@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { ScoreOutput, WalletContextInput } from "../schemas/score.js";
 
 const PROMPT_VERSION = "v1.0";
-const MODEL_SLUG = "openai/gpt-5.4-mini";
+const MODEL_SLUG = "mistral/ministral-3b";
 
 const AI_SCORE_SCHEMA = z.object({
 	score: z
