@@ -5,6 +5,7 @@ package events_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -120,6 +121,64 @@ func TestConsumerE2E_CacheHit_PublishesWithoutCallingProvider(t *testing.T) {
 	}
 }
 
+func TestConsumerE2E_InvalidPayload_IsDroppedWithoutPublishing(t *testing.T) {
+	state := newProviderState()
+	server := newMockEtherscanServer(t, state)
+	env := newEventFlowTestEnv(t, testTopology(t), server.URL+"/api")
+
+	if err := env.publishRawMessage([]byte(`{
+		"event": "wallet.data.requested",
+		"schemaVersion": "1",
+		"timestamp": "2026-04-01T00:00:00Z",
+		"data": {
+			"chain": "ethereum"
+		}
+	}`)); err != nil {
+		t.Fatalf("publish invalid event: %v", err)
+	}
+
+	env.mustQueueDepth(t, env.topology.ConsumeQueue, 0)
+	env.mustObserveNoCachedEvent(t, 1500*time.Millisecond)
+
+	if state.totalCalls() != 0 {
+		t.Fatalf("expected provider not to be called for invalid payload, got %d calls", state.totalCalls())
+	}
+}
+
+func TestConsumerE2E_TransientProviderError_RequeuesThenPublishes(t *testing.T) {
+	state := newProviderState()
+	server := newMockEtherscanServer(t, state)
+	baseProvider := infraProvider.NewEtherscanProvider("", server.URL+"/api")
+	flaky := &flakyProvider{
+		delegate:      baseProvider,
+		failuresLeft:  1,
+		supportedList: []string{"ethereum", "polygon"},
+	}
+	env := newEventFlowTestEnvWithProviders(t, testTopology(t), map[string]usecase.BlockchainProviderPort{
+		"ethereum": flaky,
+		"polygon":  flaky,
+	})
+
+	address := strings.ToLower("0x0000000000000000000000000000000000000f12")
+	if err := env.publishRequestedEvent("req-requeue", "user-requeue", "ethereum", address); err != nil {
+		t.Fatalf("publish requested event: %v", err)
+	}
+
+	evt := env.mustReadCachedEvent(t)
+	if evt.Data.RequestID != "req-requeue" {
+		t.Fatalf("expected request id req-requeue, got %s", evt.Data.RequestID)
+	}
+	if evt.Data.WalletContext.Address != address {
+		t.Fatalf("expected address %s, got %s", address, evt.Data.WalletContext.Address)
+	}
+	if flaky.Attempts() < 2 {
+		t.Fatalf("expected at least 2 provider attempts, got %d", flaky.Attempts())
+	}
+	if state.calls("txlist", address) != 1 {
+		t.Fatalf("expected exactly 1 successful txlist call after requeue, got %d", state.calls("txlist", address))
+	}
+}
+
 type eventFlowTestEnv struct {
 	cache           *infraCache.RedisCache
 	channel         *amqp.Channel
@@ -128,6 +187,14 @@ type eventFlowTestEnv struct {
 }
 
 func newEventFlowTestEnv(t *testing.T, topology events.Topology, providerBaseURL string) *eventFlowTestEnv {
+	provider := infraProvider.NewEtherscanProvider("", providerBaseURL)
+	return newEventFlowTestEnvWithProviders(t, topology, map[string]usecase.BlockchainProviderPort{
+		"ethereum": provider,
+		"polygon":  provider,
+	})
+}
+
+func newEventFlowTestEnvWithProviders(t *testing.T, topology events.Topology, providers map[string]usecase.BlockchainProviderPort) *eventFlowTestEnv {
 	t.Helper()
 
 	cache, err := infraCache.New(testRedisURL, 20)
@@ -170,7 +237,6 @@ func newEventFlowTestEnv(t *testing.T, topology events.Topology, providerBaseURL
 		_, _ = channel.QueueDelete(publishTapQueue, false, false, false)
 	})
 
-	provider := infraProvider.NewEtherscanProvider("", providerBaseURL)
 	publisher, err := events.NewPublisherWithTopology(testRabbitMQURL, topology)
 	if err != nil {
 		t.Fatalf("new publisher: %v", err)
@@ -183,10 +249,7 @@ func newEventFlowTestEnv(t *testing.T, topology events.Topology, providerBaseURL
 		testRabbitMQURL,
 		usecase.NewProcessWalletDataRequested(
 			cache,
-			map[string]usecase.BlockchainProviderPort{
-				"ethereum": provider,
-				"polygon":  provider,
-			},
+			providers,
 			publisher,
 			infraProvider.Normalize,
 		),
@@ -245,6 +308,10 @@ func (e *eventFlowTestEnv) publishRequestedEvent(requestID, userID, chain, addre
 		return err
 	}
 
+	return e.publishRawMessage(body)
+}
+
+func (e *eventFlowTestEnv) publishRawMessage(body []byte) error {
 	return e.channel.PublishWithContext(
 		context.Background(),
 		e.topology.ExchangeName,
@@ -275,6 +342,37 @@ func (e *eventFlowTestEnv) mustReadCachedEvent(t *testing.T) domain.WalletDataCa
 	})
 
 	return event
+}
+
+func (e *eventFlowTestEnv) mustObserveNoCachedEvent(t *testing.T, wait time.Duration) {
+	t.Helper()
+
+	deadline := time.Now().Add(wait)
+	for time.Now().Before(deadline) {
+		msg, ok, err := e.channel.Get(e.publishTapQueue, true)
+		if err != nil {
+			t.Fatalf("read publish tap queue: %v", err)
+		}
+		if ok {
+			t.Fatalf("unexpected cached event published: %s", string(msg.Body))
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func (e *eventFlowTestEnv) mustQueueDepth(t *testing.T, queue string, want int) {
+	t.Helper()
+
+	pollUntil(t, 10*time.Second, func() error {
+		info, err := e.channel.QueueInspect(queue)
+		if err != nil {
+			return err
+		}
+		if info.Messages != want {
+			return fmt.Errorf("queue %s has %d messages, want %d", queue, info.Messages, want)
+		}
+		return nil
+	})
 }
 
 func flushRedisDB(t *testing.T) {
@@ -319,6 +417,36 @@ func pollUntil(t *testing.T, timeout time.Duration, fn func() error) {
 type providerState struct {
 	mu     sync.Mutex
 	counts map[string]int
+}
+
+type flakyProvider struct {
+	mu            sync.Mutex
+	delegate      usecase.BlockchainProviderPort
+	failuresLeft  int
+	attempts      int
+	supportedList []string
+}
+
+func (p *flakyProvider) FetchWalletData(ctx context.Context, chain, address string) (*domain.RawWalletData, error) {
+	p.mu.Lock()
+	p.attempts++
+	if p.failuresLeft > 0 {
+		p.failuresLeft--
+		p.mu.Unlock()
+		return nil, errors.New("temporary provider outage")
+	}
+	p.mu.Unlock()
+	return p.delegate.FetchWalletData(ctx, chain, address)
+}
+
+func (p *flakyProvider) SupportedChains() []string {
+	return append([]string(nil), p.supportedList...)
+}
+
+func (p *flakyProvider) Attempts() int {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.attempts
 }
 
 func newProviderState() *providerState {
