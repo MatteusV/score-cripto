@@ -23,6 +23,7 @@ describe("Get Score By Process ID Use Case", () => {
       userId: randomUUID(),
       chain: "ETH",
       address: "0xabc",
+      walletContextHash: "hash-abc",
       score: 88,
       confidence: 0.92,
       reasoning: "Trustworthy wallet",

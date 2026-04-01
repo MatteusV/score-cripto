@@ -30,9 +30,9 @@ describe("GetAnalysisByChainAddressUserUseCase", () => {
     });
 
     expect(result.analysisRequest).toBeDefined();
-    expect(result.analysisRequest.chain).toBe("ethereum");
-    expect(result.analysisRequest.address).toBe("0x123");
-    expect(result.analysisRequest.userId).toBe("user-1");
+    expect(result.analysisRequest?.chain).toBe("ethereum");
+    expect(result.analysisRequest?.address).toBe("0x123");
+    expect(result.analysisRequest?.userId).toBe("user-1");
   });
 
   it("should return null when analysis not found", async () => {

@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ProcessedData } from "../generated/prisma/client";
 import { AnalysisRequestInMemoryRepository } from "../repositories/in-memory/analysis-request-in-memory-repository";
 import { ProcessedDataInMemoryRepository } from "../repositories/in-memory/processed-data-in-memory-repository";
 import type { WalletContextInput } from "../schemas/score";
@@ -70,7 +69,7 @@ describe("CalculateScore (orchestrator)", () => {
 
   describe("cache hit", () => {
     it("should return cached score without calling AI", async () => {
-      const cached: Omit<ProcessedData, "id" | "createdAt"> = {
+      const cached = {
         analysisRequestId: "req-1",
         userId: "user-1",
         chain: "ethereum",

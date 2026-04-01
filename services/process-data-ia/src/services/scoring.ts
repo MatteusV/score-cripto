@@ -1,10 +1,9 @@
-import { openai } from "@ai-sdk/openai";
-import { generateObject } from "ai";
+import { gateway, generateText, Output } from "ai";
 import { z } from "zod";
 import type { ScoreOutput, WalletContextInput } from "../schemas/score.js";
 
 const PROMPT_VERSION = "v1.0";
-const MODEL_ID = "gpt-4o-mini";
+const MODEL_SLUG = "openai/gpt-5.4-mini";
 
 const AI_SCORE_SCHEMA = z.object({
   score: z
@@ -71,23 +70,28 @@ export async function scoreWithAI(
 ): Promise<ScoringResult> {
   const start = Date.now();
 
-  const result = await generateObject({
-    model: openai(MODEL_ID),
-    schema: AI_SCORE_SCHEMA,
+  const result = await generateText({
+    model: gateway(MODEL_SLUG),
+    output: Output.object({ schema: AI_SCORE_SCHEMA }),
     prompt: buildPrompt(input),
+    providerOptions: {
+      gateway: {
+        tags: ["feature:wallet-scoring", "service:process-data-ia"],
+      },
+    },
   });
 
   const durationMs = Date.now() - start;
 
   const tokensUsed = result.usage?.totalTokens ?? 0;
-  const promptTokens = result.usage?.promptTokens ?? 0;
-  const completionTokens = result.usage?.completionTokens ?? 0;
-  // gpt-4o-mini pricing: $0.15/1M input, $0.60/1M output
-  const cost = promptTokens * 0.000_000_15 + completionTokens * 0.000_000_6;
+  const inputTokens = result.usage?.inputTokens ?? 0;
+  const outputTokens = result.usage?.outputTokens ?? 0;
+  // gpt-5.4-mini pricing: cost tracked automatically in Vercel AI Gateway dashboard
+  const cost = inputTokens * 0.000_000_15 + outputTokens * 0.000_000_6;
 
   return {
-    output: result.object,
-    modelVersion: MODEL_ID,
+    output: result.output,
+    modelVersion: MODEL_SLUG,
     promptVersion: PROMPT_VERSION,
     tokensUsed,
     cost,
