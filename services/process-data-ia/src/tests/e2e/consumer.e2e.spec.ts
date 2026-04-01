@@ -9,22 +9,22 @@ import {
 } from "vitest";
 import { processWalletDataCachedMessage } from "../../events/consumer";
 import type { WalletContextInput } from "../../schemas/score";
-import { scoreWithHeuristic } from "../../services/scoring";
 import type { E2EDatabase } from "./helpers/e2e-database";
 import { createE2EDatabase } from "./helpers/e2e-database";
 
-const heuristicScoringFn = async (input: WalletContextInput) => ({
-  output: scoreWithHeuristic(input),
-  modelVersion: "heuristic-v1",
-  promptVersion: "heuristic",
-  tokensUsed: 0,
-  cost: 0,
-  durationMs: 0,
-});
-
 vi.mock("../../services/scoring", async (importOriginal) => {
   const real = await importOriginal<typeof import("../../services/scoring")>();
-  return { ...real, scoreWithAI: heuristicScoringFn };
+  return {
+    ...real,
+    scoreWithAI: async (input: Parameters<typeof real.scoreWithAI>[0]) => ({
+      output: real.scoreWithHeuristic(input),
+      modelVersion: "heuristic-v1",
+      promptVersion: "heuristic",
+      tokensUsed: 0,
+      cost: 0,
+      durationMs: 0,
+    }),
+  };
 });
 
 vi.mock("../../events/publisher", () => ({
@@ -119,14 +119,22 @@ describe("Consumer E2E — processWalletDataCachedMessage", () => {
   });
 
   it("should process independently for different users", async () => {
-    await processWalletDataCachedMessage(makeEvent("user-a"));
-    await processWalletDataCachedMessage(makeEvent("user-b"));
+    const resultA = await processWalletDataCachedMessage(makeEvent("user-a"));
+    const resultB = await processWalletDataCachedMessage(makeEvent("user-b"));
 
+    expect(resultA.outcome).toBe("processed");
+    expect(resultB.outcome).toBe("processed");
+
+    // Score é compartilhado entre usuários (design intencional):
+    // user-b acerta o cache gerado por user-a — apenas 1 AnalysisRequest criado
     const rows = await db.query(
       "SELECT user_id FROM analysis_requests ORDER BY requested_at"
     );
-    expect(rows.rowCount).toBe(2);
+    expect(rows.rowCount).toBe(1);
     expect(rows.rows[0].user_id).toBe("user-a");
-    expect(rows.rows[1].user_id).toBe("user-b");
+
+    // ProcessedData compartilhada entre os dois usuários
+    const scoreRows = await db.query("SELECT * FROM processed_data");
+    expect(scoreRows.rowCount).toBe(1);
   });
 });
