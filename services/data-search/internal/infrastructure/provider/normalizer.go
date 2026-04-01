@@ -1,11 +1,11 @@
-package normalizer
+package provider
 
 import (
 	"math"
 	"strings"
 	"time"
 
-	"github.com/score-cripto/data-search/internal/model"
+	"github.com/score-cripto/data-search/internal/domain"
 )
 
 // NormalizeAddress normalizes a blockchain address based on the chain.
@@ -28,7 +28,7 @@ func NormalizeAddress(chain, address string) string {
 }
 
 // Normalize converts RawWalletData into a WalletContext with derived metrics.
-func Normalize(raw *model.RawWalletData) *model.WalletContext {
+func Normalize(raw *domain.RawWalletData) *domain.WalletContext {
 	now := time.Now().UTC()
 	address := NormalizeAddress(raw.Chain, raw.Address)
 
@@ -59,19 +59,19 @@ func Normalize(raw *model.RawWalletData) *model.WalletContext {
 		}
 
 		// Check mixer interaction.
-		if model.KnownMixerAddresses[strings.ToLower(tx.From)] || model.KnownMixerAddresses[strings.ToLower(tx.To)] {
+		if domain.KnownMixerAddresses[strings.ToLower(tx.From)] || domain.KnownMixerAddresses[strings.ToLower(tx.To)] {
 			hasMixer = true
 		}
 
 		// Check sanctioned interaction.
-		if model.KnownSanctionedAddresses[strings.ToLower(tx.From)] || model.KnownSanctionedAddresses[strings.ToLower(tx.To)] {
+		if domain.KnownSanctionedAddresses[strings.ToLower(tx.From)] || domain.KnownSanctionedAddresses[strings.ToLower(tx.To)] {
 			hasSanctioned = true
 		}
 
 		// Check DeFi interaction.
-		if model.KnownDefiContracts[strings.ToLower(tx.To)] || model.KnownDefiContracts[strings.ToLower(tx.ContractAddress)] {
+		if domain.KnownDefiContracts[strings.ToLower(tx.To)] || domain.KnownDefiContracts[strings.ToLower(tx.ContractAddress)] {
 			addr := strings.ToLower(tx.To)
-			if model.KnownDefiContracts[strings.ToLower(tx.ContractAddress)] {
+			if domain.KnownDefiContracts[strings.ToLower(tx.ContractAddress)] {
 				addr = strings.ToLower(tx.ContractAddress)
 			}
 			defiContracts[addr] = true
@@ -106,7 +106,7 @@ func Normalize(raw *model.RawWalletData) *model.WalletContext {
 	// Risk flags.
 	riskFlags := buildRiskFlags(hasMixer, hasSanctioned, txCount, walletAgeDays, largestTxRatio, totalVolume)
 
-	return &model.WalletContext{
+	return &domain.WalletContext{
 		Chain:                    strings.ToLower(raw.Chain),
 		Address:                  address,
 		TxCount:                  txCount,

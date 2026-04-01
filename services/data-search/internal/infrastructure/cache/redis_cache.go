@@ -9,18 +9,19 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/score-cripto/data-search/internal/model"
+	"github.com/score-cripto/data-search/internal/domain"
 )
 
-// Cache provides wallet data caching backed by Redis.
-type Cache struct {
+// RedisCache provides wallet data caching backed by Redis.
+// It implements ports.WalletCachePort.
+type RedisCache struct {
 	client *redis.Client
 	ttl    time.Duration
 }
 
-// New creates a Cache connected to the given Redis URL.
+// New creates a RedisCache connected to the given Redis URL.
 // The URL format is redis://[:password@]host:port[/db].
-func New(redisURL string, ttlMinutes int) (*Cache, error) {
+func New(redisURL string, ttlMinutes int) (*RedisCache, error) {
 	opts, err := redis.ParseURL(redisURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse redis url: %w", err)
@@ -37,20 +38,20 @@ func New(redisURL string, ttlMinutes int) (*Cache, error) {
 
 	slog.Info("connected to redis", "url", redisURL, "ttl_minutes", ttlMinutes)
 
-	return &Cache{
+	return &RedisCache{
 		client: client,
 		ttl:    time.Duration(ttlMinutes) * time.Minute,
 	}, nil
 }
 
-// Key builds a cache key for the given chain and address.
-func Key(chain, address string) string {
+// cacheKey builds a cache key for the given chain and address.
+func cacheKey(chain, address string) string {
 	return fmt.Sprintf("wallet:%s:%s", strings.ToLower(chain), strings.ToLower(address))
 }
 
 // Get retrieves a cached WalletContext. Returns nil if not found.
-func (c *Cache) Get(ctx context.Context, chain, address string) (*model.WalletContext, error) {
-	key := Key(chain, address)
+func (c *RedisCache) Get(ctx context.Context, chain, address string) (*domain.WalletContext, error) {
+	key := cacheKey(chain, address)
 	data, err := c.client.Get(ctx, key).Bytes()
 	if err == redis.Nil {
 		return nil, nil
@@ -59,7 +60,7 @@ func (c *Cache) Get(ctx context.Context, chain, address string) (*model.WalletCo
 		return nil, fmt.Errorf("cache get %s: %w", key, err)
 	}
 
-	var wc model.WalletContext
+	var wc domain.WalletContext
 	if err := json.Unmarshal(data, &wc); err != nil {
 		return nil, fmt.Errorf("cache unmarshal %s: %w", key, err)
 	}
@@ -69,8 +70,8 @@ func (c *Cache) Get(ctx context.Context, chain, address string) (*model.WalletCo
 }
 
 // Set stores a WalletContext with the configured TTL.
-func (c *Cache) Set(ctx context.Context, wc *model.WalletContext) error {
-	key := Key(wc.Chain, wc.Address)
+func (c *RedisCache) Set(ctx context.Context, wc *domain.WalletContext) error {
+	key := cacheKey(wc.Chain, wc.Address)
 	data, err := json.Marshal(wc)
 	if err != nil {
 		return fmt.Errorf("cache marshal: %w", err)
@@ -84,13 +85,7 @@ func (c *Cache) Set(ctx context.Context, wc *model.WalletContext) error {
 	return nil
 }
 
-// Delete removes a cached entry.
-func (c *Cache) Delete(ctx context.Context, chain, address string) error {
-	key := Key(chain, address)
-	return c.client.Del(ctx, key).Err()
-}
-
 // Close gracefully shuts down the Redis connection.
-func (c *Cache) Close() error {
+func (c *RedisCache) Close() error {
 	return c.client.Close()
 }

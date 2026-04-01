@@ -1,14 +1,9 @@
-package model
+package domain
 
 import "time"
 
-// AnalysisRequest represents the input for a wallet analysis.
-type AnalysisRequest struct {
-	Chain   string `json:"chain"`
-	Address string `json:"address"`
-}
-
 // WalletContext is the normalized output sent downstream to process-data-ia.
+// FetchedAt and DataSource are internal metadata and are NOT included in events.
 type WalletContext struct {
 	Chain                    string   `json:"chain"`
 	Address                  string   `json:"address"`
@@ -24,20 +19,20 @@ type WalletContext struct {
 	NftActivity              bool     `json:"nft_activity"`
 	DefiInteractions         int      `json:"defi_interactions"`
 	RiskFlags                []string `json:"risk_flags"`
-	FetchedAt                string   `json:"fetched_at"`
-	DataSource               string   `json:"data_source"`
+	FetchedAt                string   `json:"-"`
+	DataSource               string   `json:"-"`
 }
 
 // RawWalletData holds unprocessed data from a blockchain provider.
 type RawWalletData struct {
-	Chain        string
-	Address      string
-	Transactions []RawTransaction
-	Balance      float64
+	Chain         string
+	Address       string
+	Transactions  []RawTransaction
+	Balance       float64
 	TokenHoldings []TokenHolding
-	FirstTxTime  time.Time
-	LastTxTime   time.Time
-	DataSource   string
+	FirstTxTime   time.Time
+	LastTxTime    time.Time
+	DataSource    string
 }
 
 // RawTransaction represents a single on-chain transaction.
@@ -58,14 +53,6 @@ type TokenHolding struct {
 	ContractAddress string
 	Symbol          string
 	Balance         float64
-}
-
-// WalletDataCachedEvent is published to RabbitMQ after caching new data.
-type WalletDataCachedEvent struct {
-	Chain      string `json:"chain"`
-	Address    string `json:"address"`
-	FetchedAt  string `json:"fetched_at"`
-	DataSource string `json:"data_source"`
 }
 
 // Known mixer and sanctioned addresses for risk detection.

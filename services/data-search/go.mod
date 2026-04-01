@@ -3,7 +3,6 @@ module github.com/score-cripto/data-search
 go 1.22
 
 require (
-	github.com/go-chi/chi/v5 v5.1.0
 	github.com/joho/godotenv v1.5.1
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/v9 v9.7.0

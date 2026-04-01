@@ -13,10 +13,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/score-cripto/data-search/internal/model"
+	"github.com/score-cripto/data-search/internal/domain"
 )
 
-// EtherscanProvider implements BlockchainProvider for Ethereum-compatible chains.
+// EtherscanProvider implements BlockchainProviderPort for Ethereum-compatible chains.
 type EtherscanProvider struct {
 	apiKey     string
 	httpClient *http.Client
@@ -38,6 +38,7 @@ func NewEtherscanProvider(apiKey string) *EtherscanProvider {
 	}
 }
 
+// SupportedChains returns the chains this provider handles.
 func (p *EtherscanProvider) SupportedChains() []string {
 	return []string{"ethereum", "polygon"}
 }
@@ -52,10 +53,10 @@ func baseURL(chain string) string {
 	}
 }
 
-func (p *EtherscanProvider) FetchWalletData(ctx context.Context, chain, address string) (*model.RawWalletData, error) {
+// FetchWalletData retrieves raw on-chain data for the given chain and address.
+func (p *EtherscanProvider) FetchWalletData(ctx context.Context, chain, address string) (*domain.RawWalletData, error) {
 	base := baseURL(chain)
 
-	// Fetch normal transactions and token transfers in sequence (rate limited).
 	txs, err := p.fetchTransactions(ctx, base, address)
 	if err != nil {
 		return nil, fmt.Errorf("fetch transactions: %w", err)
@@ -85,22 +86,21 @@ func (p *EtherscanProvider) FetchWalletData(ctx context.Context, chain, address 
 		}
 	}
 
-	// Build token holdings from current token balances (simplified: use last transfer data).
-	holdingsMap := map[string]model.TokenHolding{}
+	holdingsMap := map[string]domain.TokenHolding{}
 	for _, tx := range tokenTxs {
 		if tx.IsTokenTransfer && tx.TokenSymbol != "" {
-			holdingsMap[tx.ContractAddress] = model.TokenHolding{
+			holdingsMap[tx.ContractAddress] = domain.TokenHolding{
 				ContractAddress: tx.ContractAddress,
 				Symbol:          tx.TokenSymbol,
 			}
 		}
 	}
-	holdings := make([]model.TokenHolding, 0, len(holdingsMap))
+	holdings := make([]domain.TokenHolding, 0, len(holdingsMap))
 	for _, h := range holdingsMap {
 		holdings = append(holdings, h)
 	}
 
-	return &model.RawWalletData{
+	return &domain.RawWalletData{
 		Chain:         chain,
 		Address:       strings.ToLower(address),
 		Transactions:  allTxs,
@@ -195,7 +195,7 @@ type etherscanTokenTx struct {
 	ContractAddress string `json:"contractAddress"`
 }
 
-func (p *EtherscanProvider) fetchTransactions(ctx context.Context, base, address string) ([]model.RawTransaction, error) {
+func (p *EtherscanProvider) fetchTransactions(ctx context.Context, base, address string) ([]domain.RawTransaction, error) {
 	url := fmt.Sprintf(
 		"%s?module=account&action=txlist&address=%s&startblock=0&endblock=99999999&sort=asc&apikey=%s",
 		base, address, p.apiKey,
@@ -211,7 +211,6 @@ func (p *EtherscanProvider) fetchTransactions(ctx context.Context, base, address
 		return nil, fmt.Errorf("json decode: %w", err)
 	}
 
-	// Status "0" with "No transactions found" is not an error.
 	if resp.Status == "0" {
 		if strings.Contains(resp.Message, "No transactions found") || resp.Message == "NOTOK" {
 			return nil, nil
@@ -223,9 +222,9 @@ func (p *EtherscanProvider) fetchTransactions(ctx context.Context, base, address
 		return nil, fmt.Errorf("json decode txlist: %w", err)
 	}
 
-	txs := make([]model.RawTransaction, 0, len(rawTxs))
+	txs := make([]domain.RawTransaction, 0, len(rawTxs))
 	for _, rt := range rawTxs {
-		txs = append(txs, model.RawTransaction{
+		txs = append(txs, domain.RawTransaction{
 			Hash:            rt.Hash,
 			From:            strings.ToLower(rt.From),
 			To:              strings.ToLower(rt.To),
@@ -239,7 +238,7 @@ func (p *EtherscanProvider) fetchTransactions(ctx context.Context, base, address
 	return txs, nil
 }
 
-func (p *EtherscanProvider) fetchTokenTransfers(ctx context.Context, base, address string) ([]model.RawTransaction, error) {
+func (p *EtherscanProvider) fetchTokenTransfers(ctx context.Context, base, address string) ([]domain.RawTransaction, error) {
 	url := fmt.Sprintf(
 		"%s?module=account&action=tokentx&address=%s&startblock=0&endblock=99999999&sort=asc&apikey=%s",
 		base, address, p.apiKey,
@@ -264,9 +263,9 @@ func (p *EtherscanProvider) fetchTokenTransfers(ctx context.Context, base, addre
 		return nil, fmt.Errorf("json decode tokentx: %w", err)
 	}
 
-	txs := make([]model.RawTransaction, 0, len(rawTxs))
+	txs := make([]domain.RawTransaction, 0, len(rawTxs))
 	for _, rt := range rawTxs {
-		txs = append(txs, model.RawTransaction{
+		txs = append(txs, domain.RawTransaction{
 			Hash:            rt.Hash,
 			From:            strings.ToLower(rt.From),
 			To:              strings.ToLower(rt.To),

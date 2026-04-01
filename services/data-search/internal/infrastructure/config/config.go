@@ -9,7 +9,6 @@ import (
 
 // Config holds all service configuration loaded from environment variables.
 type Config struct {
-	Port            string
 	RedisURL        string
 	RabbitMQURL     string
 	EtherscanAPIKey string
@@ -29,7 +28,6 @@ func Load() *Config {
 	}
 
 	return &Config{
-		Port:            getEnv("PORT", "8080"),
 		RedisURL:        getEnv("REDIS_URL", "redis://localhost:6379"),
 		RabbitMQURL:     getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672"),
 		EtherscanAPIKey: os.Getenv("ETHERSCAN_API_KEY"),
