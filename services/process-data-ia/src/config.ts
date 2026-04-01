@@ -1,5 +1,4 @@
 export const config = {
-  port: Number.parseInt(process.env.PORT ?? "3002", 10),
   databaseUrl: process.env.DATABASE_URL ?? "",
   openaiApiKey: process.env.OPENAI_API_KEY ?? "",
   rabbitmqUrl: process.env.RABBITMQ_URL ?? "amqp://localhost:5672",
