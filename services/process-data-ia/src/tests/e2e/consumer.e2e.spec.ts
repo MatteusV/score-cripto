@@ -7,10 +7,7 @@ import {
   it,
   vi,
 } from "vitest";
-import {
-  processWalletDataCachedMessage,
-  USER_PLAN_LIMITS,
-} from "../../events/consumer";
+import { processWalletDataCachedMessage } from "../../events/consumer";
 import type { WalletContextInput } from "../../schemas/score";
 import { scoreWithHeuristic } from "../../services/scoring";
 import type { E2EDatabase } from "./helpers/e2e-database";
@@ -32,7 +29,8 @@ vi.mock("../../services/scoring", async (importOriginal) => {
 
 vi.mock("../../events/publisher", () => ({
   publishScoreCalculated: vi.fn().mockReturnValue(true),
-  publishQuotaExceeded: vi.fn().mockReturnValue(true),
+  connectRabbitMQ: vi.fn(),
+  disconnectRabbitMQ: vi.fn(),
 }));
 
 const baseWalletContext: WalletContextInput = {
@@ -54,13 +52,12 @@ const baseWalletContext: WalletContextInput = {
 
 function makeEvent(
   userId: string,
-  userPlan: "FREE_TIER" | "PRO" = "FREE_TIER",
   walletContext: WalletContextInput = baseWalletContext
 ): string {
   return JSON.stringify({
     event: "wallet.data.cached",
     timestamp: new Date().toISOString(),
-    data: { userId, userPlan, walletContext },
+    data: { userId, walletContext },
   });
 }
 
@@ -108,72 +105,28 @@ describe("Consumer E2E — processWalletDataCachedMessage", () => {
     expect(rows.rowCount).toBe(0);
   });
 
-  it("should return quota_exceeded when FREE_TIER user hits limit", async () => {
-    const userId = "quota-user-free";
-    const limit = USER_PLAN_LIMITS.FREE_TIER;
-
-    for (let i = 0; i < limit; i++) {
-      const ctx = { ...baseWalletContext, address: `0xquota-free-${i}` };
-      await processWalletDataCachedMessage(makeEvent(userId, "FREE_TIER", ctx));
-    }
-
-    const result = await processWalletDataCachedMessage(
-      makeEvent(userId, "FREE_TIER", {
-        ...baseWalletContext,
-        address: "0xquota-free-over",
-      })
-    );
-
-    expect(result.outcome).toBe("quota_exceeded");
-  });
-
-  it("should return quota_exceeded when PRO user hits limit", async () => {
-    const userId = "quota-user-pro";
-    const limit = USER_PLAN_LIMITS.PRO;
-
-    for (let i = 0; i < limit; i++) {
-      const ctx = { ...baseWalletContext, address: `0xquota-pro-${i}` };
-      await processWalletDataCachedMessage(makeEvent(userId, "PRO", ctx));
-    }
-
-    const result = await processWalletDataCachedMessage(
-      makeEvent(userId, "PRO", {
-        ...baseWalletContext,
-        address: "0xquota-pro-over",
-      })
-    );
-
-    expect(result.outcome).toBe("quota_exceeded");
-  });
-
   it("should return cached result on second call with same wallet context", async () => {
-    const userId = "cache-user-1";
+    await processWalletDataCachedMessage(makeEvent("cache-user-1"));
+    const second = await processWalletDataCachedMessage(
+      makeEvent("cache-user-1")
+    );
 
-    const first = await processWalletDataCachedMessage(makeEvent(userId));
-    const second = await processWalletDataCachedMessage(makeEvent(userId));
-
-    expect(first.outcome).toBe("processed");
     expect(second.outcome).toBe("processed");
 
-    // Only 1 AnalysisRequest should be created (cache hit on second call)
+    // Only 1 AnalysisRequest created — second call hit cache
     const rows = await db.query("SELECT * FROM analysis_requests");
     expect(rows.rowCount).toBe(1);
   });
 
-  it("should isolate quotas per user", async () => {
-    const limit = USER_PLAN_LIMITS.FREE_TIER;
+  it("should process independently for different users", async () => {
+    await processWalletDataCachedMessage(makeEvent("user-a"));
+    await processWalletDataCachedMessage(makeEvent("user-b"));
 
-    for (let i = 0; i < limit; i++) {
-      const ctx = { ...baseWalletContext, address: `0xiso-user1-${i}` };
-      await processWalletDataCachedMessage(
-        makeEvent("iso-user-1", "FREE_TIER", ctx)
-      );
-    }
-
-    // user-2 should still be within quota
-    const result = await processWalletDataCachedMessage(
-      makeEvent("iso-user-2", "FREE_TIER")
+    const rows = await db.query(
+      "SELECT user_id FROM analysis_requests ORDER BY requested_at"
     );
-    expect(result.outcome).toBe("processed");
+    expect(rows.rowCount).toBe(2);
+    expect(rows.rows[0].user_id).toBe("user-a");
+    expect(rows.rows[1].user_id).toBe("user-b");
   });
 });

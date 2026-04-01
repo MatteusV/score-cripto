@@ -75,18 +75,6 @@ export async function disconnectRabbitMQ(): Promise<void> {
   }
 }
 
-export function publishQuotaExceeded(data: {
-  userId: string;
-  userPlan: string;
-  limit: number;
-}): boolean {
-  return publishEvent("user.quota.exceeded", {
-    event: "user.quota.exceeded",
-    timestamp: new Date().toISOString(),
-    data,
-  });
-}
-
 export function publishScoreCalculated(data: {
   processId: string;
   chain: string;
