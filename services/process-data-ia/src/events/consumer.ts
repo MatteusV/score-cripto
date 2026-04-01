@@ -2,21 +2,76 @@ import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { z } from "zod";
 import { config } from "../config.js";
 import { createCalculateScore } from "../orchestrators/calculate-score.js";
+import { AnalysisRequestPrismaRepository } from "../repositories/prisma/analysis-request-prisma-repository.js";
 import { WalletContextInputSchema } from "../schemas/score.js";
+import { prisma } from "../services/database.js";
+import { CountUserAnalysisThisMonthUseCase } from "../use-cases/analysis-request/count-user-analysis-this-month-use-case.js";
+import { publishQuotaExceeded } from "./publisher.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
 const EXCHANGE_TYPE = "topic";
 const QUEUE_NAME = "process-data-ia.wallet.data.cached";
 const ROUTING_KEY = "wallet.data.cached";
 
-const WalletDataCachedEventSchema = z.object({
+export const USER_PLAN_LIMITS = {
+  FREE_TIER: 5,
+  PRO: 15,
+} as const;
+
+export type UserPlan = keyof typeof USER_PLAN_LIMITS;
+
+export const WalletDataCachedEventSchema = z.object({
   event: z.literal("wallet.data.cached"),
   timestamp: z.string(),
   data: z.object({
     userId: z.string(),
+    userPlan: z.enum(["FREE_TIER", "PRO"]).default("FREE_TIER"),
     walletContext: WalletContextInputSchema,
   }),
 });
+
+export type WalletDataCachedEvent = z.infer<typeof WalletDataCachedEventSchema>;
+
+export interface ProcessMessageResult {
+  outcome: "processed" | "quota_exceeded" | "invalid_payload";
+}
+
+export async function processWalletDataCachedMessage(
+  raw: string
+): Promise<ProcessMessageResult> {
+  const parsed = WalletDataCachedEventSchema.safeParse(JSON.parse(raw));
+
+  if (!parsed.success) {
+    console.error("[Consumer] Invalid event payload:", parsed.error.flatten());
+    return { outcome: "invalid_payload" };
+  }
+
+  const { userId, userPlan, walletContext } = parsed.data.data;
+
+  const analysisRepo = new AnalysisRequestPrismaRepository(prisma);
+  const countUseCase = new CountUserAnalysisThisMonthUseCase(analysisRepo);
+  const count = await countUseCase.execute({ userId });
+
+  if (count >= USER_PLAN_LIMITS[userPlan]) {
+    console.warn(
+      `[Consumer] Quota exceeded for user ${userId} (plan: ${userPlan}, limit: ${USER_PLAN_LIMITS[userPlan]})`
+    );
+    publishQuotaExceeded({
+      userId,
+      userPlan,
+      limit: USER_PLAN_LIMITS[userPlan],
+    });
+    return { outcome: "quota_exceeded" };
+  }
+
+  const orchestrator = createCalculateScore();
+  await orchestrator.execute({ walletContext, userId });
+
+  console.log(
+    `[Consumer] Processed wallet.data.cached for ${walletContext.chain}:${walletContext.address}`
+  );
+  return { outcome: "processed" };
+}
 
 let connection: ChannelModel | null = null;
 let channel: Channel | null = null;
@@ -40,27 +95,17 @@ export async function startConsumer(): Promise<void> {
       }
 
       try {
-        const raw = JSON.parse(msg.content.toString());
-        const parsed = WalletDataCachedEventSchema.safeParse(raw);
-
-        if (!parsed.success) {
-          console.error(
-            "[Consumer] Invalid event payload:",
-            parsed.error.flatten()
-          );
-          channel?.nack(msg, false, false); // dead-letter, don't requeue
-          return;
-        }
-
-        const { userId, walletContext } = parsed.data.data;
-        const orchestrator = createCalculateScore();
-
-        await orchestrator.execute({ walletContext, userId });
-
-        channel?.ack(msg);
-        console.log(
-          `[Consumer] Processed wallet.data.cached for ${walletContext.chain}:${walletContext.address}`
+        const result = await processWalletDataCachedMessage(
+          msg.content.toString()
         );
+
+        if (result.outcome === "invalid_payload") {
+          channel?.nack(msg, false, false); // dead-letter
+        } else if (result.outcome === "quota_exceeded") {
+          channel?.nack(msg, false, false); // dead-letter
+        } else {
+          channel?.ack(msg);
+        }
       } catch (error) {
         console.error(
           "[Consumer] Failed to process event:",

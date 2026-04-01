@@ -16,6 +16,7 @@ interface PersistScoreUseCaseRequest {
   score: number;
   tokensUsed: number;
   userId: string;
+  walletContextHash: string;
 }
 
 interface PersistScoreUseCaseResponse {
@@ -56,6 +57,7 @@ export class PersistScoreUseCase {
       tokensUsed: data.tokensUsed,
       cost: data.cost,
       inferenceDurationMs: data.inferenceDurationMs,
+      walletContextHash: data.walletContextHash,
       validUntil,
     });
 

@@ -33,6 +33,7 @@ describe("Persist Score Use Case", () => {
       tokensUsed: 420,
       cost: 0.000_08,
       inferenceDurationMs: 1100,
+      walletContextHash: "hash-abc",
     });
 
     expect(processedData.id).toEqual(expect.any(String));
@@ -60,6 +61,7 @@ describe("Persist Score Use Case", () => {
       tokensUsed: 300,
       cost: 0.000_05,
       inferenceDurationMs: 900,
+      walletContextHash: "hash-abc",
     });
 
     const expectedValidUntil = new Date(before);
@@ -93,6 +95,7 @@ describe("Persist Score Use Case", () => {
       tokensUsed: 350,
       cost: 0.000_06,
       inferenceDurationMs: 950,
+      walletContextHash: "hash-abc",
     });
 
     expect(processedData.createdAt.getTime()).toBeGreaterThanOrEqual(

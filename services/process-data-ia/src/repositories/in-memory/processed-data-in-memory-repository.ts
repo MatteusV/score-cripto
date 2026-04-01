@@ -33,6 +33,7 @@ export class ProcessedDataInMemoryRepository
         (item) =>
           item.chain === data.chain &&
           item.address === data.address &&
+          item.walletContextHash === data.walletContextHash &&
           item.validUntil > now
       )
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())

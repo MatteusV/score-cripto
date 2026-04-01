@@ -60,13 +60,13 @@ model ProcessedData {
   tokensUsed          Int      @map("tokens_used")
   cost                Float
   inferenceDurationMs Int      @map("inference_duration_ms")
+  walletContextHash   String   @map("wallet_context_hash")
   validUntil          DateTime @map("valid_until")
   createdAt           DateTime @default(now()) @map("created_at")
 
   analysisRequest AnalysisRequest @relation(fields: [analysisRequestId], references: [id])
 
   @@index([userId])
-  @@index([chain, address])
-  @@index([validUntil])
+  @@index([chain, address, walletContextHash, validUntil])
   @@map("processed_data")
 }

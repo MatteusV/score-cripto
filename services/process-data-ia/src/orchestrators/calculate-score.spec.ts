@@ -4,13 +4,12 @@ import { AnalysisRequestInMemoryRepository } from "../repositories/in-memory/ana
 import { ProcessedDataInMemoryRepository } from "../repositories/in-memory/processed-data-in-memory-repository";
 import type { WalletContextInput } from "../schemas/score";
 import { CreateAnalysisRequestUseCase } from "../use-cases/analysis-request/create-analysis-request-use-case";
-import { GetAnalysisByChainAddressUserUseCase } from "../use-cases/analysis-request/get-analysis-by-chain-address-user-use-case";
 import { UpdateStatusToCompletedUseCase } from "../use-cases/analysis-request/update-status-to-completed-use-case";
 import { UpdateStatusToFailedUseCase } from "../use-cases/analysis-request/update-status-to-failed-use-case";
 import { UpdateStatusToProcessingUseCase } from "../use-cases/analysis-request/update-status-to-processing-use-case";
 import { GetCachedScoreUseCase } from "../use-cases/processed-data/get-cached-score-use-case";
 import { PersistScoreUseCase } from "../use-cases/processed-data/persist-score-use-case";
-import { CalculateScore } from "./calculate-score";
+import { CalculateScore, hashWalletContext } from "./calculate-score";
 
 const walletContext: WalletContextInput = {
   chain: "ethereum",
@@ -57,13 +56,9 @@ describe("CalculateScore (orchestrator)", () => {
     scoringFn = vi.fn().mockResolvedValue(mockAIResult);
     publishFn = vi.fn().mockReturnValue(true);
 
-    const getByChainAddressUser = new GetAnalysisByChainAddressUserUseCase(
-      analysisRepo
-    );
-
     sut = new CalculateScore(
       new GetCachedScoreUseCase(processedDataRepo),
-      new CreateAnalysisRequestUseCase(analysisRepo, getByChainAddressUser),
+      new CreateAnalysisRequestUseCase(analysisRepo),
       new UpdateStatusToProcessingUseCase(analysisRepo),
       new UpdateStatusToCompletedUseCase(analysisRepo),
       new UpdateStatusToFailedUseCase(analysisRepo),
@@ -80,6 +75,7 @@ describe("CalculateScore (orchestrator)", () => {
         userId: "user-1",
         chain: "ethereum",
         address: "0xabc",
+        walletContextHash: hashWalletContext(walletContext),
         score: 90,
         confidence: 0.95,
         reasoning: "Cached result",
@@ -115,6 +111,7 @@ describe("CalculateScore (orchestrator)", () => {
       expect(result.processedData.chain).toBe("ethereum");
       expect(result.processedData.address).toBe("0xabc");
       expect(result.processedData.modelVersion).toBe("gpt-4o-mini");
+      expect(result.processedData.walletContextHash).toBeTruthy();
     });
 
     it("should transition analysis request: PENDING → PROCESSING → COMPLETED", async () => {

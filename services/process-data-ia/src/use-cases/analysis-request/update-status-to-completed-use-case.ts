@@ -50,7 +50,7 @@ export class UpdateStatusToCompletedUseCase {
     return {
       analysisRequest: {
         status: updatedAnalysisRequest.status,
-        completedAt: updatedAnalysisRequest.processingAt,
+        completedAt: updatedAnalysisRequest.completedAt,
       },
     };
   }

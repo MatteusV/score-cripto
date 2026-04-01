@@ -12,7 +12,6 @@ import {
   scoreWithHeuristic,
 } from "../services/scoring";
 import { CreateAnalysisRequestUseCase } from "../use-cases/analysis-request/create-analysis-request-use-case";
-import { GetAnalysisByChainAddressUserUseCase } from "../use-cases/analysis-request/get-analysis-by-chain-address-user-use-case";
 import { UpdateStatusToCompletedUseCase } from "../use-cases/analysis-request/update-status-to-completed-use-case";
 import { UpdateStatusToFailedUseCase } from "../use-cases/analysis-request/update-status-to-failed-use-case";
 import { UpdateStatusToProcessingUseCase } from "../use-cases/analysis-request/update-status-to-processing-use-case";
@@ -132,6 +131,7 @@ export class CalculateScore {
       userId,
       chain: walletContext.chain,
       address: walletContext.address,
+      walletContextHash,
       score: scoringResult.output.score,
       confidence: scoringResult.output.confidence,
       reasoning: scoringResult.output.reasoning,
@@ -195,13 +195,10 @@ function createCalculateScoreWithDeps(
 ): CalculateScore {
   const analysisRepo = new AnalysisRequestPrismaRepository(prismaClient);
   const processedDataRepo = new ProcessedDataPrismaRepository(prismaClient);
-  const getByChainAddressUser = new GetAnalysisByChainAddressUserUseCase(
-    analysisRepo
-  );
 
   return new CalculateScore(
     new GetCachedScoreUseCase(processedDataRepo),
-    new CreateAnalysisRequestUseCase(analysisRepo, getByChainAddressUser),
+    new CreateAnalysisRequestUseCase(analysisRepo),
     new UpdateStatusToProcessingUseCase(analysisRepo),
     new UpdateStatusToCompletedUseCase(analysisRepo),
     new UpdateStatusToFailedUseCase(analysisRepo),

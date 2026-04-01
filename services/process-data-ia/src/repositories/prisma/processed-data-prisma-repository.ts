@@ -46,6 +46,7 @@ export class ProcessedDataPrismaRepository implements ProcessedDataRepository {
       where: {
         chain: data.chain,
         address: data.address,
+        walletContextHash: data.walletContextHash,
         validUntil: {
           gt: now,
         },

@@ -6,6 +6,23 @@ import { GetCachedScoreUseCase } from "./get-cached-score-use-case";
 let repository: ProcessedDataInMemoryRepository;
 let sut: GetCachedScoreUseCase;
 
+const BASE_ITEM = {
+  userId: randomUUID(),
+  chain: "ETH",
+  address: "0xabc",
+  walletContextHash: "hash-123",
+  score: 75,
+  confidence: 0.9,
+  reasoning: "Good wallet",
+  positiveFactors: ["Old wallet", "High tx count"],
+  riskFactors: [],
+  modelVersion: "gpt-4o-mini",
+  promptVersion: "v1.0",
+  tokensUsed: 500,
+  cost: 0.0001,
+  inferenceDurationMs: 1200,
+};
+
 describe("Get Cached Score Use Case", () => {
   beforeEach(() => {
     repository = new ProcessedDataInMemoryRepository();
@@ -27,20 +44,8 @@ describe("Get Cached Score Use Case", () => {
     validUntil.setHours(validUntil.getHours() + 24);
 
     await repository.create({
+      ...BASE_ITEM,
       analysisRequestId: randomUUID(),
-      userId: randomUUID(),
-      chain: "ETH",
-      address: "0xabc",
-      score: 75,
-      confidence: 0.9,
-      reasoning: "Good wallet",
-      positiveFactors: ["Old wallet", "High tx count"],
-      riskFactors: [],
-      modelVersion: "gpt-4o-mini",
-      promptVersion: "v1.0",
-      tokensUsed: 500,
-      cost: 0.0001,
-      inferenceDurationMs: 1200,
       validUntil,
     });
 
@@ -59,20 +64,8 @@ describe("Get Cached Score Use Case", () => {
     expiredValidUntil.setHours(expiredValidUntil.getHours() - 1);
 
     await repository.create({
+      ...BASE_ITEM,
       analysisRequestId: randomUUID(),
-      userId: randomUUID(),
-      chain: "ETH",
-      address: "0xabc",
-      score: 75,
-      confidence: 0.9,
-      reasoning: "Good wallet",
-      positiveFactors: [],
-      riskFactors: [],
-      modelVersion: "gpt-4o-mini",
-      promptVersion: "v1.0",
-      tokensUsed: 500,
-      cost: 0.0001,
-      inferenceDurationMs: 1200,
       validUntil: expiredValidUntil,
     });
 
@@ -85,8 +78,28 @@ describe("Get Cached Score Use Case", () => {
     expect(result).toBeNull();
   });
 
+  it("should return null for same wallet but different walletContextHash", async () => {
+    const validUntil = new Date();
+    validUntil.setHours(validUntil.getHours() + 24);
+
+    await repository.create({
+      ...BASE_ITEM,
+      analysisRequestId: randomUUID(),
+      walletContextHash: "hash-original",
+      score: 70,
+      validUntil,
+    });
+
+    const result = await sut.execute({
+      chain: "ETH",
+      address: "0xabc",
+      walletContextHash: "hash-different-context",
+    });
+
+    expect(result).toBeNull();
+  });
+
   it("should return the most recent valid score when multiple exist", async () => {
-    const userId = randomUUID();
     const validUntil = new Date();
     validUntil.setHours(validUntil.getHours() + 24);
 
@@ -94,39 +107,19 @@ describe("Get Cached Score Use Case", () => {
 
     vi.setSystemTime(new Date("2024-01-01T00:00:00Z"));
     await repository.create({
+      ...BASE_ITEM,
       analysisRequestId: randomUUID(),
-      userId,
-      chain: "ETH",
-      address: "0xabc",
       score: 60,
-      confidence: 0.7,
       reasoning: "Older score",
-      positiveFactors: [],
-      riskFactors: [],
-      modelVersion: "gpt-4o-mini",
-      promptVersion: "v1.0",
-      tokensUsed: 400,
-      cost: 0.0001,
-      inferenceDurationMs: 1000,
       validUntil,
     });
 
     vi.setSystemTime(new Date("2024-01-01T01:00:00Z"));
     await repository.create({
+      ...BASE_ITEM,
       analysisRequestId: randomUUID(),
-      userId,
-      chain: "ETH",
-      address: "0xabc",
       score: 85,
-      confidence: 0.95,
       reasoning: "Newer score",
-      positiveFactors: [],
-      riskFactors: [],
-      modelVersion: "gpt-4o-mini",
-      promptVersion: "v1.0",
-      tokensUsed: 500,
-      cost: 0.0001,
-      inferenceDurationMs: 1100,
       validUntil,
     });
 
