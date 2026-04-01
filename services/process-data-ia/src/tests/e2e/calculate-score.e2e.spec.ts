@@ -67,7 +67,9 @@ describe("CalculateScore E2E (AI Gateway)", () => {
 
     const processedRows = await db.query("SELECT * FROM processed_data");
     expect(processedRows.rowCount).toBe(1);
-    expect(Number(processedRows.rows[0].score)).toBe(result.processedData.score);
+    expect(Number(processedRows.rows[0].score)).toBe(
+      result.processedData.score
+    );
     expect(processedRows.rows[0].user_id).toBe("e2e-user-1");
 
     expect(publishFn).toHaveBeenCalledOnce();
