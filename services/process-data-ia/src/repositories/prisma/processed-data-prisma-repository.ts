@@ -1,16 +1,24 @@
-import type { ProcessedData } from "../../generated/prisma/client";
+import type {
+  PrismaClient,
+  ProcessedData,
+} from "../../generated/prisma/client";
 import type { ProcessedDataUncheckedCreateInput } from "../../generated/prisma/models";
-import { prisma } from "../../services/database";
 import type {
   FindCachedScoreData,
   ProcessedDataRepository,
 } from "../processed-data-repository";
 
 export class ProcessedDataPrismaRepository implements ProcessedDataRepository {
+  private readonly prisma: PrismaClient;
+
+  constructor(prismaClient: PrismaClient) {
+    this.prisma = prismaClient;
+  }
+
   async create(
     data: ProcessedDataUncheckedCreateInput
   ): Promise<ProcessedData> {
-    const processedData = await prisma.processedData.create({
+    const processedData = await this.prisma.processedData.create({
       data,
     });
 
@@ -20,7 +28,7 @@ export class ProcessedDataPrismaRepository implements ProcessedDataRepository {
   async findByAnalysisRequestId(
     analysisRequestId: string
   ): Promise<ProcessedData | null> {
-    const processedData = await prisma.processedData.findFirst({
+    const processedData = await this.prisma.processedData.findFirst({
       where: {
         analysisRequestId,
       },
@@ -34,7 +42,7 @@ export class ProcessedDataPrismaRepository implements ProcessedDataRepository {
   ): Promise<ProcessedData | null> {
     const now = new Date();
 
-    const result = await prisma.processedData.findFirst({
+    const result = await this.prisma.processedData.findFirst({
       where: {
         chain: data.chain,
         address: data.address,

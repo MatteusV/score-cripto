@@ -1,10 +1,11 @@
 import { createHash } from "node:crypto";
 import { config } from "../config";
 import { publishScoreCalculated } from "../events/publisher";
-import type { ProcessedData } from "../generated/prisma/client";
+import type { PrismaClient, ProcessedData } from "../generated/prisma/client";
 import { AnalysisRequestPrismaRepository } from "../repositories/prisma/analysis-request-prisma-repository";
 import { ProcessedDataPrismaRepository } from "../repositories/prisma/processed-data-prisma-repository";
 import type { WalletContextInput } from "../schemas/score";
+import { prisma } from "../services/database";
 import {
   type ScoringResult,
   scoreWithAI,
@@ -164,10 +165,15 @@ export class CalculateScore {
 }
 
 export function createCalculateScore(): CalculateScore {
-  return createCalculateScoreWithDeps(scoreWithAI, publishScoreCalculated);
+  return createCalculateScoreWithDeps(
+    scoreWithAI,
+    publishScoreCalculated,
+    prisma
+  );
 }
 
 export interface CreateCalculateScoreTestOptions {
+  prismaClient?: PrismaClient;
   publishFn?: PublishFn;
   scoringFn?: ScoringFn;
 }
@@ -177,16 +183,18 @@ export function createCalculateScoreForTesting(
 ): CalculateScore {
   return createCalculateScoreWithDeps(
     options.scoringFn ?? scoreWithAI,
-    options.publishFn ?? publishScoreCalculated
+    options.publishFn ?? publishScoreCalculated,
+    options.prismaClient ?? prisma
   );
 }
 
 function createCalculateScoreWithDeps(
   scoringFn: ScoringFn,
-  publishFn: PublishFn
+  publishFn: PublishFn,
+  prismaClient: PrismaClient
 ): CalculateScore {
-  const analysisRepo = new AnalysisRequestPrismaRepository();
-  const processedDataRepo = new ProcessedDataPrismaRepository();
+  const analysisRepo = new AnalysisRequestPrismaRepository(prismaClient);
+  const processedDataRepo = new ProcessedDataPrismaRepository(prismaClient);
   const getByChainAddressUser = new GetAnalysisByChainAddressUserUseCase(
     analysisRepo
   );

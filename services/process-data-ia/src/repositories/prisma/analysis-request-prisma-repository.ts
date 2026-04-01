@@ -1,5 +1,7 @@
-import type { AnalysisRequest } from "../../generated/prisma/client";
-import { prisma } from "../../services/database";
+import type {
+  AnalysisRequest,
+  PrismaClient,
+} from "../../generated/prisma/client";
 import type {
   AnalysisRequestRepository,
   FindByIndexData,
@@ -8,11 +10,17 @@ import type {
 export class AnalysisRequestPrismaRepository
   implements AnalysisRequestRepository
 {
+  private readonly prisma: PrismaClient;
+
+  constructor(prismaClient: PrismaClient) {
+    this.prisma = prismaClient;
+  }
+
   async countByUserThisMonth(userId: string): Promise<number> {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    return await prisma.analysisRequest.count({
+    return await this.prisma.analysisRequest.count({
       where: {
         userId,
         requestedAt: { gte: startOfMonth },
@@ -24,7 +32,7 @@ export class AnalysisRequestPrismaRepository
   async create(
     data: Omit<AnalysisRequest, "id">
   ): Promise<AnalysisRequest | null> {
-    const analysisRequest = await prisma.analysisRequest.create({
+    const analysisRequest = await this.prisma.analysisRequest.create({
       data,
     });
 
@@ -36,7 +44,7 @@ export class AnalysisRequestPrismaRepository
   }
 
   async findById(id: string): Promise<AnalysisRequest | null> {
-    const analysisRequest = await prisma.analysisRequest.findUnique({
+    const analysisRequest = await this.prisma.analysisRequest.findUnique({
       where: {
         id,
       },
@@ -54,7 +62,7 @@ export class AnalysisRequestPrismaRepository
     chain,
     userId,
   }: FindByIndexData): Promise<AnalysisRequest | null> {
-    const analysisRequest = await prisma.analysisRequest.findFirst({
+    const analysisRequest = await this.prisma.analysisRequest.findFirst({
       where: {
         chain,
         address,
@@ -76,14 +84,14 @@ export class AnalysisRequestPrismaRepository
   ): Promise<ListByUserResult> {
     const skip = (page - 1) * limit;
 
-    const [items, total] = await prisma.$transaction([
-      prisma.analysisRequest.findMany({
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.analysisRequest.findMany({
         where: { userId },
         skip,
         take: limit,
         orderBy: { requestedAt: "desc" },
       }),
-      prisma.analysisRequest.count({ where: { userId } }),
+      this.prisma.analysisRequest.count({ where: { userId } }),
     ]);
 
     return { items, total };
@@ -93,7 +101,7 @@ export class AnalysisRequestPrismaRepository
     id: string,
     data: Partial<AnalysisRequest>
   ): Promise<AnalysisRequest | null> {
-    const analysisRequestExists = await prisma.analysisRequest.findUnique({
+    const analysisRequestExists = await this.prisma.analysisRequest.findUnique({
       where: {
         id,
       },
@@ -103,7 +111,7 @@ export class AnalysisRequestPrismaRepository
       return null;
     }
 
-    const analysisRequestUpdated = await prisma.analysisRequest.update({
+    const analysisRequestUpdated = await this.prisma.analysisRequest.update({
       where: {
         id,
       },
