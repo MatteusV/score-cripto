@@ -1,4 +1,4 @@
-import { Client } from "pg";
+import { Client, type QueryResult } from "pg";
 
 /**
  * Helper para gerenciar banco de dados E2E:
@@ -8,9 +8,9 @@ import { Client } from "pg";
  * - Extração de schema via process.env
  */
 export class E2EDatabase {
-  private client: Client;
-  private schema: string;
-  private tables: Record<string, string> = {
+  private readonly client: Client;
+  private readonly schema: string;
+  private readonly tables: Record<string, string> = {
     analysisRequests: "analysis_requests",
     processedData: "processed_data",
   };
@@ -45,7 +45,7 @@ export class E2EDatabase {
    * Executa query SQL customizada
    * Retorna resultado bruto do pg
    */
-  async query(sql: string): Promise<any> {
+  async query(sql: string): Promise<QueryResult<Record<string, unknown>>> {
     return this.client.query(sql);
   }
 
@@ -56,7 +56,7 @@ export class E2EDatabase {
   async queryTable(
     tableName: keyof typeof this.tables,
     sql: string
-  ): Promise<any> {
+  ): Promise<QueryResult<Record<string, unknown>>> {
     const table = this.tables[tableName];
     const fullSql = sql.replace(/\?/g, `"${this.schema}"."${table}"`);
     return this.client.query(fullSql);
