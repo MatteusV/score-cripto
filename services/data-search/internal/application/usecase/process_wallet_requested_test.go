@@ -96,6 +96,9 @@ func TestProcessWalletDataRequested_CacheHit(t *testing.T) {
 	if out.WalletContext != cached {
 		t.Error("expected cached WalletContext to be returned")
 	}
+	if !pub.called {
+		t.Error("expected publisher.PublishWalletCached to be called on cache hit")
+	}
 	// Provider should NOT have been called.
 	if provider.fetchFunc != nil {
 		t.Error("provider fetch should not be called on cache hit")

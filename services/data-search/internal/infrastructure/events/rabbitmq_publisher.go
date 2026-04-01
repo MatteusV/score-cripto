@@ -11,20 +11,21 @@ import (
 	"github.com/score-cripto/data-search/internal/domain"
 )
 
-const (
-	exchangeName = "score-cripto.events"
-	publishKey   = "wallet.data.cached"
-)
-
 // Publisher sends events to RabbitMQ.
 // It implements ports.EventPublisherPort.
 type Publisher struct {
-	conn    *amqp.Connection
-	channel *amqp.Channel
+	conn     *amqp.Connection
+	channel  *amqp.Channel
+	topology Topology
 }
 
 // NewPublisher connects to RabbitMQ and prepares the exchange.
 func NewPublisher(amqpURL string) (*Publisher, error) {
+	return NewPublisherWithTopology(amqpURL, DefaultTopology())
+}
+
+// NewPublisherWithTopology connects to RabbitMQ using a custom topology.
+func NewPublisherWithTopology(amqpURL string, topology Topology) (*Publisher, error) {
 	conn, err := amqp.Dial(amqpURL)
 	if err != nil {
 		return nil, fmt.Errorf("amqp dial: %w", err)
@@ -37,7 +38,7 @@ func NewPublisher(amqpURL string) (*Publisher, error) {
 	}
 
 	if err := ch.ExchangeDeclare(
-		exchangeName,
+		topology.ExchangeName,
 		"topic",
 		true,  // durable
 		false, // auto-deleted
@@ -50,11 +51,12 @@ func NewPublisher(amqpURL string) (*Publisher, error) {
 		return nil, fmt.Errorf("exchange declare: %w", err)
 	}
 
-	slog.Info("rabbitmq publisher ready", "exchange", exchangeName)
+	slog.Info("rabbitmq publisher ready", "exchange", topology.ExchangeName)
 
 	return &Publisher{
-		conn:    conn,
-		channel: ch,
+		conn:     conn,
+		channel:  ch,
+		topology: topology,
 	}, nil
 }
 
@@ -70,8 +72,8 @@ func (p *Publisher) PublishWalletCached(ctx context.Context, event domain.Wallet
 
 	if err := p.channel.PublishWithContext(
 		ctx,
-		exchangeName,
-		publishKey,
+		p.topology.ExchangeName,
+		p.topology.PublishKey,
 		false, // mandatory
 		false, // immediate
 		amqp.Publishing{
@@ -84,7 +86,7 @@ func (p *Publisher) PublishWalletCached(ctx context.Context, event domain.Wallet
 		return fmt.Errorf("publish event: %w", err)
 	}
 
-	slog.Info("published event", "routing_key", publishKey,
+	slog.Info("published event", "routing_key", p.topology.PublishKey,
 		"requestId", event.Data.RequestID, "chain", event.Data.WalletContext.Chain)
 	return nil
 }

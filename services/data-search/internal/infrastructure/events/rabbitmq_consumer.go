@@ -10,12 +10,6 @@ import (
 	"github.com/score-cripto/data-search/internal/domain"
 )
 
-const (
-	consumeQueue   = "data-search.wallet.data.requested"
-	consumeKey     = "wallet.data.requested"
-	consumerTag    = "data-search-worker"
-)
-
 // MessageResult categorizes the outcome of processing a single message.
 type MessageResult int
 
@@ -35,19 +29,25 @@ type WalletProcessor interface {
 
 // Consumer consumes wallet.data.requested events from RabbitMQ.
 type Consumer struct {
-	conn    *amqp.Connection
-	channel *amqp.Channel
-	useCase WalletProcessor
+	conn     *amqp.Connection
+	channel  *amqp.Channel
+	useCase  WalletProcessor
+	topology Topology
 }
 
 // NewConsumerWithProcessor creates a Consumer with a pre-built processor.
 // Used in tests to avoid a live AMQP connection.
 func NewConsumerWithProcessor(uc WalletProcessor) *Consumer {
-	return &Consumer{useCase: uc}
+	return &Consumer{useCase: uc, topology: DefaultTopology()}
 }
 
 // NewConsumer creates a Consumer and sets up the queue bindings.
 func NewConsumer(amqpURL string, uc WalletProcessor) (*Consumer, error) {
+	return NewConsumerWithTopology(amqpURL, uc, DefaultTopology())
+}
+
+// NewConsumerWithTopology creates a Consumer using a custom RabbitMQ topology.
+func NewConsumerWithTopology(amqpURL string, uc WalletProcessor, topology Topology) (*Consumer, error) {
 	conn, err := amqp.Dial(amqpURL)
 	if err != nil {
 		return nil, fmt.Errorf("amqp dial: %w", err)
@@ -61,7 +61,7 @@ func NewConsumer(amqpURL string, uc WalletProcessor) (*Consumer, error) {
 
 	// Declare exchange (idempotent).
 	if err := ch.ExchangeDeclare(
-		exchangeName,
+		topology.ExchangeName,
 		"topic",
 		true,  // durable
 		false, // auto-deleted
@@ -76,7 +76,7 @@ func NewConsumer(amqpURL string, uc WalletProcessor) (*Consumer, error) {
 
 	// Declare queue.
 	if _, err := ch.QueueDeclare(
-		consumeQueue,
+		topology.ConsumeQueue,
 		true,  // durable
 		false, // auto-delete
 		false, // exclusive
@@ -89,7 +89,7 @@ func NewConsumer(amqpURL string, uc WalletProcessor) (*Consumer, error) {
 	}
 
 	// Bind queue to exchange.
-	if err := ch.QueueBind(consumeQueue, consumeKey, exchangeName, false, nil); err != nil {
+	if err := ch.QueueBind(topology.ConsumeQueue, topology.ConsumeKey, topology.ExchangeName, false, nil); err != nil {
 		ch.Close()
 		conn.Close()
 		return nil, fmt.Errorf("queue bind: %w", err)
@@ -102,20 +102,21 @@ func NewConsumer(amqpURL string, uc WalletProcessor) (*Consumer, error) {
 		return nil, fmt.Errorf("qos: %w", err)
 	}
 
-	slog.Info("rabbitmq consumer ready", "queue", consumeQueue, "exchange", exchangeName)
+	slog.Info("rabbitmq consumer ready", "queue", topology.ConsumeQueue, "exchange", topology.ExchangeName)
 
 	return &Consumer{
-		conn:    conn,
-		channel: ch,
-		useCase: uc,
+		conn:     conn,
+		channel:  ch,
+		useCase:  uc,
+		topology: topology,
 	}, nil
 }
 
 // Start begins consuming messages. It blocks until ctx is cancelled.
 func (c *Consumer) Start(ctx context.Context) error {
 	msgs, err := c.channel.Consume(
-		consumeQueue,
-		consumerTag,
+		c.topology.ConsumeQueue,
+		c.topology.ConsumerTag,
 		false, // auto-ack
 		false, // exclusive
 		false, // no-local
@@ -126,7 +127,7 @@ func (c *Consumer) Start(ctx context.Context) error {
 		return fmt.Errorf("consume: %w", err)
 	}
 
-	slog.Info("started consuming messages", "queue", consumeQueue)
+	slog.Info("started consuming messages", "queue", c.topology.ConsumeQueue)
 
 	for {
 		select {
@@ -178,7 +179,7 @@ func (c *Consumer) ProcessMessage(ctx context.Context, body []byte) (MessageResu
 // Close gracefully shuts down the consumer.
 func (c *Consumer) Close() error {
 	if c.channel != nil {
-		c.channel.Cancel(consumerTag, false)
+		c.channel.Cancel(c.topology.ConsumerTag, false)
 		c.channel.Close()
 	}
 	if c.conn != nil {

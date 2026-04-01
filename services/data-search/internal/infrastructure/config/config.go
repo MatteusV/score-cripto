@@ -9,10 +9,11 @@ import (
 
 // Config holds all service configuration loaded from environment variables.
 type Config struct {
-	RedisURL        string
-	RabbitMQURL     string
-	EtherscanAPIKey string
-	CacheTTLMinutes int
+	RedisURL         string
+	RabbitMQURL      string
+	EtherscanAPIKey  string
+	EtherscanBaseURL string
+	CacheTTLMinutes  int
 }
 
 // Load reads configuration from environment variables, with sensible defaults.
@@ -28,10 +29,11 @@ func Load() *Config {
 	}
 
 	return &Config{
-		RedisURL:        getEnv("REDIS_URL", "redis://localhost:6379"),
-		RabbitMQURL:     getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672"),
-		EtherscanAPIKey: os.Getenv("ETHERSCAN_API_KEY"),
-		CacheTTLMinutes: ttl,
+		RedisURL:         getEnv("REDIS_URL", "redis://localhost:6379"),
+		RabbitMQURL:      getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672"),
+		EtherscanAPIKey:  os.Getenv("ETHERSCAN_API_KEY"),
+		EtherscanBaseURL: os.Getenv("ETHERSCAN_BASE_URL"),
+		CacheTTLMinutes:  ttl,
 	}
 }
 

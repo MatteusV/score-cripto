@@ -82,6 +82,12 @@ func (uc *ProcessWalletDataRequested) Execute(ctx context.Context, input Process
 		slog.WarnContext(ctx, "cache read error, proceeding to fetch", "error", err)
 	}
 	if cached != nil {
+		if uc.publisher != nil {
+			event := domain.NewWalletDataCachedEvent(input.RequestID, input.UserID, cached)
+			if err := uc.publisher.PublishWalletCached(ctx, event); err != nil {
+				slog.WarnContext(ctx, "failed to publish wallet.data.cached event from cache hit", "error", err)
+			}
+		}
 		slog.InfoContext(ctx, "returning cached result", "chain", chain, "address", address)
 		return ProcessWalletDataRequestedOutput{WalletContext: cached, CacheHit: true}, nil
 	}

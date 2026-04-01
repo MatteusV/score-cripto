@@ -37,7 +37,7 @@ func main() {
 	defer pub.Close()
 
 	// Blockchain providers.
-	ethProv := infraProvider.NewEtherscanProvider(cfg.EtherscanAPIKey)
+	ethProv := infraProvider.NewEtherscanProvider(cfg.EtherscanAPIKey, cfg.EtherscanBaseURL)
 
 	// Wire providers map.
 	providers := make(map[string]usecase.BlockchainProviderPort)

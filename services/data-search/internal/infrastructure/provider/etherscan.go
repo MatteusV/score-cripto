@@ -18,8 +18,9 @@ import (
 
 // EtherscanProvider implements BlockchainProviderPort for Ethereum-compatible chains.
 type EtherscanProvider struct {
-	apiKey     string
-	httpClient *http.Client
+	apiKey          string
+	baseURLOverride string
+	httpClient      *http.Client
 
 	// Rate limiter: 5 requests per second for the free tier.
 	mu          sync.Mutex
@@ -28,9 +29,10 @@ type EtherscanProvider struct {
 }
 
 // NewEtherscanProvider creates a provider configured with the given API key.
-func NewEtherscanProvider(apiKey string) *EtherscanProvider {
+func NewEtherscanProvider(apiKey string, baseURLOverride string) *EtherscanProvider {
 	return &EtherscanProvider{
-		apiKey: apiKey,
+		apiKey:          apiKey,
+		baseURLOverride: strings.TrimRight(baseURLOverride, "/"),
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -44,7 +46,11 @@ func (p *EtherscanProvider) SupportedChains() []string {
 }
 
 // baseURL returns the API endpoint for the given chain.
-func baseURL(chain string) string {
+func (p *EtherscanProvider) baseURL(chain string) string {
+	if p.baseURLOverride != "" && strings.EqualFold(chain, "ethereum") {
+		return p.baseURLOverride
+	}
+
 	switch strings.ToLower(chain) {
 	case "polygon":
 		return "https://api.polygonscan.com/api"
@@ -55,7 +61,7 @@ func baseURL(chain string) string {
 
 // FetchWalletData retrieves raw on-chain data for the given chain and address.
 func (p *EtherscanProvider) FetchWalletData(ctx context.Context, chain, address string) (*domain.RawWalletData, error) {
-	base := baseURL(chain)
+	base := p.baseURL(chain)
 
 	txs, err := p.fetchTransactions(ctx, base, address)
 	if err != nil {
