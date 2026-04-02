@@ -81,6 +81,9 @@ export function publishScoreCalculated(data: {
   address: string;
   score: number;
   confidence: number;
+  reasoning: string;
+  positiveFactors: string[];
+  riskFactors: string[];
   modelVersion: string;
   promptVersion: string;
 }): boolean {

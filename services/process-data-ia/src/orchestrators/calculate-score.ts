@@ -156,6 +156,9 @@ export class CalculateScore {
       address: walletContext.address,
       score: scoringResult.output.score,
       confidence: scoringResult.output.confidence,
+      reasoning: scoringResult.output.reasoning,
+      positiveFactors: scoringResult.output.positiveFactors,
+      riskFactors: scoringResult.output.riskFactors,
       modelVersion: scoringResult.modelVersion,
       promptVersion: scoringResult.promptVersion,
     });

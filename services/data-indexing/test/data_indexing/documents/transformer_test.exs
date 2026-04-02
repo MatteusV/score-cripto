@@ -9,6 +9,9 @@ defmodule DataIndexing.Documents.TransformerTest do
     "address" => "0xABC123",
     "score" => 75,
     "confidence" => 0.92,
+    "reasoning" => "Long-lived wallet with healthy diversification",
+    "positiveFactors" => ["Old wallet", "Good counterparties"],
+    "riskFactors" => ["Small sanctioned exposure"],
     "modelVersion" => "mistral/ministral-3b",
     "promptVersion" => "v1.0"
   }
@@ -77,6 +80,9 @@ defmodule DataIndexing.Documents.TransformerTest do
       assert doc["address"] == "0xabc123"
       assert doc["score"] == 75
       assert doc["confidence"] == 0.92
+      assert doc["reasoning"] == "Long-lived wallet with healthy diversification"
+      assert doc["positive_factors"] == ["Old wallet", "Good counterparties"]
+      assert doc["risk_factors"] == ["Small sanctioned exposure"]
       assert doc["model_version"] == "mistral/ministral-3b"
       assert doc["prompt_version"] == "v1.0"
       assert doc["process_id"] == "cuid-123"

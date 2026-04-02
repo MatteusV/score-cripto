@@ -76,6 +76,18 @@ describe("CalculateScore E2E (AI Gateway)", () => {
     expect(processedRows.rows[0].user_id).toBe("e2e-user-1");
 
     expect(publishFn).toHaveBeenCalledOnce();
+    expect(publishFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        processId: expect.any(String),
+        chain: "ethereum",
+        address: "0xe2etest123",
+        score: result.processedData.score,
+        confidence: result.processedData.confidence,
+        reasoning: result.processedData.reasoning,
+        positiveFactors: result.processedData.positiveFactors,
+        riskFactors: result.processedData.riskFactors,
+      })
+    );
   }, 60_000);
 
   it("should return cached result on second call (no second AI call)", async () => {

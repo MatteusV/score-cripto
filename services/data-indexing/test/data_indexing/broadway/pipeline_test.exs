@@ -60,6 +60,9 @@ defmodule DataIndexing.Broadway.PipelineTest do
       assert document["id"] == "ethereum_0xabc"
       assert document["tx_count"] == 55
       assert document["risk_flags"] == ["flag-a"]
+      assert document["reasoning"] == "Trusted wallet with steady activity"
+      assert document["positive_factors"] == ["Old wallet", "High tx count"]
+      assert document["risk_factors"] == []
       {:ok, %{"taskUid" => 1}}
     end)
 
@@ -71,6 +74,9 @@ defmodule DataIndexing.Broadway.PipelineTest do
         "address" => "0xABC",
         "score" => 88,
         "confidence" => 0.91,
+        "reasoning" => "Trusted wallet with steady activity",
+        "positiveFactors" => ["Old wallet", "High tx count"],
+        "riskFactors" => [],
         "modelVersion" => "gpt-4o-mini",
         "promptVersion" => "v1"
       }

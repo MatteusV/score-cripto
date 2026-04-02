@@ -94,6 +94,9 @@ Published by `process-data-ia`.
     "address": "0xabc123",
     "score": 75,
     "confidence": 0.92,
+    "reasoning": "Long-lived wallet with healthy diversification",
+    "positiveFactors": ["Old wallet", "High transaction count"],
+    "riskFactors": [],
     "modelVersion": "gpt-4o-mini",
     "promptVersion": "v1.0"
   }
@@ -207,6 +210,4 @@ Events emitted:
 - `[:data_indexing, :search, :request]`
 - `[:data_indexing, :search, :results]`
 
-## Known Gap
-
-The current `wallet.score.calculated` event does not include `reasoning`, `positiveFactors`, or `riskFactors`, so those fields cannot yet be indexed from the real event payload. That should be tracked as follow-up work in `process-data-ia` if richer search relevance is required.
+The `wallet.score.calculated` payload now carries `reasoning`, `positiveFactors`, and `riskFactors`, so the Meilisearch document can index both the numeric score and the explanatory narrative from the scoring pipeline.

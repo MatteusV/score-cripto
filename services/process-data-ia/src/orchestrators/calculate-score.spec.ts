@@ -132,6 +132,9 @@ describe("CalculateScore (orchestrator)", () => {
           chain: "ethereum",
           address: "0xabc",
           score: 85,
+          reasoning: "High trust wallet",
+          positiveFactors: ["Old wallet"],
+          riskFactors: [],
           modelVersion: "gpt-4o-mini",
         })
       );
