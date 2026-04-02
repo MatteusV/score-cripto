@@ -91,7 +91,54 @@ services:
     ports:
       - "${DATA_SEARCH_HOST_PORT:-8080}:8080"
 
+  data-indexing-meilisearch:
+    image: getmeili/meilisearch:v1.12
+    container_name: score-cripto-data-indexing-meilisearch
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-score_cripto_meili}
+      MEILI_ENV: development
+    ports:
+      - "${DATA_INDEXING_MEILISEARCH_HOST_PORT:-7701}:7700"
+    volumes:
+      - data_indexing_meilisearch_data:/meili_data
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  data-indexing:
+    build:
+      context: ./services/data-indexing
+    container_name: score-cripto-data-indexing
+    restart: unless-stopped
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      data-indexing-meilisearch:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      MEILISEARCH_URL: http://data-indexing-meilisearch:7700
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-score_cripto_meili}
+      MEILISEARCH_INDEX: ${MEILISEARCH_INDEX:-wallets}
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-score-cripto.events}
+      RABBITMQ_QUEUE: ${DATA_INDEXING_RABBITMQ_QUEUE:-data-indexing.wallet.events}
+      CACHE_TTL_MINUTES: ${DATA_INDEXING_CACHE_TTL_MINUTES:-30}
+      BROADWAY_BATCH_SIZE: ${DATA_INDEXING_BROADWAY_BATCH_SIZE:-10}
+      BROADWAY_BATCH_TIMEOUT_MS: ${DATA_INDEXING_BROADWAY_BATCH_TIMEOUT_MS:-1000}
+    ports:
+      - "${DATA_INDEXING_HOST_PORT:-4000}:4000"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:4000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
 volumes:
   process_data_ia_postgres_data:
   data_search_redis_data:
   rabbitmq_data:
+  data_indexing_meilisearch_data:

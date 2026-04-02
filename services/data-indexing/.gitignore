@@ -1,0 +1,21 @@
+# Dependencies
+/deps/
+/_build/
+
+# Coverage
+/cover/
+
+# Generated files
+*.beam
+*.ez
+
+# Crash dumps
+erl_crash.dump
+
+# Environment
+.env
+.env.local
+
+# Editor
+.elixir_ls/
+.vscode/
