@@ -72,6 +72,7 @@ type WalletContextPayload struct {
 	Chain                    string   `json:"chain"`
 	Address                  string   `json:"address"`
 	TxCount                  int      `json:"tx_count"`
+	InternalTxCount          int      `json:"internal_tx_count"`
 	TotalVolume              float64  `json:"total_volume"`
 	UniqueCounterparties     int      `json:"unique_counterparties"`
 	WalletAgeDays            int      `json:"wallet_age_days"`
@@ -81,7 +82,12 @@ type WalletContextPayload struct {
 	HasSanctionedInteraction bool     `json:"has_sanctioned_interaction"`
 	TokenDiversity           int      `json:"token_diversity"`
 	NftActivity              bool     `json:"nft_activity"`
+	NftTransferCount         int      `json:"nft_transfer_count"`
+	NftCollectionCount       int      `json:"nft_collection_count"`
+	Erc1155TransferCount     int      `json:"erc1155_transfer_count"`
+	Erc1155CollectionCount   int      `json:"erc1155_collection_count"`
 	DefiInteractions         int      `json:"defi_interactions"`
+	ProtocolInteractions     []string `json:"protocol_interactions"`
 	RiskFlags                []string `json:"risk_flags"`
 }
 
@@ -92,10 +98,15 @@ func walletContextToPayload(wc *WalletContext) WalletContextPayload {
 	if riskFlags == nil {
 		riskFlags = []string{}
 	}
+	protocols := wc.ProtocolInteractions
+	if protocols == nil {
+		protocols = []string{}
+	}
 	return WalletContextPayload{
 		Chain:                    wc.Chain,
 		Address:                  wc.Address,
 		TxCount:                  wc.TxCount,
+		InternalTxCount:          wc.InternalTxCount,
 		TotalVolume:              wc.TotalVolume,
 		UniqueCounterparties:     wc.UniqueCounterparties,
 		WalletAgeDays:            wc.WalletAgeDays,
@@ -105,7 +116,12 @@ func walletContextToPayload(wc *WalletContext) WalletContextPayload {
 		HasSanctionedInteraction: wc.HasSanctionedInteraction,
 		TokenDiversity:           wc.TokenDiversity,
 		NftActivity:              wc.NftActivity,
+		NftTransferCount:         wc.NftTransferCount,
+		NftCollectionCount:       wc.NftCollectionCount,
+		Erc1155TransferCount:     wc.Erc1155TransferCount,
+		Erc1155CollectionCount:   wc.Erc1155CollectionCount,
 		DefiInteractions:         wc.DefiInteractions,
+		ProtocolInteractions:     protocols,
 		RiskFlags:                riskFlags,
 	}
 }

@@ -31,7 +31,7 @@ const (
 func TestConsumerE2E_ProcessRequestedEvent_StoresCacheAndPublishesEvent(t *testing.T) {
 	state := newProviderState()
 	server := newMockEtherscanServer(t, state)
-	env := newEventFlowTestEnv(t, testTopology(t), server.URL+"/api")
+	env := newEventFlowTestEnv(t, testTopology(t), server.URL+"/v2/api")
 
 	address := strings.ToLower("0x0000000000000000000000000000000000000e2e")
 	if err := env.publishRequestedEvent("req-e2e-1", "user-e2e-1", "ethereum", address); err != nil {
@@ -76,6 +76,15 @@ func TestConsumerE2E_ProcessRequestedEvent_StoresCacheAndPublishesEvent(t *testi
 	if state.calls("tokentx", address) != 1 {
 		t.Fatalf("expected 1 tokentx call, got %d", state.calls("tokentx", address))
 	}
+	if state.calls("txlistinternal", address) != 1 {
+		t.Fatalf("expected 1 txlistinternal call, got %d", state.calls("txlistinternal", address))
+	}
+	if state.calls("tokennfttx", address) != 1 {
+		t.Fatalf("expected 1 tokennfttx call, got %d", state.calls("tokennfttx", address))
+	}
+	if state.calls("token1155tx", address) != 1 {
+		t.Fatalf("expected 1 token1155tx call, got %d", state.calls("token1155tx", address))
+	}
 	if state.calls("balance", address) != 1 {
 		t.Fatalf("expected 1 balance call, got %d", state.calls("balance", address))
 	}
@@ -84,7 +93,7 @@ func TestConsumerE2E_ProcessRequestedEvent_StoresCacheAndPublishesEvent(t *testi
 func TestConsumerE2E_CacheHit_PublishesWithoutCallingProvider(t *testing.T) {
 	state := newProviderState()
 	server := newMockEtherscanServer(t, state)
-	env := newEventFlowTestEnv(t, testTopology(t), server.URL+"/api")
+	env := newEventFlowTestEnv(t, testTopology(t), server.URL+"/v2/api")
 
 	cachedWallet := &domain.WalletContext{
 		Chain:                "ethereum",
@@ -124,7 +133,7 @@ func TestConsumerE2E_CacheHit_PublishesWithoutCallingProvider(t *testing.T) {
 func TestConsumerE2E_InvalidPayload_IsDroppedWithoutPublishing(t *testing.T) {
 	state := newProviderState()
 	server := newMockEtherscanServer(t, state)
-	env := newEventFlowTestEnv(t, testTopology(t), server.URL+"/api")
+	env := newEventFlowTestEnv(t, testTopology(t), server.URL+"/v2/api")
 
 	if err := env.publishRawMessage([]byte(`{
 		"event": "wallet.data.requested",
@@ -148,7 +157,7 @@ func TestConsumerE2E_InvalidPayload_IsDroppedWithoutPublishing(t *testing.T) {
 func TestConsumerE2E_TransientProviderError_RequeuesThenPublishes(t *testing.T) {
 	state := newProviderState()
 	server := newMockEtherscanServer(t, state)
-	baseProvider := infraProvider.NewEtherscanProvider("", server.URL+"/api")
+	baseProvider := infraProvider.NewEtherscanProvider("", server.URL+"/v2/api")
 	flaky := &flakyProvider{
 		delegate:      baseProvider,
 		failuresLeft:  1,
@@ -480,6 +489,10 @@ func newMockEtherscanServer(t *testing.T, state *providerState) *httptest.Server
 	t.Helper()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.URL.Query().Get("chainid"); got == "" {
+			http.Error(w, "missing chainid", http.StatusBadRequest)
+			return
+		}
 		action := r.URL.Query().Get("action")
 		address := strings.ToLower(r.URL.Query().Get("address"))
 		state.increment(action, address)
@@ -523,6 +536,12 @@ func newMockEtherscanServer(t *testing.T, state *providerState) *httptest.Server
 						"contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
 					},
 				},
+			})
+		case "txlistinternal", "tokennfttx", "token1155tx":
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"status":  "0",
+				"message": "No transactions found",
+				"result":  "No transactions found",
 			})
 		case "balance":
 			_ = json.NewEncoder(w).Encode(map[string]any{

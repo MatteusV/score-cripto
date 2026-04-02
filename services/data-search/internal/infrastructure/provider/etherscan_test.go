@@ -13,6 +13,10 @@ func TestEtherscanProvider_FetchWalletData_UsesBaseURLOverride(t *testing.T) {
 	t.Parallel()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.URL.Query().Get("chainid"); got != "1" {
+			http.Error(w, "missing or invalid chainid", http.StatusBadRequest)
+			return
+		}
 		action := r.URL.Query().Get("action")
 		w.Header().Set("Content-Type", "application/json")
 
@@ -48,6 +52,55 @@ func TestEtherscanProvider_FetchWalletData_UsesBaseURLOverride(t *testing.T) {
 					},
 				},
 			})
+		case "txlistinternal":
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"status":  "1",
+				"message": "OK",
+				"result": []map[string]string{
+					{
+						"hash":      "0xhash3",
+						"from":      "0xccc",
+						"to":        "0xddd",
+						"value":     "250000000000000000",
+						"timeStamp": "1709251200",
+					},
+				},
+			})
+		case "tokennfttx":
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"status":  "1",
+				"message": "OK",
+				"result": []map[string]string{
+					{
+						"hash":            "0xhash4",
+						"from":            "0xddd",
+						"to":              "0xeee",
+						"timeStamp":       "1709337600",
+						"tokenID":         "42",
+						"tokenSymbol":     "NFT",
+						"tokenName":       "Test NFT",
+						"contractAddress": "0x1111111111111111111111111111111111111111",
+					},
+				},
+			})
+		case "token1155tx":
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"status":  "1",
+				"message": "OK",
+				"result": []map[string]string{
+					{
+						"hash":            "0xhash5",
+						"from":            "0xeee",
+						"to":              "0xfff",
+						"timeStamp":       "1709424000",
+						"tokenID":         "7",
+						"tokenValue":      "3",
+						"tokenSymbol":     "GAME",
+						"tokenName":       "Game Items",
+						"contractAddress": "0x2222222222222222222222222222222222222222",
+					},
+				},
+			})
 		case "balance":
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"status":  "1",
@@ -60,7 +113,7 @@ func TestEtherscanProvider_FetchWalletData_UsesBaseURLOverride(t *testing.T) {
 	}))
 	defer server.Close()
 
-	provider := NewEtherscanProvider("", server.URL+"/api")
+	provider := NewEtherscanProvider("", server.URL+"/v2/api")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -75,8 +128,17 @@ func TestEtherscanProvider_FetchWalletData_UsesBaseURLOverride(t *testing.T) {
 	if raw.Balance != 1.5 {
 		t.Fatalf("expected balance 1.5, got %v", raw.Balance)
 	}
-	if len(raw.Transactions) != 2 {
-		t.Fatalf("expected 2 transactions, got %d", len(raw.Transactions))
+	if len(raw.Transactions) != 5 {
+		t.Fatalf("expected 5 transactions, got %d", len(raw.Transactions))
+	}
+	if len(raw.InternalTransactions) != 1 {
+		t.Fatalf("expected 1 internal transaction, got %d", len(raw.InternalTransactions))
+	}
+	if len(raw.NFTTransfers) != 1 {
+		t.Fatalf("expected 1 nft transfer, got %d", len(raw.NFTTransfers))
+	}
+	if len(raw.ERC1155Transfers) != 1 {
+		t.Fatalf("expected 1 erc1155 transfer, got %d", len(raw.ERC1155Transfers))
 	}
 	if len(raw.TokenHoldings) != 1 {
 		t.Fatalf("expected 1 token holding, got %d", len(raw.TokenHoldings))

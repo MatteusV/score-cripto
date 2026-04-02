@@ -122,6 +122,7 @@ func TestNewWalletDataCachedEvent_Fields(t *testing.T) {
 		Chain:                    "ethereum",
 		Address:                  "0xabc123",
 		TxCount:                  42,
+		InternalTxCount:          3,
 		TotalVolume:              100.5,
 		UniqueCounterparties:     10,
 		WalletAgeDays:            365,
@@ -131,7 +132,12 @@ func TestNewWalletDataCachedEvent_Fields(t *testing.T) {
 		HasSanctionedInteraction: false,
 		TokenDiversity:           5,
 		NftActivity:              true,
+		NftTransferCount:         4,
+		NftCollectionCount:       2,
+		Erc1155TransferCount:     3,
+		Erc1155CollectionCount:   1,
 		DefiInteractions:         3,
+		ProtocolInteractions:     []string{"defi", "nft"},
 		RiskFlags:                []string{},
 		FetchedAt:                time.Now().Format(time.RFC3339),
 		DataSource:               "etherscan",
@@ -156,6 +162,15 @@ func TestNewWalletDataCachedEvent_Fields(t *testing.T) {
 	}
 	if evt.Data.WalletContext.TxCount != 42 {
 		t.Errorf("expected tx_count 42, got %d", evt.Data.WalletContext.TxCount)
+	}
+	if evt.Data.WalletContext.InternalTxCount != 3 {
+		t.Errorf("expected internal_tx_count 3, got %d", evt.Data.WalletContext.InternalTxCount)
+	}
+	if evt.Data.WalletContext.NftTransferCount != 4 {
+		t.Errorf("expected nft_transfer_count 4, got %d", evt.Data.WalletContext.NftTransferCount)
+	}
+	if evt.Data.WalletContext.Erc1155TransferCount != 3 {
+		t.Errorf("expected erc1155_transfer_count 3, got %d", evt.Data.WalletContext.Erc1155TransferCount)
 	}
 }
 
