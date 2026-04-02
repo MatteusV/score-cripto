@@ -11,25 +11,23 @@ defmodule DataIndexing.SupervisionTest do
     pipeline_name = :"pipeline-#{System.unique_integer([:positive])}"
 
     {:ok, _supervisor} =
-      start_supervised(
-        %{
-          id: :"test-supervisor-#{System.unique_integer([:positive])}",
-          start:
-            {Supervisor, :start_link,
+      start_supervised(%{
+        id: :"test-supervisor-#{System.unique_integer([:positive])}",
+        start:
+          {Supervisor, :start_link,
+           [
              [
-               [
-                 {IndexManager, client: MockClient, ensure_on_start: false, name: index_name},
-                 {Pipeline,
-                  name: pipeline_name,
-                  producer_module: Broadway.DummyProducer,
-                  meilisearch_client: MockClient,
-                  cache: WalletContext,
-                  index_name: "wallets_test"}
-               ],
-               [strategy: :one_for_one]
-             ]}
-        }
-      )
+               {IndexManager, client: MockClient, ensure_on_start: false, name: index_name},
+               {Pipeline,
+                name: pipeline_name,
+                producer_module: Broadway.DummyProducer,
+                meilisearch_client: MockClient,
+                cache: WalletContext,
+                index_name: "wallets_test"}
+             ],
+             [strategy: :one_for_one]
+           ]}
+      })
 
     index_pid = Process.whereis(index_name)
     pipeline_pid = Process.whereis(pipeline_name)
