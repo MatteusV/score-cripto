@@ -161,6 +161,12 @@ func (c *Consumer) ProcessMessage(ctx context.Context, body []byte) (MessageResu
 		return InvalidPayload, fmt.Errorf("parse event: %w", err)
 	}
 
+	slog.Info("RECEBIDO: wallet.data.requested",
+		"requestId", evt.Data.RequestID,
+		"chain", evt.Data.Chain,
+		"address", evt.Data.Address,
+	)
+
 	input := usecase.ProcessWalletDataRequestedInput{
 		RequestID: evt.Data.RequestID,
 		UserID:    evt.Data.UserID,

@@ -86,8 +86,11 @@ func (p *Publisher) PublishWalletCached(ctx context.Context, event domain.Wallet
 		return fmt.Errorf("publish event: %w", err)
 	}
 
-	slog.Info("published event", "routing_key", p.topology.PublishKey,
-		"requestId", event.Data.RequestID, "chain", event.Data.WalletContext.Chain)
+	slog.Info("EMITINDO: wallet.data.cached",
+		"requestId", event.Data.RequestID,
+		"chain", event.Data.WalletContext.Chain,
+		"address", event.Data.WalletContext.Address,
+	)
 	return nil
 }
 

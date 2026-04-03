@@ -39,9 +39,11 @@ defmodule DataIndexing.Broadway.Pipeline do
   def handle_message(_processor, %Message{} = message, context) do
     case Jason.decode(message.data) do
       {:ok, %{"event" => "wallet.data.cached", "data" => data}} ->
+        Logger.info("RECEBIDO: wallet.data.cached")
         handle_wallet_cached(message, data, context)
 
       {:ok, %{"event" => "wallet.score.calculated", "data" => data}} ->
+        Logger.info("RECEBIDO: wallet.score.calculated")
         handle_score_calculated(message, data, context)
 
       {:ok, %{"event" => event_type}} ->

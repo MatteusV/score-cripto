@@ -48,7 +48,7 @@ export function publishEvent(routingKey: string, payload: unknown): boolean {
       contentType: "application/json",
       timestamp: Date.now(),
     });
-    console.log(`[RabbitMQ] Published event: ${routingKey}`);
+    console.log(`EMITINDO: ${routingKey}`);
     return true;
   } catch (error) {
     console.error(

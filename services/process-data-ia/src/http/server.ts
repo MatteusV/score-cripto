@@ -72,6 +72,7 @@ async function handlePostAnalysis(
     });
 
     // Dispara o fluxo publicando o evento para o data-search
+    console.log(`EMITINDO: wallet.data.requested | requestId=${analysisRequest.id} chain=${chain} address=${address}`);
     publishWalletDataRequested({
       requestId: analysisRequest.id,
       userId,

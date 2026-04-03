@@ -37,6 +37,8 @@ export async function processWalletDataCachedMessage(
 
   const { requestId, userId, walletContext } = parsed.data.data;
 
+  console.log(`RECEBIDO: wallet.data.cached | requestId=${requestId} chain=${walletContext.chain} address=${walletContext.address}`);
+
   const orchestrator = createProcessWalletCachedEvent();
   await orchestrator.execute({ requestId, walletContext, userId });
 
