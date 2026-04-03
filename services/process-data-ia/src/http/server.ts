@@ -113,9 +113,15 @@ async function handleGetAnalysis(
     return;
   }
 
+  const status = analysisRequest.status.toLowerCase() as
+    | "pending"
+    | "processing"
+    | "completed"
+    | "failed";
+
   const base = {
     requestId: analysisRequest.id,
-    status: analysisRequest.status,
+    status,
     chain: analysisRequest.chain,
     address: analysisRequest.address,
   };

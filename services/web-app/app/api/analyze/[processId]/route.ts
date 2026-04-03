@@ -22,7 +22,12 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(data)
+    // Mapeia "failed" (PG) → "error" (frontend)
+    const normalized = {
+      ...data,
+      status: data.status === "failed" ? "error" : data.status,
+    }
+    return NextResponse.json(normalized)
   } catch {
     return NextResponse.json(
       { error: "Failed to reach analysis service" },
