@@ -1,7 +1,7 @@
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { z } from "zod";
 import { config } from "../config.js";
-import { createCalculateScore } from "../orchestrators/calculate-score.js";
+import { createProcessWalletCachedEvent } from "../orchestrators/process-wallet-cached-event.js";
 import { WalletContextInputSchema } from "../schemas/score.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
@@ -13,6 +13,7 @@ export const WalletDataCachedEventSchema = z.object({
   event: z.literal("wallet.data.cached"),
   timestamp: z.string(),
   data: z.object({
+    requestId: z.string(),
     userId: z.string(),
     walletContext: WalletContextInputSchema,
   }),
@@ -34,10 +35,10 @@ export async function processWalletDataCachedMessage(
     return { outcome: "invalid_payload" };
   }
 
-  const { userId, walletContext } = parsed.data.data;
+  const { requestId, userId, walletContext } = parsed.data.data;
 
-  const orchestrator = createCalculateScore();
-  await orchestrator.execute({ walletContext, userId });
+  const orchestrator = createProcessWalletCachedEvent();
+  await orchestrator.execute({ requestId, walletContext, userId });
 
   console.log(
     `[Consumer] Processed wallet.data.cached for ${walletContext.chain}:${walletContext.address}`

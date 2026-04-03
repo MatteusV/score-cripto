@@ -1,3 +1,5 @@
+name: score-cripto
+
 services:
   process-data-ia-postgres:
     image: postgres:17-alpine
@@ -54,10 +56,10 @@ services:
       retries: 10
 
   process-data-ia:
-    build:
-      context: ./services/process-data-ia
+    image: node:22-bookworm-slim
     container_name: score-cripto-process-data-ia
     restart: unless-stopped
+    working_dir: /app
     depends_on:
       process-data-ia-postgres:
         condition: service_healthy
@@ -65,18 +67,31 @@ services:
         condition: service_healthy
     environment:
       PORT: 3002
+      NODE_ENV: development
       DATABASE_URL: postgresql://${PROCESS_DATA_IA_POSTGRES_USER:-score_cripto}:${PROCESS_DATA_IA_POSTGRES_PASSWORD:-score_cripto}@process-data-ia-postgres:5432/${PROCESS_DATA_IA_POSTGRES_DB:-score_cripto_scoring}?schema=public
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
       SCORE_VALIDITY_HOURS: ${SCORE_VALIDITY_HOURS:-24}
+      # Watchers inside Docker can miss fs events depending on host OS/filesystem.
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-1}
+    volumes:
+      - ./services/process-data-ia:/app
+      - process_data_ia_node_modules:/app/node_modules
+      - process_data_ia_pnpm_store:/pnpm/store
     ports:
       - "${PROCESS_DATA_IA_HOST_PORT:-3002}:3002"
+    command:
+      [
+        "sh",
+        "-lc",
+        "corepack enable && pnpm install --frozen-lockfile && pnpm exec prisma generate && pnpm exec prisma db push --skip-generate && pnpm dev",
+      ]
 
   data-search:
-    build:
-      context: ./services/data-search
+    image: golang:1.26-alpine
     container_name: score-cripto-data-search
     restart: unless-stopped
+    working_dir: /app
     depends_on:
       data-search-redis:
         condition: service_healthy
@@ -88,8 +103,18 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
       ETHERSCAN_API_KEY: ${ETHERSCAN_API_KEY:-}
       CACHE_TTL_MINUTES: ${CACHE_TTL_MINUTES:-20}
+    volumes:
+      - ./services/data-search:/app
+      - data_search_go_pkg_cache:/go/pkg/mod
+      - data_search_go_build_cache:/root/.cache/go-build
     ports:
       - "${DATA_SEARCH_HOST_PORT:-8080}:8080"
+    command:
+      [
+        "sh",
+        "-c",
+        "apk add --no-cache git && go install github.com/air-verse/air@latest && /go/bin/air -c .air.toml",
+      ]
 
   data-indexing-meilisearch:
     image: getmeili/meilisearch:v1.12
@@ -109,10 +134,10 @@ services:
       retries: 10
 
   data-indexing:
-    build:
-      context: ./services/data-indexing
+    image: elixir:1.19-alpine
     container_name: score-cripto-data-indexing
     restart: unless-stopped
+    working_dir: /app
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -120,6 +145,7 @@ services:
         condition: service_healthy
     environment:
       PORT: 4000
+      MIX_ENV: dev
       MEILISEARCH_URL: http://data-indexing-meilisearch:7700
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-score_cripto_meili}
       MEILISEARCH_INDEX: ${MEILISEARCH_INDEX:-wallets}
@@ -129,6 +155,11 @@ services:
       CACHE_TTL_MINUTES: ${DATA_INDEXING_CACHE_TTL_MINUTES:-30}
       BROADWAY_BATCH_SIZE: ${DATA_INDEXING_BROADWAY_BATCH_SIZE:-10}
       BROADWAY_BATCH_TIMEOUT_MS: ${DATA_INDEXING_BROADWAY_BATCH_TIMEOUT_MS:-1000}
+    volumes:
+      - ./services/data-indexing:/app
+      - data_indexing_deps:/app/deps
+      - data_indexing_build:/app/_build
+      - data_indexing_mix:/root/.mix
     ports:
       - "${DATA_INDEXING_HOST_PORT:-4000}:4000"
     healthcheck:
@@ -136,21 +167,51 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    command:
+      [
+        "sh",
+        "-c",
+        "apk add --no-cache build-base git wget watchexec && (mix local.hex --force || mix archive.install github hexpm/hex branch latest --force) && mix local.rebar --force && mix deps.get && watchexec -r -e ex,exs -- mix run --no-halt",
+      ]
 
   web-app:
-    build:
-      context: ./services/web-app
+    image: node:22-alpine
     container_name: score-cripto-web-app
     restart: unless-stopped
+    working_dir: /app
     environment:
       PORT: 3000
+      NODE_ENV: development
       NEXT_TELEMETRY_DISABLED: 1
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3002}
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-1}
+      WATCHPACK_POLLING: ${WATCHPACK_POLLING:-true}
+    volumes:
+      - ./services/web-app:/app
+      - web_app_node_modules:/app/node_modules
+      - web_app_next_cache:/app/.next
+      - web_app_pnpm_store:/pnpm/store
     ports:
       - "${WEB_APP_HOST_PORT:-3000}:3000"
+    command:
+      [
+        "sh",
+        "-c",
+        "corepack enable && pnpm install --frozen-lockfile && pnpm dev --hostname 0.0.0.0 --port 3000",
+      ]
 
 volumes:
   process_data_ia_postgres_data:
   data_search_redis_data:
   rabbitmq_data:
   data_indexing_meilisearch_data:
+  process_data_ia_node_modules:
+  process_data_ia_pnpm_store:
+  data_search_go_pkg_cache:
+  data_search_go_build_cache:
+  data_indexing_deps:
+  data_indexing_build:
+  data_indexing_mix:
+  web_app_node_modules:
+  web_app_next_cache:
+  web_app_pnpm_store:

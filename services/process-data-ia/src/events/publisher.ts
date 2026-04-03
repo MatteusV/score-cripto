@@ -75,6 +75,20 @@ export async function disconnectRabbitMQ(): Promise<void> {
   }
 }
 
+export function publishWalletDataRequested(data: {
+  requestId: string;
+  userId: string;
+  chain: string;
+  address: string;
+}): boolean {
+  return publishEvent("wallet.data.requested", {
+    event: "wallet.data.requested",
+    schemaVersion: "1",
+    timestamp: new Date().toISOString(),
+    data,
+  });
+}
+
 export function publishScoreCalculated(data: {
   processId: string;
   chain: string;

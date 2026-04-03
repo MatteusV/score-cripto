@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const envSchema = z.object({
+  PORT: z.coerce.number().int().positive().default(3002),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   // AI Gateway auth is handled automatically via AI_GATEWAY_API_KEY or VERCEL_OIDC_TOKEN
   RABBITMQ_URL: z.string().default("amqp://localhost:5672"),
@@ -20,6 +21,7 @@ if (!parsed.success) {
 }
 
 export const config = {
+  port: parsed.data.PORT,
   databaseUrl: parsed.data.DATABASE_URL,
   rabbitmqUrl: parsed.data.RABBITMQ_URL,
   scoreValidityHours: parsed.data.SCORE_VALIDITY_HOURS,

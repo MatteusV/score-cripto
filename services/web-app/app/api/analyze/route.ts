@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server"
 
-const processes = new Map<
-  string,
-  { chain: string; address: string; createdAt: number }
->()
+const PROCESS_DATA_IA_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3002"
 
 export async function POST(request: Request) {
   const body = await request.json()
@@ -16,10 +14,33 @@ export async function POST(request: Request) {
     )
   }
 
-  const processId = `proc-${crypto.randomUUID().slice(0, 8)}`
-  processes.set(processId, { chain, address, createdAt: Date.now() })
+  // userId temporário até o serviço de autenticação existir
+  const userId = "anonymous"
 
-  return NextResponse.json({ processId })
+  try {
+    const upstream = await fetch(`${PROCESS_DATA_IA_URL}/analysis`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chain, address, userId }),
+    })
+
+    const data = await upstream.json()
+
+    if (!upstream.ok) {
+      return NextResponse.json(
+        { error: data.error ?? "Upstream error" },
+        { status: upstream.status },
+      )
+    }
+
+    return NextResponse.json(
+      { processId: data.requestId, status: data.status },
+      { status: 202 },
+    )
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to reach analysis service" },
+      { status: 503 },
+    )
+  }
 }
-
-export { processes }
