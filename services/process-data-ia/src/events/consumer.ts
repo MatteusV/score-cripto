@@ -2,6 +2,8 @@ import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { z } from "zod";
 import { config } from "../config.js";
 import { createProcessWalletCachedEvent } from "../orchestrators/process-wallet-cached-event.js";
+import { AnalysisRequestIsNotProcessingError } from "../use-cases/errors/analysis-request-is-not-processing-error.js";
+import { AnalysisRequestNotFoundError } from "../use-cases/errors/analysis-request-not-found-error.js";
 import { WalletContextInputSchema } from "../schemas/score.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
@@ -80,11 +82,18 @@ export async function startConsumer(): Promise<void> {
           channel?.ack(msg);
         }
       } catch (error) {
+        const isBusiness =
+          error instanceof AnalysisRequestIsNotProcessingError ||
+          error instanceof AnalysisRequestNotFoundError;
+
         console.error(
-          "[Consumer] Failed to process event:",
+          `[Consumer] Failed to process event (${isBusiness ? "business" : "transient"}):`,
           (error as Error).message
         );
-        channel?.nack(msg, false, true); // requeue on unexpected errors
+
+        // Erros de negócio não devem reentrar na fila (dead-letter)
+        // Erros transitórios (rede, DB) recolocam na fila para retry
+        channel?.nack(msg, false, !isBusiness);
       }
     });
 

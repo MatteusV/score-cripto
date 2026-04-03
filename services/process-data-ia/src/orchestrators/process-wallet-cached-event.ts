@@ -74,13 +74,13 @@ export class ProcessWalletCachedEvent {
       walletContextHash,
     });
 
+    // 2. Marca como PROCESSING (obrigatório antes de qualquer transição para COMPLETED)
+    await this.updateToProcessing.execute({ analysisRequestId: requestId });
+
     if (cachedScore) {
       await this.updateToCompleted.execute({ analysisRequestId: requestId });
       return { processedData: cachedScore, cachedResult: true };
     }
-
-    // 2. Marca como PROCESSING
-    await this.updateToProcessing.execute({ analysisRequestId: requestId });
 
     // 3. Score com AI, fallback heurístico
     let scoringResult: Awaited<ReturnType<typeof scoreWithAI>>;
