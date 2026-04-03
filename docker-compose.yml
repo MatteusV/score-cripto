@@ -183,6 +183,9 @@ services:
       PORT: 3000
       NODE_ENV: development
       NEXT_TELEMETRY_DISABLED: 1
+      # Server-side (API routes): usa o nome do serviço Docker
+      API_BASE_URL: ${API_BASE_URL:-http://process-data-ia:3002}
+      # Client-side (browser): usa localhost com porta exposta
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3002}
       CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-1}
       WATCHPACK_POLLING: ${WATCHPACK_POLLING:-true}

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 
+// API routes rodam server-side: usa API_BASE_URL (nome do serviço Docker)
 const PROCESS_DATA_IA_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3002"
+  process.env.API_BASE_URL ?? "http://localhost:3002"
 
 export async function GET(
   _request: Request,
