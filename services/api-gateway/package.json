@@ -14,6 +14,8 @@
     "fix": "ultracite fix"
   },
   "dependencies": {
+    "@fastify/swagger": "^9.5.1",
+    "@fastify/swagger-ui": "^5.2.3",
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^6.19.2",
     "amqplib": "^0.10.5",

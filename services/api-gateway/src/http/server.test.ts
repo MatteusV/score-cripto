@@ -27,8 +27,7 @@ describe("api-gateway HTTP server (Fastify)", () => {
   describe("POST /analysis", () => {
     it("deve criar análise e retornar 202 com requestId", async () => {
       const { createHttpServer } = await import("./server.js");
-      const app = createHttpServer();
-      await app.ready();
+      const app = await createHttpServer();
 
       mockFindFirst.mockResolvedValue(null);
       mockCreate.mockResolvedValue({
@@ -60,8 +59,7 @@ describe("api-gateway HTTP server (Fastify)", () => {
 
     it("deve retornar 200 com request existente quando já há análise em andamento", async () => {
       const { createHttpServer } = await import("./server.js");
-      const app = createHttpServer();
-      await app.ready();
+      const app = await createHttpServer();
 
       mockFindFirst.mockResolvedValue({
         id: "req-existing",
@@ -84,8 +82,7 @@ describe("api-gateway HTTP server (Fastify)", () => {
 
     it("deve retornar 400 quando body é inválido", async () => {
       const { createHttpServer } = await import("./server.js");
-      const app = createHttpServer();
-      await app.ready();
+      const app = await createHttpServer();
 
       const res = await app.inject({
         method: "POST",
@@ -103,8 +100,7 @@ describe("api-gateway HTTP server (Fastify)", () => {
   describe("GET /analysis/:id", () => {
     it("deve retornar 404 quando request não existe", async () => {
       const { createHttpServer } = await import("./server.js");
-      const app = createHttpServer();
-      await app.ready();
+      const app = await createHttpServer();
 
       mockFindUnique.mockResolvedValue(null);
 
@@ -118,8 +114,7 @@ describe("api-gateway HTTP server (Fastify)", () => {
 
     it("deve retornar status pending sem result quando PENDING", async () => {
       const { createHttpServer } = await import("./server.js");
-      const app = createHttpServer();
-      await app.ready();
+      const app = await createHttpServer();
 
       mockFindUnique.mockResolvedValue({
         id: "req-001",
@@ -140,8 +135,7 @@ describe("api-gateway HTTP server (Fastify)", () => {
 
     it("deve retornar resultado completo quando COMPLETED", async () => {
       const { createHttpServer } = await import("./server.js");
-      const app = createHttpServer();
-      await app.ready();
+      const app = await createHttpServer();
 
       mockFindUnique.mockResolvedValue({
         id: "req-001",
@@ -169,8 +163,7 @@ describe("api-gateway HTTP server (Fastify)", () => {
 
     it("deve retornar failed sem result quando FAILED", async () => {
       const { createHttpServer } = await import("./server.js");
-      const app = createHttpServer();
-      await app.ready();
+      const app = await createHttpServer();
 
       mockFindUnique.mockResolvedValue({
         id: "req-001",
@@ -194,8 +187,7 @@ describe("api-gateway HTTP server (Fastify)", () => {
   describe("GET /health", () => {
     it("deve retornar status ok", async () => {
       const { createHttpServer } = await import("./server.js");
-      const app = createHttpServer();
-      await app.ready();
+      const app = await createHttpServer();
 
       const res = await app.inject({ method: "GET", url: "/health" });
 
