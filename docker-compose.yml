@@ -55,6 +55,57 @@ services:
       timeout: 5s
       retries: 10
 
+  api-gateway-postgres:
+    image: postgres:17-alpine
+    container_name: score-cripto-api-gateway-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${API_GATEWAY_POSTGRES_DB:-score_cripto_gateway}
+      POSTGRES_USER: ${API_GATEWAY_POSTGRES_USER:-score_cripto}
+      POSTGRES_PASSWORD: ${API_GATEWAY_POSTGRES_PASSWORD:-score_cripto}
+    ports:
+      - "${API_GATEWAY_POSTGRES_HOST_PORT:-5434}:5432"
+    volumes:
+      - api_gateway_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${API_GATEWAY_POSTGRES_USER:-score_cripto} -d ${API_GATEWAY_POSTGRES_DB:-score_cripto_gateway}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    image: node:22-bookworm-slim
+    container_name: score-cripto-api-gateway
+    restart: unless-stopped
+    working_dir: /app
+    depends_on:
+      api-gateway-postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      PORT: 3001
+      NODE_ENV: development
+      DATABASE_URL: postgresql://${API_GATEWAY_POSTGRES_USER:-score_cripto}:${API_GATEWAY_POSTGRES_PASSWORD:-score_cripto}@api-gateway-postgres:5432/${API_GATEWAY_POSTGRES_DB:-score_cripto_gateway}?schema=public
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-1}
+    volumes:
+      - ./services/api-gateway:/app
+      - api_gateway_node_modules:/app/node_modules
+      - api_gateway_pnpm_store:/pnpm/store
+    ports:
+      - "${API_GATEWAY_HOST_PORT:-3001}:3001"
+    command:
+      [
+        "sh",
+        "-lc",
+        "corepack enable && pnpm install --frozen-lockfile && pnpm exec prisma generate && pnpm exec prisma db push --skip-generate && pnpm dev",
+      ]
+
   process-data-ia:
     image: node:22-bookworm-slim
     container_name: score-cripto-process-data-ia
@@ -66,20 +117,16 @@ services:
       rabbitmq:
         condition: service_healthy
     environment:
-      PORT: 3002
       NODE_ENV: development
       DATABASE_URL: postgresql://${PROCESS_DATA_IA_POSTGRES_USER:-score_cripto}:${PROCESS_DATA_IA_POSTGRES_PASSWORD:-score_cripto}@process-data-ia-postgres:5432/${PROCESS_DATA_IA_POSTGRES_DB:-score_cripto_scoring}?schema=public
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
       SCORE_VALIDITY_HOURS: ${SCORE_VALIDITY_HOURS:-24}
-      # Watchers inside Docker can miss fs events depending on host OS/filesystem.
       CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-1}
     volumes:
       - ./services/process-data-ia:/app
       - process_data_ia_node_modules:/app/node_modules
       - process_data_ia_pnpm_store:/pnpm/store
-    ports:
-      - "${PROCESS_DATA_IA_HOST_PORT:-3002}:3002"
     command:
       [
         "sh",
@@ -179,14 +226,16 @@ services:
     container_name: score-cripto-web-app
     restart: unless-stopped
     working_dir: /app
+    depends_on:
+      - api-gateway
     environment:
       PORT: 3000
       NODE_ENV: development
       NEXT_TELEMETRY_DISABLED: 1
       # Server-side (API routes): usa o nome do serviço Docker
-      API_BASE_URL: ${API_BASE_URL:-http://process-data-ia:3002}
+      API_BASE_URL: ${API_BASE_URL:-http://api-gateway:3001}
       # Client-side (browser): usa localhost com porta exposta
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3002}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3001}
       CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-1}
       WATCHPACK_POLLING: ${WATCHPACK_POLLING:-true}
     volumes:
@@ -204,6 +253,9 @@ services:
       ]
 
 volumes:
+  api_gateway_postgres_data:
+  api_gateway_node_modules:
+  api_gateway_pnpm_store:
   process_data_ia_postgres_data:
   data_search_redis_data:
   rabbitmq_data:

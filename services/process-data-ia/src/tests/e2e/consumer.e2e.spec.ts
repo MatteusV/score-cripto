@@ -29,6 +29,7 @@ vi.mock("../../services/scoring", async (importOriginal) => {
 
 vi.mock("../../events/publisher", () => ({
   publishScoreCalculated: vi.fn().mockReturnValue(true),
+  publishScoreFailed: vi.fn().mockReturnValue(true),
   connectRabbitMQ: vi.fn(),
   disconnectRabbitMQ: vi.fn(),
 }));
@@ -50,14 +51,21 @@ const baseWalletContext: WalletContextInput = {
   risk_flags: [],
 };
 
+let requestCounter = 0;
+
 function makeEvent(
   userId: string,
   walletContext: WalletContextInput = baseWalletContext
 ): string {
+  requestCounter++;
   return JSON.stringify({
     event: "wallet.data.cached",
     timestamp: new Date().toISOString(),
-    data: { userId, walletContext },
+    data: {
+      requestId: `req-e2e-${requestCounter}`,
+      userId,
+      walletContext,
+    },
   });
 }
 
@@ -75,6 +83,7 @@ describe("Consumer E2E — processWalletDataCachedMessage", () => {
 
   beforeEach(async () => {
     await db.cleanup();
+    requestCounter = 0;
   });
 
   it("should process a valid event and persist score in DB", async () => {
@@ -83,10 +92,6 @@ describe("Consumer E2E — processWalletDataCachedMessage", () => {
     );
 
     expect(result.outcome).toBe("processed");
-
-    const analysisRows = await db.query("SELECT * FROM analysis_requests");
-    expect(analysisRows.rowCount).toBe(1);
-    expect(analysisRows.rows[0].status).toBe("COMPLETED");
 
     const scoreRows = await db.query("SELECT * FROM processed_data");
     expect(scoreRows.rowCount).toBe(1);
@@ -101,7 +106,7 @@ describe("Consumer E2E — processWalletDataCachedMessage", () => {
 
     expect(result.outcome).toBe("invalid_payload");
 
-    const rows = await db.query("SELECT * FROM analysis_requests");
+    const rows = await db.query("SELECT * FROM processed_data");
     expect(rows.rowCount).toBe(0);
   });
 
@@ -113,27 +118,19 @@ describe("Consumer E2E — processWalletDataCachedMessage", () => {
 
     expect(second.outcome).toBe("processed");
 
-    // Only 1 AnalysisRequest created — second call hit cache
-    const rows = await db.query("SELECT * FROM analysis_requests");
+    // Segundo request acerta o cache — apenas 1 ProcessedData persiste
+    const rows = await db.query("SELECT * FROM processed_data");
     expect(rows.rowCount).toBe(1);
   });
 
-  it("should process independently for different users", async () => {
+  it("should process and score independently for different users sharing same wallet", async () => {
     const resultA = await processWalletDataCachedMessage(makeEvent("user-a"));
     const resultB = await processWalletDataCachedMessage(makeEvent("user-b"));
 
     expect(resultA.outcome).toBe("processed");
     expect(resultB.outcome).toBe("processed");
 
-    // Score é compartilhado entre usuários (design intencional):
-    // user-b acerta o cache gerado por user-a — apenas 1 AnalysisRequest criado
-    const rows = await db.query(
-      "SELECT user_id FROM analysis_requests ORDER BY requested_at"
-    );
-    expect(rows.rowCount).toBe(1);
-    expect(rows.rows[0].user_id).toBe("user-a");
-
-    // ProcessedData compartilhada entre os dois usuários
+    // user-b acerta o cache gerado por user-a — apenas 1 ProcessedData persiste
     const scoreRows = await db.query("SELECT * FROM processed_data");
     expect(scoreRows.rowCount).toBe(1);
   });

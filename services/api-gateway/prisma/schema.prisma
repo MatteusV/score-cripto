@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AnalysisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model AnalysisRequest {
+  id          String         @id @default(cuid())
+  userId      String         @map("user_id")
+  chain       String
+  address     String
+  status      AnalysisStatus @default(PENDING)
+  requestedAt DateTime       @default(now()) @map("requested_at")
+  completedAt DateTime?      @map("completed_at")
+  failedAt    DateTime?      @map("failed_at")
+  failureReason String?      @map("failure_reason")
+
+  // Resultado inline (preenchido ao consumir wallet.score.calculated)
+  score           Int?
+  confidence      Float?
+  reasoning       String?
+  positiveFactors Json?   @map("positive_factors")
+  riskFactors     Json?   @map("risk_factors")
+  modelVersion    String? @map("model_version")
+  promptVersion   String? @map("prompt_version")
+
+  @@index([userId])
+  @@index([status])
+  @@index([chain, address])
+  @@index([userId, chain, address])
+  @@map("analysis_requests")
+}

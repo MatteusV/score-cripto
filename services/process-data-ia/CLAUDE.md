@@ -10,18 +10,18 @@ pnpm build                # Compile TypeScript to dist/
 pnpm start                # Run compiled output
 pnpm test                 # Run all use-case tests (vitest)
 pnpm test:watch           # Watch mode
-pnpm test src/use-cases/analysis-request/create-analysis-request-use-case.spec.ts  # Run single test file
-pnpm db:migrate           # Run Prisma migrations (requires DATABASE_URL)
 pnpm db:generate          # Regenerate Prisma client after schema changes
 pnpm check                # Lint with Ultracite/Biome
 pnpm fix                  # Auto-fix lint issues
 ```
 
+> **Nota**: Este serviço não expõe HTTP. É um worker puro orientado a eventos.
+> O boundary HTTP público está em `services/api-gateway`.
+
 ## Environment Variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `PORT` | `3002` | HTTP server port |
 | `DATABASE_URL` | — | PostgreSQL connection string |
 | `OPENAI_API_KEY` | — | Required for AI scoring |
 | `RABBITMQ_URL` | `amqp://localhost:5672` | RabbitMQ connection |

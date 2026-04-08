@@ -1,7 +1,6 @@
 import { config } from "../config.js";
-import { publishScoreCalculated } from "../events/publisher.js";
-import type { PrismaClient, ProcessedData } from "../generated/prisma/client";
-import { AnalysisRequestPrismaRepository } from "../repositories/prisma/analysis-request-prisma-repository.js";
+import { publishScoreCalculated, publishScoreFailed } from "../events/publisher.js";
+import type { ProcessedData } from "../generated/prisma/client";
 import { ProcessedDataPrismaRepository } from "../repositories/prisma/processed-data-prisma-repository.js";
 import type { WalletContextInput } from "../schemas/score.js";
 import { prisma } from "../services/database.js";
@@ -10,15 +9,13 @@ import {
   scoreWithAI,
   scoreWithHeuristic,
 } from "../services/scoring.js";
-import { UpdateStatusToCompletedUseCase } from "../use-cases/analysis-request/update-status-to-completed-use-case.js";
-import { UpdateStatusToFailedUseCase } from "../use-cases/analysis-request/update-status-to-failed-use-case.js";
-import { UpdateStatusToProcessingUseCase } from "../use-cases/analysis-request/update-status-to-processing-use-case.js";
 import { GetCachedScoreUseCase } from "../use-cases/processed-data/get-cached-score-use-case.js";
 import { PersistScoreUseCase } from "../use-cases/processed-data/persist-score-use-case.js";
-import { hashWalletContext } from "./calculate-score.js";
+import { hashWalletContext } from "./hash-wallet-context.js";
 
 type ScoringFn = (input: WalletContextInput) => Promise<ScoringResult>;
-type PublishFn = typeof publishScoreCalculated;
+type PublishCalculatedFn = typeof publishScoreCalculated;
+type PublishFailedFn = typeof publishScoreFailed;
 
 interface ProcessWalletCachedEventInput {
   requestId: string;
@@ -33,32 +30,23 @@ interface ProcessWalletCachedEventOutput {
 
 export class ProcessWalletCachedEvent {
   private readonly getCachedScore: GetCachedScoreUseCase;
-  private readonly updateToProcessing: UpdateStatusToProcessingUseCase;
-  private readonly updateToCompleted: UpdateStatusToCompletedUseCase;
-  private readonly updateToFailed: UpdateStatusToFailedUseCase;
   private readonly persistScore: PersistScoreUseCase;
   private readonly scoringFn: ScoringFn;
-  private readonly publishFn: PublishFn;
-  private readonly prismaClient: PrismaClient;
+  private readonly publishCalculated: PublishCalculatedFn;
+  private readonly publishFailed: PublishFailedFn;
 
   constructor(
     getCachedScore: GetCachedScoreUseCase,
-    updateToProcessing: UpdateStatusToProcessingUseCase,
-    updateToCompleted: UpdateStatusToCompletedUseCase,
-    updateToFailed: UpdateStatusToFailedUseCase,
     persistScore: PersistScoreUseCase,
     scoringFn: ScoringFn,
-    publishFn: PublishFn,
-    prismaClient: PrismaClient
+    publishCalculated: PublishCalculatedFn,
+    publishFailed: PublishFailedFn
   ) {
     this.getCachedScore = getCachedScore;
-    this.updateToProcessing = updateToProcessing;
-    this.updateToCompleted = updateToCompleted;
-    this.updateToFailed = updateToFailed;
     this.persistScore = persistScore;
     this.scoringFn = scoringFn;
-    this.publishFn = publishFn;
-    this.prismaClient = prismaClient;
+    this.publishCalculated = publishCalculated;
+    this.publishFailed = publishFailed;
   }
 
   async execute(
@@ -74,32 +62,34 @@ export class ProcessWalletCachedEvent {
       walletContextHash,
     });
 
-    // 2. Marca como PROCESSING (obrigatório antes de qualquer transição para COMPLETED)
-    await this.updateToProcessing.execute({ analysisRequestId: requestId });
-
     if (cachedScore) {
-      await this.updateToCompleted.execute({ analysisRequestId: requestId });
+      // Publica o resultado do cache para o gateway atualizar o status
+      this.publishCalculated({
+        processId: requestId,
+        chain: walletContext.chain,
+        address: walletContext.address,
+        score: cachedScore.score,
+        confidence: cachedScore.confidence,
+        reasoning: cachedScore.reasoning,
+        positiveFactors: cachedScore.positiveFactors as string[],
+        riskFactors: cachedScore.riskFactors as string[],
+        modelVersion: cachedScore.modelVersion,
+        promptVersion: cachedScore.promptVersion,
+      });
       return { processedData: cachedScore, cachedResult: true };
     }
 
-    // 3. Score com AI, fallback heurístico
-    let scoringResult: Awaited<ReturnType<typeof scoreWithAI>>;
+    // 2. Score com AI, fallback heurístico
+    let scoringResult: ScoringResult;
 
     try {
       scoringResult = await this.scoringFn(walletContext);
     } catch (error) {
+      const reason = (error as Error).message;
       console.error(
         "[ProcessWalletCachedEvent] AI scoring failed, using heuristic:",
-        (error as Error).message
+        reason
       );
-
-      await this.updateToFailed.execute({
-        analysisRequestId: requestId,
-        failureReason: (error as Error).message,
-      });
-
-      // Reabrir como PROCESSING para persistir resultado heurístico
-      await this.updateToProcessing.execute({ analysisRequestId: requestId });
 
       const heuristic = scoreWithHeuristic(walletContext);
       scoringResult = {
@@ -112,30 +102,36 @@ export class ProcessWalletCachedEvent {
       };
     }
 
-    // 4. Persiste score
-    const { processedData } = await this.persistScore.execute({
-      analysisRequestId: requestId,
-      userId,
-      chain: walletContext.chain,
-      address: walletContext.address,
-      walletContextHash,
-      score: scoringResult.output.score,
-      confidence: scoringResult.output.confidence,
-      reasoning: scoringResult.output.reasoning,
-      positiveFactors: scoringResult.output.positiveFactors,
-      riskFactors: scoringResult.output.riskFactors,
-      modelVersion: scoringResult.modelVersion,
-      promptVersion: scoringResult.promptVersion,
-      tokensUsed: scoringResult.tokensUsed,
-      cost: scoringResult.cost,
-      inferenceDurationMs: scoringResult.durationMs,
-    });
+    // 3. Persiste score
+    let processedData: ProcessedData;
+    try {
+      const result = await this.persistScore.execute({
+        analysisRequestId: requestId,
+        userId,
+        chain: walletContext.chain,
+        address: walletContext.address,
+        walletContextHash,
+        score: scoringResult.output.score,
+        confidence: scoringResult.output.confidence,
+        reasoning: scoringResult.output.reasoning,
+        positiveFactors: scoringResult.output.positiveFactors,
+        riskFactors: scoringResult.output.riskFactors,
+        modelVersion: scoringResult.modelVersion,
+        promptVersion: scoringResult.promptVersion,
+        tokensUsed: scoringResult.tokensUsed,
+        cost: scoringResult.cost,
+        inferenceDurationMs: scoringResult.durationMs,
+      });
+      processedData = result.processedData;
+    } catch (error) {
+      const reason = (error as Error).message;
+      console.error("[ProcessWalletCachedEvent] Failed to persist score:", reason);
+      this.publishFailed({ processId: requestId, reason });
+      throw error;
+    }
 
-    // 5. Marca como COMPLETED
-    await this.updateToCompleted.execute({ analysisRequestId: requestId });
-
-    // 6. Publica evento (fire-and-forget)
-    this.publishFn({
+    // 4. Publica evento com resultado completo (fire-and-forget)
+    this.publishCalculated({
       processId: requestId,
       chain: walletContext.chain,
       address: walletContext.address,
@@ -153,29 +149,13 @@ export class ProcessWalletCachedEvent {
 }
 
 export function createProcessWalletCachedEvent(): ProcessWalletCachedEvent {
-  return createProcessWalletCachedEventWithDeps(
-    scoreWithAI,
-    publishScoreCalculated,
-    prisma
-  );
-}
-
-function createProcessWalletCachedEventWithDeps(
-  scoringFn: ScoringFn,
-  publishFn: PublishFn,
-  prismaClient: PrismaClient
-): ProcessWalletCachedEvent {
-  const processedDataRepo = new ProcessedDataPrismaRepository(prismaClient);
-  const analysisRepo = new AnalysisRequestPrismaRepository(prismaClient);
+  const processedDataRepo = new ProcessedDataPrismaRepository(prisma);
 
   return new ProcessWalletCachedEvent(
     new GetCachedScoreUseCase(processedDataRepo),
-    new UpdateStatusToProcessingUseCase(analysisRepo),
-    new UpdateStatusToCompletedUseCase(analysisRepo),
-    new UpdateStatusToFailedUseCase(analysisRepo),
     new PersistScoreUseCase(processedDataRepo, config.scoreValidityHours),
-    scoringFn,
-    publishFn,
-    prismaClient
+    scoreWithAI,
+    publishScoreCalculated,
+    publishScoreFailed
   );
 }

@@ -14,29 +14,41 @@ export async function connectRabbitMQ(): Promise<void> {
     await channel.assertExchange(EXCHANGE_NAME, EXCHANGE_TYPE, {
       durable: true,
     });
-    console.log("[RabbitMQ] Connected and exchange asserted");
+    console.log("[api-gateway][RabbitMQ] Connected and exchange asserted");
 
     connection.on("close", () => {
-      console.log("[RabbitMQ] Connection closed");
+      console.log("[api-gateway][RabbitMQ] Connection closed");
       connection = null;
       channel = null;
     });
 
     connection.on("error", (err) => {
-      console.error("[RabbitMQ] Connection error:", err.message);
+      console.error("[api-gateway][RabbitMQ] Connection error:", err.message);
     });
   } catch (error) {
     console.warn(
-      "[RabbitMQ] Failed to connect, events will not be published:",
+      "[api-gateway][RabbitMQ] Failed to connect, events will not be published:",
       (error as Error).message
     );
   }
 }
 
-export function publishEvent(routingKey: string, payload: unknown): boolean {
+export async function disconnectRabbitMQ(): Promise<void> {
+  try {
+    if (channel) await channel.close();
+    if (connection) await connection.close();
+  } catch {
+    // ignore close errors
+  } finally {
+    channel = null;
+    connection = null;
+  }
+}
+
+function publishEvent(routingKey: string, payload: unknown): boolean {
   if (!channel) {
     console.warn(
-      `[RabbitMQ] No channel available, skipping event: ${routingKey}`
+      `[api-gateway][RabbitMQ] No channel available, skipping: ${routingKey}`
     );
     return false;
   }
@@ -52,26 +64,10 @@ export function publishEvent(routingKey: string, payload: unknown): boolean {
     return true;
   } catch (error) {
     console.error(
-      `[RabbitMQ] Failed to publish event ${routingKey}:`,
+      `[api-gateway][RabbitMQ] Failed to publish ${routingKey}:`,
       (error as Error).message
     );
     return false;
-  }
-}
-
-export async function disconnectRabbitMQ(): Promise<void> {
-  try {
-    if (channel) {
-      await channel.close();
-    }
-    if (connection) {
-      await connection.close();
-    }
-  } catch {
-    // Ignore close errors
-  } finally {
-    channel = null;
-    connection = null;
   }
 }
 
@@ -84,36 +80,6 @@ export function publishWalletDataRequested(data: {
   return publishEvent("wallet.data.requested", {
     event: "wallet.data.requested",
     schemaVersion: "1",
-    timestamp: new Date().toISOString(),
-    data,
-  });
-}
-
-export function publishScoreCalculated(data: {
-  processId: string;
-  chain: string;
-  address: string;
-  score: number;
-  confidence: number;
-  reasoning: string;
-  positiveFactors: string[];
-  riskFactors: string[];
-  modelVersion: string;
-  promptVersion: string;
-}): boolean {
-  return publishEvent("wallet.score.calculated", {
-    event: "wallet.score.calculated",
-    timestamp: new Date().toISOString(),
-    data,
-  });
-}
-
-export function publishScoreFailed(data: {
-  processId: string;
-  reason: string;
-}): boolean {
-  return publishEvent("wallet.score.failed", {
-    event: "wallet.score.failed",
     timestamp: new Date().toISOString(),
     data,
   });

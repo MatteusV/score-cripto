@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -14,39 +8,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum AnalysisStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-}
-
-model AnalysisRequest {
-  id                String         @id @default(cuid())
-  userId            String         @map("user_id")
-  chain             String
-  address           String
-  status            AnalysisStatus @default(PENDING)
-  walletContextHash String         @map("wallet_context_hash")
-  requestedAt       DateTime       @default(now()) @map("requested_at")
-  processingAt      DateTime?      @map("processing_at")
-  completedAt       DateTime?      @map("completed_at")
-  failedAt          DateTime?      @map("failed_at")
-  failureReason     String?        @map("failure_reason")
-
-  processedData ProcessedData?
-
-  @@index([userId])
-  @@index([userId, requestedAt])
-  @@index([status])
-  @@index([chain, address])
-  @@index([walletContextHash])
-  @@map("analysis_requests")
-}
-
 model ProcessedData {
   id                  String   @id @default(cuid())
-  analysisRequestId   String   @unique @map("analysis_request_id")
+  analysisRequestId   String   @map("analysis_request_id")
   userId              String   @map("user_id")
   chain               String
   address             String
@@ -63,8 +27,6 @@ model ProcessedData {
   walletContextHash   String   @map("wallet_context_hash")
   validUntil          DateTime @map("valid_until")
   createdAt           DateTime @default(now()) @map("created_at")
-
-  analysisRequest AnalysisRequest @relation(fields: [analysisRequestId], references: [id])
 
   @@index([userId])
   @@index([chain, address, walletContextHash, validUntil])
