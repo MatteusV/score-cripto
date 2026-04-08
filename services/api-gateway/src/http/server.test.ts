@@ -46,7 +46,10 @@ describe("api-gateway HTTP server (Fastify)", () => {
       });
 
       expect(res.statusCode).toBe(202);
-      expect(res.json()).toMatchObject({ requestId: "req-001", status: "pending" });
+      expect(res.json()).toMatchObject({
+        requestId: "req-001",
+        status: "pending",
+      });
       expect(mockPublish).toHaveBeenCalledWith({
         requestId: "req-001",
         userId: "user-1",
@@ -73,7 +76,10 @@ describe("api-gateway HTTP server (Fastify)", () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.json()).toMatchObject({ requestId: "req-existing", status: "processing" });
+      expect(res.json()).toMatchObject({
+        requestId: "req-existing",
+        status: "processing",
+      });
       expect(mockCreate).not.toHaveBeenCalled();
       expect(mockPublish).not.toHaveBeenCalled();
 
@@ -104,7 +110,10 @@ describe("api-gateway HTTP server (Fastify)", () => {
 
       mockFindUnique.mockResolvedValue(null);
 
-      const res = await app.inject({ method: "GET", url: "/analysis/req-nao-existe" });
+      const res = await app.inject({
+        method: "GET",
+        url: "/analysis/req-nao-existe",
+      });
 
       expect(res.statusCode).toBe(404);
       expect(res.json()).toMatchObject({ error: "Analysis request not found" });

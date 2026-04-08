@@ -1,10 +1,14 @@
-import { createHash } from "node:crypto";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import fastify from "fastify";
 import { z } from "zod";
 import { publishWalletDataRequested } from "../events/publisher.js";
+import { AnalysisRequestPrismaRepository } from "../repositories/prisma/analysis-request-prisma-repository.js";
 import { prisma } from "../services/database.js";
+import { CreateAnalysisRequestUseCase } from "../use-cases/analysis-request/create-analysis-request-use-case.js";
+import { FindActiveAnalysisRequestUseCase } from "../use-cases/analysis-request/find-active-analysis-request-use-case.js";
+import { GetAnalysisRequestUseCase } from "../use-cases/analysis-request/get-analysis-request-use-case.js";
+import { AnalysisRequestNotFoundError } from "../use-cases/errors/analysis-request-not-found-error.js";
 
 const PostAnalysisBodySchema = z.object({
   chain: z.string().min(1),
@@ -25,7 +29,10 @@ export async function createHttpServer() {
         version: "1.0.0",
       },
       tags: [
-        { name: "analysis", description: "Análise de confiabilidade de carteiras" },
+        {
+          name: "analysis",
+          description: "Análise de confiabilidade de carteiras",
+        },
         { name: "system", description: "Status e saúde do serviço" },
       ],
     },
@@ -39,6 +46,21 @@ export async function createHttpServer() {
     },
     staticCSP: true,
   });
+
+  app.setErrorHandler((error, _request, reply) => {
+    if (error.validation) {
+      return reply.status(400).send({
+        error: "Invalid body",
+        details: error.validation,
+      });
+    }
+    reply.send(error);
+  });
+
+  const repository = new AnalysisRequestPrismaRepository(prisma);
+  const createUseCase = new CreateAnalysisRequestUseCase(repository);
+  const findActiveUseCase = new FindActiveAnalysisRequestUseCase(repository);
+  const getUseCase = new GetAnalysisRequestUseCase(repository);
 
   // POST /analysis
   app.post(
@@ -78,12 +100,16 @@ export async function createHttpServer() {
             description: "Análise criada — pipeline iniciado",
             type: "object",
             properties: {
-              requestId: { type: "string", description: "Use para polling em GET /analysis/:id" },
+              requestId: {
+                type: "string",
+                description: "Use para polling em GET /analysis/:id",
+              },
               status: { type: "string", enum: ["pending"] },
             },
           },
           200: {
-            description: "Análise em andamento já existente para este usuário+carteira",
+            description:
+              "Análise em andamento já existente para este usuário+carteira",
             type: "object",
             properties: {
               requestId: { type: "string" },
@@ -113,15 +139,7 @@ export async function createHttpServer() {
 
       const { chain, address, userId } = parsed.data;
 
-      const existing = await prisma.analysisRequest.findFirst({
-        where: {
-          userId,
-          chain,
-          address,
-          status: { in: ["PENDING", "PROCESSING"] },
-        },
-        orderBy: { requestedAt: "desc" },
-      });
+      const existing = await findActiveUseCase.execute({ userId, chain, address });
 
       if (existing) {
         return reply.status(200).send({
@@ -130,23 +148,24 @@ export async function createHttpServer() {
         });
       }
 
-      const analysisRequest = await prisma.analysisRequest.create({
-        data: { userId, chain, address, status: "PENDING" },
-      });
+      const { analysisRequest } = await createUseCase.execute({ userId, chain, address });
 
       console.log(
-        `EMITINDO: wallet.data.requested | requestId=${analysisRequest.id} chain=${chain} address=${address}`
+        `EMITINDO: wallet.data.requested | requestId=${analysisRequest.id} chain=${chain} address=${address}`,
       );
 
-      publishWalletDataRequested({ requestId: analysisRequest.id, userId, chain, address });
-
-      void createHash("sha256").update(`${chain}:${address}`).digest("hex");
+      publishWalletDataRequested({
+        requestId: analysisRequest.id,
+        userId,
+        chain,
+        address,
+      });
 
       return reply.status(202).send({
         requestId: analysisRequest.id,
         status: "pending",
       });
-    }
+    },
   );
 
   // GET /analysis/:id
@@ -191,7 +210,8 @@ export async function createHttpServer() {
                     type: "integer",
                     minimum: 0,
                     maximum: 100,
-                    description: "Score de confiabilidade (0 = alto risco, 100 = alta confiança)",
+                    description:
+                      "Score de confiabilidade (0 = alto risco, 100 = alta confiança)",
                   },
                   confidence: {
                     type: "number",
@@ -206,15 +226,22 @@ export async function createHttpServer() {
                   positiveFactors: {
                     type: "array",
                     items: { type: "string" },
-                    description: "Fatores que contribuíram positivamente para o score",
+                    description:
+                      "Fatores que contribuíram positivamente para o score",
                   },
                   riskFactors: {
                     type: "array",
                     items: { type: "string" },
                     description: "Fatores de risco identificados na carteira",
                   },
-                  modelVersion: { type: "string", description: "Modelo de IA utilizado" },
-                  promptVersion: { type: "string", description: "Versão do prompt de scoring" },
+                  modelVersion: {
+                    type: "string",
+                    description: "Modelo de IA utilizado",
+                  },
+                  promptVersion: {
+                    type: "string",
+                    description: "Versão do prompt de scoring",
+                  },
                 },
               },
             },
@@ -232,12 +259,14 @@ export async function createHttpServer() {
     async (request, reply) => {
       const { id } = request.params as { id: string };
 
-      const analysisRequest = await prisma.analysisRequest.findUnique({
-        where: { id },
-      });
-
-      if (!analysisRequest) {
-        return reply.status(404).send({ error: "Analysis request not found" });
+      let analysisRequest;
+      try {
+        ({ analysisRequest } = await getUseCase.execute({ id }));
+      } catch (err) {
+        if (err instanceof AnalysisRequestNotFoundError) {
+          return reply.status(404).send({ error: "Analysis request not found" });
+        }
+        throw err;
       }
 
       const status = analysisRequest.status.toLowerCase() as
@@ -269,7 +298,7 @@ export async function createHttpServer() {
           promptVersion: analysisRequest.promptVersion,
         },
       });
-    }
+    },
   );
 
   // GET /health
@@ -291,7 +320,7 @@ export async function createHttpServer() {
     },
     async (_request, reply) => {
       return reply.status(200).send({ status: "ok" });
-    }
+    },
   );
 
   return app;

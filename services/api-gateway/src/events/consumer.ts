@@ -1,7 +1,10 @@
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { z } from "zod";
 import { config } from "../config.js";
+import { AnalysisRequestPrismaRepository } from "../repositories/prisma/analysis-request-prisma-repository.js";
 import { prisma } from "../services/database.js";
+import { CompleteAnalysisRequestUseCase } from "../use-cases/analysis-request/complete-analysis-request-use-case.js";
+import { FailAnalysisRequestUseCase } from "../use-cases/analysis-request/fail-analysis-request-use-case.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
 const EXCHANGE_TYPE = "topic";
@@ -35,6 +38,10 @@ const ScoreFailedEventSchema = z.object({
   }),
 });
 
+const repository = new AnalysisRequestPrismaRepository(prisma);
+const completeUseCase = new CompleteAnalysisRequestUseCase(repository);
+const failUseCase = new FailAnalysisRequestUseCase(repository);
+
 export async function handleScoreCalculated(raw: string): Promise<void> {
   const parsed = ScoreCalculatedEventSchema.safeParse(JSON.parse(raw));
 
@@ -51,19 +58,9 @@ export async function handleScoreCalculated(raw: string): Promise<void> {
 
   console.log(`RECEBIDO: wallet.score.calculated | processId=${processId}`);
 
-  await prisma.analysisRequest.update({
-    where: { id: processId },
-    data: {
-      status: "COMPLETED",
-      completedAt: new Date(),
-      score,
-      confidence,
-      reasoning,
-      positiveFactors,
-      riskFactors,
-      modelVersion,
-      promptVersion,
-    },
+  await completeUseCase.execute({
+    id: processId,
+    result: { score, confidence, reasoning, positiveFactors, riskFactors, modelVersion, promptVersion },
   });
 }
 
@@ -82,14 +79,7 @@ export async function handleScoreFailed(raw: string): Promise<void> {
 
   console.log(`RECEBIDO: wallet.score.failed | processId=${processId}`);
 
-  await prisma.analysisRequest.update({
-    where: { id: processId },
-    data: {
-      status: "FAILED",
-      failedAt: new Date(),
-      failureReason: reason,
-    },
-  });
+  await failUseCase.execute({ id: processId, reason });
 }
 
 let connection: ChannelModel | null = null;

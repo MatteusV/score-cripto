@@ -1,11 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockUpdate = vi.fn();
+const mockFindUnique = vi.fn();
+
+vi.mock("../config.js", () => ({
+  config: {
+    port: 3001,
+    databaseUrl: "postgresql://test",
+    rabbitmqUrl: "amqp://localhost",
+  },
+}));
 
 vi.mock("../services/database.js", () => ({
   prisma: {
     analysisRequest: {
       update: mockUpdate,
+      findUnique: mockFindUnique,
     },
   },
 }));
@@ -18,6 +28,7 @@ describe("api-gateway consumer handlers", () => {
   describe("handleScoreCalculated", () => {
     it("deve atualizar status para COMPLETED com resultado", async () => {
       const { handleScoreCalculated } = await import("./consumer.js");
+      mockFindUnique.mockResolvedValue({ id: "req-001", status: "PROCESSING" });
       mockUpdate.mockResolvedValue({});
 
       const payload = JSON.stringify({
@@ -60,6 +71,7 @@ describe("api-gateway consumer handlers", () => {
   describe("handleScoreFailed", () => {
     it("deve atualizar status para FAILED com reason", async () => {
       const { handleScoreFailed } = await import("./consumer.js");
+      mockFindUnique.mockResolvedValue({ id: "req-001", status: "PROCESSING" });
       mockUpdate.mockResolvedValue({});
 
       const payload = JSON.stringify({
