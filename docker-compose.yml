@@ -144,11 +144,13 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    env_file:
+      - path: ./services/data-search/.env
+        required: false
     environment:
       PORT: 8080
       REDIS_URL: redis://data-search-redis:6379
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
-      ETHERSCAN_API_KEY: ${ETHERSCAN_API_KEY:-}
       CACHE_TTL_MINUTES: ${CACHE_TTL_MINUTES:-20}
     volumes:
       - ./services/data-search:/app
