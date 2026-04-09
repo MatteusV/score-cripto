@@ -170,6 +170,17 @@ services:
         "apk add --no-cache git && go install github.com/air-verse/air@latest && /go/bin/air -c .air.toml",
       ]
 
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: score-cripto-redis-insight
+    restart: unless-stopped
+    depends_on:
+      - data-search-redis
+    ports:
+      - "${REDIS_INSIGHT_HOST_PORT:-5540}:5540"
+    volumes:
+      - redis_insight_data:/data
+
   data-indexing-meilisearch:
     image: getmeili/meilisearch:v1.12
     container_name: score-cripto-data-indexing-meilisearch
@@ -266,6 +277,7 @@ services:
       ]
 
 volumes:
+  redis_insight_data:
   api_gateway_postgres_data:
   api_gateway_node_modules:
   api_gateway_pnpm_store:
