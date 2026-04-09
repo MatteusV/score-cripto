@@ -26,7 +26,11 @@ describe("Create Analysis Request Use Case", () => {
   });
 
   it("deve persistir a request no repositório", async () => {
-    await sut.execute({ userId: "user-1", chain: "ethereum", address: "0xabc" });
+    await sut.execute({
+      userId: "user-1",
+      chain: "ethereum",
+      address: "0xabc",
+    });
 
     expect(repository.items).toHaveLength(1);
   });

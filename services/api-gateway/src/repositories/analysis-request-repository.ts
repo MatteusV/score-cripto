@@ -1,19 +1,19 @@
 import type { AnalysisRequest } from "../generated/prisma/browser";
 
 export interface CreateAnalysisRequestData {
-  userId: string;
-  chain: string;
   address: string;
+  chain: string;
+  userId: string;
 }
 
 export interface CompleteAnalysisRequestData {
-  score: number;
   confidence: number;
-  reasoning: string;
-  positiveFactors: string[];
-  riskFactors: string[];
   modelVersion: string;
+  positiveFactors: string[];
   promptVersion: string;
+  reasoning: string;
+  riskFactors: string[];
+  score: number;
 }
 
 export interface AnalysisRequestRepository {

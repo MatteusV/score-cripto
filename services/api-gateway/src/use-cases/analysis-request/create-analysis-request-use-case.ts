@@ -2,9 +2,9 @@ import type { AnalysisRequest } from "../../generated/prisma/client";
 import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository";
 
 interface CreateAnalysisRequestUseCaseRequest {
-  userId: string;
-  chain: string;
   address: string;
+  chain: string;
+  userId: string;
 }
 
 interface CreateAnalysisRequestUseCaseResponse {

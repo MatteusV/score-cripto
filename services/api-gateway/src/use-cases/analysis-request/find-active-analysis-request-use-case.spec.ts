@@ -22,7 +22,11 @@ describe("Find Active Analysis Request Use Case", () => {
   });
 
   it("deve retornar request com status PENDING", async () => {
-    await repository.create({ userId: "user-1", chain: "ethereum", address: "0xabc" });
+    await repository.create({
+      userId: "user-1",
+      chain: "ethereum",
+      address: "0xabc",
+    });
 
     const result = await sut.execute({
       userId: "user-1",
@@ -42,7 +46,10 @@ describe("Find Active Analysis Request Use Case", () => {
     });
 
     const index = repository.items.findIndex((i) => i.id === created.id);
-    repository.items[index] = { ...repository.items[index], status: "PROCESSING" };
+    repository.items[index] = {
+      ...repository.items[index],
+      status: "PROCESSING",
+    };
 
     const result = await sut.execute({
       userId: "user-1",
@@ -61,7 +68,10 @@ describe("Find Active Analysis Request Use Case", () => {
     });
 
     const index = repository.items.findIndex((i) => i.id === created.id);
-    repository.items[index] = { ...repository.items[index], status: "COMPLETED" };
+    repository.items[index] = {
+      ...repository.items[index],
+      status: "COMPLETED",
+    };
 
     const result = await sut.execute({
       userId: "user-1",
@@ -73,7 +83,11 @@ describe("Find Active Analysis Request Use Case", () => {
   });
 
   it("não deve retornar request de outro usuário", async () => {
-    await repository.create({ userId: "user-2", chain: "ethereum", address: "0xabc" });
+    await repository.create({
+      userId: "user-2",
+      chain: "ethereum",
+      address: "0xabc",
+    });
 
     const result = await sut.execute({
       userId: "user-1",

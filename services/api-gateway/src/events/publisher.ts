@@ -35,8 +35,12 @@ export async function connectRabbitMQ(): Promise<void> {
 
 export async function disconnectRabbitMQ(): Promise<void> {
   try {
-    if (channel) await channel.close();
-    if (connection) await connection.close();
+    if (channel) {
+      await channel.close();
+    }
+    if (connection) {
+      await connection.close();
+    }
   } catch {
     // ignore close errors
   } finally {

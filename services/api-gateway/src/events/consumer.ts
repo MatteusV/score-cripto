@@ -53,14 +53,30 @@ export async function handleScoreCalculated(raw: string): Promise<void> {
     throw new Error("invalid_payload");
   }
 
-  const { processId, score, confidence, reasoning, positiveFactors, riskFactors, modelVersion, promptVersion } =
-    parsed.data.data;
+  const {
+    processId,
+    score,
+    confidence,
+    reasoning,
+    positiveFactors,
+    riskFactors,
+    modelVersion,
+    promptVersion,
+  } = parsed.data.data;
 
   console.log(`RECEBIDO: wallet.score.calculated | processId=${processId}`);
 
   await completeUseCase.execute({
     id: processId,
-    result: { score, confidence, reasoning, positiveFactors, riskFactors, modelVersion, promptVersion },
+    result: {
+      score,
+      confidence,
+      reasoning,
+      positiveFactors,
+      riskFactors,
+      modelVersion,
+      promptVersion,
+    },
   });
 }
 
@@ -96,7 +112,11 @@ export async function startConsumer(): Promise<void> {
 
     // Fila: wallet.score.calculated
     await channel.assertQueue(QUEUE_CALCULATED, { durable: true });
-    await channel.bindQueue(QUEUE_CALCULATED, EXCHANGE_NAME, "wallet.score.calculated");
+    await channel.bindQueue(
+      QUEUE_CALCULATED,
+      EXCHANGE_NAME,
+      "wallet.score.calculated"
+    );
 
     // Fila: wallet.score.failed
     await channel.assertQueue(QUEUE_FAILED, { durable: true });
@@ -105,24 +125,34 @@ export async function startConsumer(): Promise<void> {
     channel.prefetch(1);
 
     channel.consume(QUEUE_CALCULATED, async (msg) => {
-      if (!msg) return;
+      if (!msg) {
+        return;
+      }
       try {
         await handleScoreCalculated(msg.content.toString());
         channel?.ack(msg);
       } catch (error) {
-        console.error("[api-gateway][Consumer] wallet.score.calculated error:", (error as Error).message);
+        console.error(
+          "[api-gateway][Consumer] wallet.score.calculated error:",
+          (error as Error).message
+        );
         const isInvalid = (error as Error).message === "invalid_payload";
         channel?.nack(msg, false, !isInvalid);
       }
     });
 
     channel.consume(QUEUE_FAILED, async (msg) => {
-      if (!msg) return;
+      if (!msg) {
+        return;
+      }
       try {
         await handleScoreFailed(msg.content.toString());
         channel?.ack(msg);
       } catch (error) {
-        console.error("[api-gateway][Consumer] wallet.score.failed error:", (error as Error).message);
+        console.error(
+          "[api-gateway][Consumer] wallet.score.failed error:",
+          (error as Error).message
+        );
         const isInvalid = (error as Error).message === "invalid_payload";
         channel?.nack(msg, false, !isInvalid);
       }
@@ -138,7 +168,9 @@ export async function startConsumer(): Promise<void> {
       console.error("[api-gateway][Consumer] Connection error:", err.message);
     });
 
-    console.log(`[api-gateway][Consumer] Listening on queues: ${QUEUE_CALCULATED}, ${QUEUE_FAILED}`);
+    console.log(
+      `[api-gateway][Consumer] Listening on queues: ${QUEUE_CALCULATED}, ${QUEUE_FAILED}`
+    );
   } catch (error) {
     console.warn(
       "[api-gateway][Consumer] Failed to connect:",
@@ -149,8 +181,12 @@ export async function startConsumer(): Promise<void> {
 
 export async function stopConsumer(): Promise<void> {
   try {
-    if (channel) await channel.close();
-    if (connection) await connection.close();
+    if (channel) {
+      await channel.close();
+    }
+    if (connection) {
+      await connection.close();
+    }
   } catch {
     // ignore close errors
   } finally {

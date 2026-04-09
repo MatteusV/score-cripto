@@ -29,7 +29,10 @@ describe("Complete Analysis Request Use Case", () => {
       address: "0xabc",
     });
 
-    const { analysisRequest } = await sut.execute({ id: created.id, result: RESULT });
+    const { analysisRequest } = await sut.execute({
+      id: created.id,
+      result: RESULT,
+    });
 
     expect(analysisRequest.status).toBe("COMPLETED");
     expect(analysisRequest.score).toBe(85);
@@ -45,9 +48,15 @@ describe("Complete Analysis Request Use Case", () => {
       address: "0xabc",
     });
 
-    const { analysisRequest } = await sut.execute({ id: created.id, result: RESULT });
+    const { analysisRequest } = await sut.execute({
+      id: created.id,
+      result: RESULT,
+    });
 
-    expect(analysisRequest.positiveFactors).toEqual(["Carteira antiga", "Muitos counterparties"]);
+    expect(analysisRequest.positiveFactors).toEqual([
+      "Carteira antiga",
+      "Muitos counterparties",
+    ]);
     expect(analysisRequest.riskFactors).toEqual([]);
   });
 

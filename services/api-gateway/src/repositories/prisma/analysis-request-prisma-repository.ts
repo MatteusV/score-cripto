@@ -1,4 +1,8 @@
-import type { PrismaClient, AnalysisRequest } from "../../generated/prisma/client";
+import type {
+  AnalysisRequest,
+  PrismaClient,
+} from "../../generated/prisma/client";
+
 import type {
   AnalysisRequestRepository,
   CompleteAnalysisRequestData,

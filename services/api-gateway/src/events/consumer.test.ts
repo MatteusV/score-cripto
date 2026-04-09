@@ -62,9 +62,14 @@ describe("api-gateway consumer handlers", () => {
 
     it("deve lançar erro para payload inválido", async () => {
       const { handleScoreCalculated } = await import("./consumer.js");
-      const invalid = JSON.stringify({ event: "wallet.score.calculated", data: {} });
+      const invalid = JSON.stringify({
+        event: "wallet.score.calculated",
+        data: {},
+      });
 
-      await expect(handleScoreCalculated(invalid)).rejects.toThrow("invalid_payload");
+      await expect(handleScoreCalculated(invalid)).rejects.toThrow(
+        "invalid_payload"
+      );
     });
   });
 

@@ -13,9 +13,7 @@ if (!parsed.success) {
   const missing = Object.entries(errors)
     .map(([key, msgs]) => `  ${key}: ${msgs?.join(", ")}`)
     .join("\n");
-  throw new Error(
-    `[api-gateway] Invalid environment variables:\n${missing}`
-  );
+  throw new Error(`[api-gateway] Invalid environment variables:\n${missing}`);
 }
 
 export const config = {
