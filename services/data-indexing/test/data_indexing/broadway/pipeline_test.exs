@@ -4,21 +4,17 @@ defmodule DataIndexing.Broadway.PipelineTest do
   import Mox
 
   alias DataIndexing.Broadway.Pipeline
-  alias DataIndexing.Cache.WalletContext
   alias DataIndexing.Meilisearch.MockClient
 
   setup :set_mox_global
   setup :verify_on_exit!
 
   setup do
-    WalletContext.clear()
-
     start_supervised!(
       {Pipeline,
        name: Pipeline,
        producer_module: Broadway.DummyProducer,
        meilisearch_client: MockClient,
-       cache: WalletContext,
        index_name: "wallets_test",
        batch_size: 10,
        batch_timeout: 50}
@@ -27,13 +23,21 @@ defmodule DataIndexing.Broadway.PipelineTest do
     %{pipeline: Pipeline}
   end
 
-  test "wallet.data.cached caches the wallet context and acks", %{pipeline: pipeline} do
+  test "wallet.data.cached indexes wallet context as partial document", %{pipeline: pipeline} do
+    expect(MockClient, :update_documents, fn "wallets_test", [document] ->
+      assert document["id"] == "ethereum_0xabc"
+      assert document["tx_count"] == 10
+      assert document["chain"] == "ethereum"
+      assert document["address"] == "0xabc"
+      {:ok, %{"taskUid" => 1}}
+    end)
+
     event = %{
       "event" => "wallet.data.cached",
       "data" => %{
         "walletContext" => %{
           "chain" => "ethereum",
-          "address" => "0xABC",
+          "address" => "0xabc",
           "tx_count" => 10
         }
       }
@@ -44,22 +48,13 @@ defmodule DataIndexing.Broadway.PipelineTest do
     assert_receive {:ack, ^ref, successful, failed}, 1_000
     assert length(successful) == 1
     assert failed == []
-    assert {:ok, %{"tx_count" => 10}} = WalletContext.get("ethereum", "0xabc")
   end
 
-  test "wallet.score.calculated joins wallet context and indexes documents", %{pipeline: pipeline} do
-    :ok =
-      WalletContext.put("ethereum", "0xabc", %{
-        "chain" => "ethereum",
-        "address" => "0xabc",
-        "tx_count" => 55,
-        "risk_flags" => ["flag-a"]
-      })
-
-    expect(MockClient, :add_documents, fn "wallets_test", [document] ->
+  test "wallet.score.calculated indexes score as partial document", %{pipeline: pipeline} do
+    expect(MockClient, :update_documents, fn "wallets_test", [document] ->
       assert document["id"] == "ethereum_0xabc"
-      assert document["tx_count"] == 55
-      assert document["risk_flags"] == ["flag-a"]
+      assert document["score"] == 88
+      assert document["confidence"] == 0.91
       assert document["reasoning"] == "Trusted wallet with steady activity"
       assert document["positive_factors"] == ["Old wallet", "High tx count"]
       assert document["risk_factors"] == []
@@ -69,9 +64,9 @@ defmodule DataIndexing.Broadway.PipelineTest do
     event = %{
       "event" => "wallet.score.calculated",
       "data" => %{
-        "processId" => "proc-1",
+        "requestId" => "req-1",
         "chain" => "ethereum",
-        "address" => "0xABC",
+        "address" => "0xabc",
         "score" => 88,
         "confidence" => 0.91,
         "reasoning" => "Trusted wallet with steady activity",
@@ -105,8 +100,8 @@ defmodule DataIndexing.Broadway.PipelineTest do
     assert length(failed) == 1
   end
 
-  test "batcher groups score events into a single bulk index call", %{pipeline: pipeline} do
-    expect(MockClient, :add_documents, fn "wallets_test", documents ->
+  test "batcher groups score events into a single bulk upsert call", %{pipeline: pipeline} do
+    expect(MockClient, :update_documents, fn "wallets_test", documents ->
       assert length(documents) == 2
       {:ok, %{"taskUid" => 1}}
     end)
@@ -115,7 +110,7 @@ defmodule DataIndexing.Broadway.PipelineTest do
       %{
         "event" => "wallet.score.calculated",
         "data" => %{
-          "processId" => "proc-1",
+          "requestId" => "req-1",
           "chain" => "ethereum",
           "address" => "0xabc",
           "score" => 50,
@@ -125,7 +120,7 @@ defmodule DataIndexing.Broadway.PipelineTest do
       %{
         "event" => "wallet.score.calculated",
         "data" => %{
-          "processId" => "proc-2",
+          "requestId" => "req-2",
           "chain" => "polygon",
           "address" => "0xdef",
           "score" => 70,
@@ -142,14 +137,14 @@ defmodule DataIndexing.Broadway.PipelineTest do
   end
 
   test "meilisearch failure causes the batch to fail", %{pipeline: pipeline} do
-    expect(MockClient, :add_documents, fn "wallets_test", [_document] ->
+    expect(MockClient, :update_documents, fn "wallets_test", [_document] ->
       {:error, :timeout}
     end)
 
     event = %{
       "event" => "wallet.score.calculated",
       "data" => %{
-        "processId" => "proc-1",
+        "requestId" => "req-1",
         "chain" => "ethereum",
         "address" => "0xabc",
         "score" => 88,

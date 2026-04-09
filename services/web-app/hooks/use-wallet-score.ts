@@ -134,11 +134,11 @@ export function useWalletScore(chain: string, address: string) {
           return
         }
 
-        if (response.status === "error") {
+        if (response.status === "failed") {
           setState((prev) => ({
             ...prev,
             phase: "error",
-            backendStatus: "error",
+            backendStatus: "failed",
             error: response.error ?? "Erro no processamento da análise.",
           }))
           return

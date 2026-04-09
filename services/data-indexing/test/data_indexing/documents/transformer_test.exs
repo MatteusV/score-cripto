@@ -4,9 +4,9 @@ defmodule DataIndexing.Documents.TransformerTest do
   alias DataIndexing.Documents.Transformer
 
   @valid_score_data %{
-    "processId" => "cuid-123",
+    "requestId" => "cuid-123",
     "chain" => "ethereum",
-    "address" => "0xABC123",
+    "address" => "0xabc123",
     "score" => 75,
     "confidence" => 0.92,
     "reasoning" => "Long-lived wallet with healthy diversification",
@@ -18,7 +18,7 @@ defmodule DataIndexing.Documents.TransformerTest do
 
   @valid_wallet_context %{
     "chain" => "ethereum",
-    "address" => "0xABC123",
+    "address" => "0xabc123",
     "tx_count" => 150,
     "total_volume" => 45.5,
     "unique_counterparties" => 30,
@@ -71,6 +71,35 @@ defmodule DataIndexing.Documents.TransformerTest do
     end
   end
 
+  describe "from_data_cached_event/1" do
+    test "transforms wallet context into partial document" do
+      data = %{"walletContext" => @valid_wallet_context}
+      assert {:ok, doc} = Transformer.from_data_cached_event(data)
+
+      assert doc["id"] == "ethereum_0xabc123"
+      assert doc["chain"] == "ethereum"
+      assert doc["address"] == "0xabc123"
+      assert doc["tx_count"] == 150
+      assert doc["total_volume"] == 45.5
+      assert doc["has_mixer_interaction"] == false
+      assert is_binary(doc["indexed_at"])
+    end
+
+    test "returns {:error, :missing_chain} when chain is missing" do
+      data = %{"walletContext" => Map.delete(@valid_wallet_context, "chain")}
+      assert {:error, :missing_chain} = Transformer.from_data_cached_event(data)
+    end
+
+    test "returns {:error, :missing_address} when address is missing" do
+      data = %{"walletContext" => Map.delete(@valid_wallet_context, "address")}
+      assert {:error, :missing_address} = Transformer.from_data_cached_event(data)
+    end
+
+    test "returns {:error, :invalid_wallet_context} for missing walletContext key" do
+      assert {:error, :invalid_wallet_context} = Transformer.from_data_cached_event(%{})
+    end
+  end
+
   describe "from_score_event/1 (score-only)" do
     test "transforms valid score data into document" do
       assert {:ok, doc} = Transformer.from_score_event(@valid_score_data)
@@ -85,7 +114,7 @@ defmodule DataIndexing.Documents.TransformerTest do
       assert doc["risk_factors"] == ["Small sanctioned exposure"]
       assert doc["model_version"] == "mistral/ministral-3b"
       assert doc["prompt_version"] == "v1.0"
-      assert doc["process_id"] == "cuid-123"
+      assert doc["request_id"] == "cuid-123"
     end
 
     test "normalizes address in output for EVM chain" do

@@ -90,7 +90,7 @@ export function publishWalletDataRequested(data: {
 }
 
 export function publishScoreCalculated(data: {
-  processId: string;
+  requestId: string;
   chain: string;
   address: string;
   score: number;
@@ -109,7 +109,7 @@ export function publishScoreCalculated(data: {
 }
 
 export function publishScoreFailed(data: {
-  processId: string;
+  requestId: string;
   reason: string;
 }): boolean {
   return publishEvent("wallet.score.failed", {

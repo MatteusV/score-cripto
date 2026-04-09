@@ -81,7 +81,7 @@ describe("useWalletScore", () => {
   it("sets error phase when backend returns error status", async () => {
     mockStart.mockResolvedValueOnce({ processId: "proc-err" })
     mockPoll.mockResolvedValueOnce({
-      status: "error",
+      status: "failed",
       processId: "proc-err",
       chain: "ethereum",
       address: "0xabc",

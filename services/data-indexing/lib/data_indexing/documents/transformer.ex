@@ -51,8 +51,35 @@ defmodule DataIndexing.Documents.Transformer do
   end
 
   @doc """
-  Transforms score event data with optional wallet context into a Meilisearch document.
+  Transforms a wallet.data.cached event payload into a partial Meilisearch document.
+
+  Only wallet context fields are populated; score fields are omitted so that
+  Meilisearch merges this partial document with a later score upsert.
   """
+  @spec from_data_cached_event(map()) :: {:ok, map()} | {:error, atom()}
+  def from_data_cached_event(%{"walletContext" => wallet_context}) when is_map(wallet_context) do
+    chain = Map.get(wallet_context, "chain")
+    address = Map.get(wallet_context, "address")
+
+    cond do
+      is_nil(chain) or chain == "" -> {:error, :missing_chain}
+      is_nil(address) or address == "" -> {:error, :missing_address}
+      true ->
+        doc =
+          %{
+            "id" => document_id(chain, address),
+            "chain" => chain,
+            "address" => address,
+            "indexed_at" => DateTime.utc_now() |> DateTime.to_iso8601()
+          }
+          |> merge_wallet_context(wallet_context)
+
+        {:ok, doc}
+    end
+  end
+
+  def from_data_cached_event(_data), do: {:error, :invalid_wallet_context}
+
   @spec from_score_event(map(), map() | nil) :: {:ok, map()} | {:error, atom()}
   def from_score_event(score_data, wallet_context) do
     with :ok <- validate_required(score_data),
@@ -60,13 +87,12 @@ defmodule DataIndexing.Documents.Transformer do
          :ok <- validate_confidence(score_data["confidence"]) do
       chain = score_data["chain"]
       address = score_data["address"]
-      normalized_address = normalize_address(chain, address)
 
       doc =
         %{
           "id" => document_id(chain, address),
           "chain" => chain,
-          "address" => normalized_address,
+          "address" => address,
           "score" => score_data["score"],
           "confidence" => score_data["confidence"],
           "reasoning" => Map.get(score_data, "reasoning"),
@@ -74,7 +100,7 @@ defmodule DataIndexing.Documents.Transformer do
           "risk_factors" => Map.get(score_data, "riskFactors"),
           "model_version" => score_data["modelVersion"],
           "prompt_version" => score_data["promptVersion"],
-          "process_id" => score_data["processId"],
+          "request_id" => score_data["requestId"],
           "indexed_at" => DateTime.utc_now() |> DateTime.to_iso8601()
         }
         |> merge_wallet_context(wallet_context)

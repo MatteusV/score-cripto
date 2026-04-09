@@ -81,13 +81,12 @@ defmodule DataIndexing.TelemetryTest do
        name: Pipeline,
        producer_module: Broadway.DummyProducer,
        meilisearch_client: MockClient,
-       cache: WalletContext,
        index_name: "wallets_test",
        batch_size: 5,
        batch_timeout: 50}
     )
 
-    expect(MockClient, :add_documents, fn "wallets_test", [_document] ->
+    expect(MockClient, :update_documents, fn "wallets_test", [_document] ->
       {:ok, %{"taskUid" => 1}}
     end)
 
@@ -97,7 +96,7 @@ defmodule DataIndexing.TelemetryTest do
         Jason.encode!(%{
           "event" => "wallet.score.calculated",
           "data" => %{
-            "processId" => "proc-1",
+            "requestId" => "req-1",
             "chain" => "ethereum",
             "address" => "0xabc",
             "score" => 80,

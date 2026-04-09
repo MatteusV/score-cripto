@@ -10,6 +10,8 @@ defmodule DataIndexing.Meilisearch.ClientBehaviour do
   @callback delete_index(index_uid :: String.t()) :: {:ok, map()} | {:error, term()}
   @callback add_documents(index_uid :: String.t(), documents :: list(map())) ::
               {:ok, map()} | {:error, term()}
+  @callback update_documents(index_uid :: String.t(), documents :: list(map())) ::
+              {:ok, map()} | {:error, term()}
   @callback search(index_uid :: String.t(), query :: String.t(), opts :: map()) ::
               {:ok, map()} | {:error, term()}
   @callback update_settings(index_uid :: String.t(), settings :: map()) ::

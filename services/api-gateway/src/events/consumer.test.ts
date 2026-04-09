@@ -35,7 +35,7 @@ describe("api-gateway consumer handlers", () => {
         event: "wallet.score.calculated",
         timestamp: new Date().toISOString(),
         data: {
-          processId: "req-001",
+          requestId: "req-001",
           chain: "ethereum",
           address: "0xabc",
           score: 85,
@@ -83,7 +83,7 @@ describe("api-gateway consumer handlers", () => {
         event: "wallet.score.failed",
         timestamp: new Date().toISOString(),
         data: {
-          processId: "req-001",
+          requestId: "req-001",
           reason: "AI service error",
         },
       });

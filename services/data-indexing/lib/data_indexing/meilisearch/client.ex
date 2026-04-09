@@ -57,6 +57,15 @@ defmodule DataIndexing.Meilisearch.Client do
   end
 
   @impl true
+  def update_documents(index_uid, documents) when is_list(documents) do
+    request(:update_documents, fn ->
+      base_req()
+      |> Req.patch(url: "/indexes/#{index_uid}/documents", json: documents)
+      |> handle_response()
+    end)
+  end
+
+  @impl true
   def search(index_uid, query, opts \\ %{}) do
     body = Map.merge(%{"q" => query}, opts)
 

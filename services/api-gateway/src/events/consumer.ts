@@ -16,7 +16,7 @@ const ScoreCalculatedEventSchema = z.object({
   event: z.literal("wallet.score.calculated"),
   timestamp: z.string(),
   data: z.object({
-    processId: z.string(),
+    requestId: z.string(),
     chain: z.string(),
     address: z.string(),
     score: z.number().int(),
@@ -33,7 +33,7 @@ const ScoreFailedEventSchema = z.object({
   event: z.literal("wallet.score.failed"),
   timestamp: z.string(),
   data: z.object({
-    processId: z.string(),
+    requestId: z.string(),
     reason: z.string(),
   }),
 });
@@ -54,7 +54,7 @@ export async function handleScoreCalculated(raw: string): Promise<void> {
   }
 
   const {
-    processId,
+    requestId,
     score,
     confidence,
     reasoning,
@@ -64,10 +64,10 @@ export async function handleScoreCalculated(raw: string): Promise<void> {
     promptVersion,
   } = parsed.data.data;
 
-  console.log(`RECEBIDO: wallet.score.calculated | processId=${processId}`);
+  console.log(`RECEBIDO: wallet.score.calculated | requestId=${requestId}`);
 
   await completeUseCase.execute({
-    id: processId,
+    id: requestId,
     result: {
       score,
       confidence,
@@ -91,11 +91,11 @@ export async function handleScoreFailed(raw: string): Promise<void> {
     throw new Error("invalid_payload");
   }
 
-  const { processId, reason } = parsed.data.data;
+  const { requestId, reason } = parsed.data.data;
 
-  console.log(`RECEBIDO: wallet.score.failed | processId=${processId}`);
+  console.log(`RECEBIDO: wallet.score.failed | requestId=${requestId}`);
 
-  await failUseCase.execute({ id: processId, reason });
+  await failUseCase.execute({ id: requestId, reason });
 }
 
 let connection: ChannelModel | null = null;

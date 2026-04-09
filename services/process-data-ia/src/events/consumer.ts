@@ -1,7 +1,7 @@
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { z } from "zod";
 import { config } from "../config.js";
-import { createProcessWalletCachedEvent } from "../orchestrators/process-wallet-cached-event.js";
+import { makeAnalysisWorkflow } from "../use-cases/analysis-workflow/analysis-workflow.js";
 import { WalletContextInputSchema } from "../schemas/score.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
@@ -39,7 +39,7 @@ export async function processWalletDataCachedMessage(
 
   console.log(`RECEBIDO: wallet.data.cached | requestId=${requestId} chain=${walletContext.chain} address=${walletContext.address}`);
 
-  const orchestrator = createProcessWalletCachedEvent();
+  const orchestrator = makeAnalysisWorkflow();
   await orchestrator.execute({ requestId, walletContext, userId });
 
   console.log(

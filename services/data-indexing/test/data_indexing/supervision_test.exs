@@ -2,7 +2,6 @@ defmodule DataIndexing.SupervisionTest do
   use ExUnit.Case, async: false
 
   alias DataIndexing.Broadway.Pipeline
-  alias DataIndexing.Cache.WalletContext
   alias DataIndexing.IndexManager
   alias DataIndexing.Meilisearch.MockClient
 
@@ -22,7 +21,6 @@ defmodule DataIndexing.SupervisionTest do
                 name: pipeline_name,
                 producer_module: Broadway.DummyProducer,
                 meilisearch_client: MockClient,
-                cache: WalletContext,
                 index_name: "wallets_test"}
              ],
              [strategy: :one_for_one]

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 
 // API routes rodam server-side: usa API_BASE_URL (nome do serviço Docker)
-const PROCESS_DATA_IA_URL =
-  process.env.API_BASE_URL ?? "http://localhost:3002"
+const API_GATEWAY_URL =
+  process.env.API_BASE_URL ?? "http://localhost:3001"
 
 export async function GET(
   _request: Request,
@@ -11,7 +11,7 @@ export async function GET(
   const { processId } = await params
 
   try {
-    const upstream = await fetch(`${PROCESS_DATA_IA_URL}/analysis/${processId}`)
+    const upstream = await fetch(`${API_GATEWAY_URL}/analysis/${processId}`)
 
     const data = await upstream.json()
 
@@ -22,12 +22,7 @@ export async function GET(
       )
     }
 
-    // Mapeia "failed" (PG) → "error" (frontend)
-    const normalized = {
-      ...data,
-      status: data.status === "failed" ? "error" : data.status,
-    }
-    return NextResponse.json(normalized)
+    return NextResponse.json(data)
   } catch {
     return NextResponse.json(
       { error: "Failed to reach analysis service" },

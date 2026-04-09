@@ -11,7 +11,7 @@ export type AnalysisStatus =
   | "pending"
   | "processing"
   | "completed"
-  | "error"
+  | "failed"
 
 export interface ScoreResult {
   score: number
