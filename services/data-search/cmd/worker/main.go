@@ -37,12 +37,18 @@ func main() {
 	defer pub.Close()
 
 	// Blockchain providers.
-	ethProv := infraProvider.NewEtherscanProvider(cfg.EtherscanAPIKey, cfg.EtherscanBaseURL)
+	var defaultProvider usecase.BlockchainProviderPort
+	if cfg.EtherscanAPIKey == "" {
+		slog.Warn("ETHERSCAN_API_KEY not set — using mock provider (dev only, synthetic data)")
+		defaultProvider = infraProvider.NewMockProvider()
+	} else {
+		defaultProvider = infraProvider.NewEtherscanProvider(cfg.EtherscanAPIKey, cfg.EtherscanBaseURL)
+	}
 
 	// Wire providers map.
 	providers := make(map[string]usecase.BlockchainProviderPort)
-	for _, chain := range ethProv.SupportedChains() {
-		providers[strings.ToLower(chain)] = ethProv
+	for _, chain := range defaultProvider.SupportedChains() {
+		providers[strings.ToLower(chain)] = defaultProvider
 	}
 
 	// Wire use case.

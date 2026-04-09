@@ -131,7 +131,7 @@ services:
       [
         "sh",
         "-lc",
-        "corepack enable && pnpm install --frozen-lockfile && pnpm exec prisma generate && pnpm exec prisma db push --skip-generate && pnpm dev",
+        "corepack enable && pnpm install --frozen-lockfile && pnpm exec prisma generate && pnpm exec prisma db push --skip-generate --accept-data-loss && pnpm dev",
       ]
 
   data-search:
