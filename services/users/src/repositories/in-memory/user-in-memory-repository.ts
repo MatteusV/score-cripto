@@ -1,0 +1,31 @@
+import { randomUUID } from "node:crypto";
+import type { User } from "../../generated/prisma/client";
+import type { UserUncheckedCreateInput } from "../../generated/prisma/models/User";
+import type { UserRepository } from "../user-repository";
+
+export class UserInMemoryRepository implements UserRepository {
+  items: User[] = [];
+
+  async findByEmail(email: string) {
+    return this.items.find((u) => u.email === email) ?? null;
+  }
+
+  async findById(id: string) {
+    return this.items.find((u) => u.id === id) ?? null;
+  }
+
+  async create(data: UserUncheckedCreateInput) {
+    const user: User = {
+      id: data.id ?? randomUUID(),
+      email: data.email,
+      name: data.name ?? null,
+      passwordHash: data.passwordHash,
+      role: data.role ?? "USER",
+      stripeCustomerId: data.stripeCustomerId ?? null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.items.push(user);
+    return user;
+  }
+}
