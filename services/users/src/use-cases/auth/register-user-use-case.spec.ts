@@ -20,7 +20,7 @@ describe("RegisterUserUseCase", () => {
     sut = new RegisterUserUseCase(userRepo, subscriptionRepo, usageRepo);
   });
 
-  it("deve registrar usuário com sucesso", async () => {
+  it("should register user successfully", async () => {
     const { user } = await sut.execute({
       email: "alice@example.com",
       password: "senha1234",
@@ -33,7 +33,7 @@ describe("RegisterUserUseCase", () => {
     expect(user.role).toBe("USER");
   });
 
-  it("não deve expor passwordHash na resposta", async () => {
+  it("should not expose passwordHash in response", async () => {
     const { user } = await sut.execute({
       email: "bob@example.com",
       password: "senha1234",
@@ -42,7 +42,7 @@ describe("RegisterUserUseCase", () => {
     expect(user).not.toHaveProperty("passwordHash");
   });
 
-  it("deve persistir o hash da senha (não em texto puro)", async () => {
+  it("should persist password hash (not plain text)", async () => {
     await sut.execute({ email: "carol@example.com", password: "senha1234" });
 
     const stored = userRepo.items.find((u) => u.email === "carol@example.com");
@@ -50,7 +50,7 @@ describe("RegisterUserUseCase", () => {
     expect(stored?.passwordHash).toMatch(BCRYPT_HASH_REGEX);
   });
 
-  it("deve lançar EmailAlreadyInUseError se email já existir", async () => {
+  it("should throw EmailAlreadyInUseError if email already exists", async () => {
     await sut.execute({ email: "dup@example.com", password: "senha1234" });
 
     await expect(
@@ -58,19 +58,19 @@ describe("RegisterUserUseCase", () => {
     ).rejects.toThrow(EmailAlreadyInUseError);
   });
 
-  it("deve falhar com ZodError se email for inválido", async () => {
+  it("should fail with ZodError if email is invalid", async () => {
     await expect(
       sut.execute({ email: "nao-e-email", password: "senha1234" })
     ).rejects.toThrow();
   });
 
-  it("deve falhar com ZodError se senha tiver menos de 8 caracteres", async () => {
+  it("should fail with ZodError if password has less than 8 characters", async () => {
     await expect(
       sut.execute({ email: "valid@example.com", password: "curta" })
     ).rejects.toThrow();
   });
 
-  it("deve criar Subscription FREE_TIER automaticamente", async () => {
+  it("should create FREE_TIER Subscription automatically", async () => {
     const { user } = await sut.execute({
       email: "dave@example.com",
       password: "senha1234",
@@ -84,7 +84,7 @@ describe("RegisterUserUseCase", () => {
     expect(subscription?.status).toBe("active");
   });
 
-  it("deve criar UsageRecord inicial para o mês corrente", async () => {
+  it("should create initial UsageRecord for current month", async () => {
     const { user } = await sut.execute({
       email: "eve@example.com",
       password: "senha1234",
@@ -99,7 +99,7 @@ describe("RegisterUserUseCase", () => {
     expect(record?.periodMonth).toBe(now.getMonth() + 1);
   });
 
-  it("deve definir resetAt para o dia 1 do próximo mês", async () => {
+  it("should set resetAt to the 1st day of next month", async () => {
     const { user } = await sut.execute({
       email: "frank@example.com",
       password: "senha1234",

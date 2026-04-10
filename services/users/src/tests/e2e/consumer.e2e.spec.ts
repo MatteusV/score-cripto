@@ -55,7 +55,7 @@ describe("Consumer E2E — processUserAnalysisConsumedMessage", () => {
     await db.cleanup();
   });
 
-  it("deve incrementar analysisCount ao processar evento completed", async () => {
+  it("should increment analysisCount when processing completed event", async () => {
     const userId = await registerUser(app, "consumer-ok@example.com");
 
     const result = await processUserAnalysisConsumedMessage(
@@ -71,7 +71,7 @@ describe("Consumer E2E — processUserAnalysisConsumedMessage", () => {
     expect(Number(rows.rows[0].analysisCount)).toBe(1);
   });
 
-  it("não deve incrementar para evento com status failed", async () => {
+  it("should not increment for event with status failed", async () => {
     const userId = await registerUser(app, "consumer-failed@example.com");
 
     const result = await processUserAnalysisConsumedMessage(
@@ -83,16 +83,16 @@ describe("Consumer E2E — processUserAnalysisConsumedMessage", () => {
     const rows = await db.query(
       `SELECT "analysisCount" FROM "${db.getSchema()}"."usage_records" WHERE "userId" = '${userId}'`
     );
-    // RegisterUserUseCase cria UsageRecord com analysisCount=0 no registro
-    // O consumer não deve ter incrementado (status=failed é ignorado)
+    // RegisterUserUseCase creates UsageRecord with analysisCount=0
+    // Consumer should not have incremented (status=failed is ignored)
     expect(rows.rowCount).toBe(1);
     expect(Number(rows.rows[0].analysisCount)).toBe(0);
   });
 
-  it("deve retornar limit_exceeded quando limite já atingido (ack silencioso)", async () => {
+  it("should return limit_exceeded when limit already reached (silent ack)", async () => {
     const userId = await registerUser(app, "consumer-limit@example.com");
 
-    // Consome todas as 5 análises via HTTP
+    // Consume all 5 analyses via HTTP
     for (let i = 0; i < 5; i++) {
       await app.inject({
         method: "POST",
@@ -101,7 +101,7 @@ describe("Consumer E2E — processUserAnalysisConsumedMessage", () => {
       });
     }
 
-    // Consumer recebe mais um evento — deve retornar limit_exceeded sem erro
+    // Consumer receives one more event — should return limit_exceeded without error
     const result = await processUserAnalysisConsumedMessage(
       makeConsumedEvent(userId, "analysis-over")
     );
@@ -109,12 +109,12 @@ describe("Consumer E2E — processUserAnalysisConsumedMessage", () => {
     expect(result.outcome).toBe("limit_exceeded");
   });
 
-  it("deve retornar invalid_payload para JSON inválido", async () => {
+  it("should return invalid_payload for invalid JSON", async () => {
     const result = await processUserAnalysisConsumedMessage("not-json");
     expect(result.outcome).toBe("invalid_payload");
   });
 
-  it("deve retornar invalid_payload para payload com event type errado", async () => {
+  it("should return invalid_payload for payload with wrong event type", async () => {
     const raw = JSON.stringify({
       event: "wallet.score.calculated",
       timestamp: new Date().toISOString(),

@@ -28,7 +28,7 @@ describe("RefreshTokenUseCase", () => {
     sut = new RefreshTokenUseCase(refreshTokenRepo, userRepo, jwtService);
   });
 
-  it("deve retornar novo par de tokens com refresh token válido", async () => {
+  it("should return new token pair with valid refresh token", async () => {
     const { refreshToken } = await registerAndLogin(
       "alice@example.com",
       "senha1234"
@@ -41,7 +41,7 @@ describe("RefreshTokenUseCase", () => {
     expect(result.refreshToken).not.toBe(refreshToken);
   });
 
-  it("deve revogar o token antigo após rotation", async () => {
+  it("should revoke the old token after rotation", async () => {
     const { refreshToken } = await registerAndLogin(
       "bob@example.com",
       "senha1234"
@@ -54,7 +54,7 @@ describe("RefreshTokenUseCase", () => {
     expect(stored?.revokedAt).not.toBeNull();
   });
 
-  it("deve criar novo refresh token persistido no repositório", async () => {
+  it("should create new persisted refresh token in repository", async () => {
     const { refreshToken } = await registerAndLogin(
       "carol@example.com",
       "senha1234"
@@ -62,17 +62,17 @@ describe("RefreshTokenUseCase", () => {
 
     await sut.execute({ refreshToken });
 
-    // 1 do login + 1 do refresh = 2 tokens
+    // 1 from login + 1 from refresh = 2 tokens
     expect(refreshTokenRepo.items).toHaveLength(2);
   });
 
-  it("deve lançar InvalidRefreshTokenError para token inválido", async () => {
+  it("should throw InvalidRefreshTokenError for invalid token", async () => {
     await expect(
       sut.execute({ refreshToken: "token-invalido" })
     ).rejects.toThrow(InvalidRefreshTokenError);
   });
 
-  it("deve lançar InvalidRefreshTokenError para token já revogado", async () => {
+  it("should throw InvalidRefreshTokenError for already revoked token", async () => {
     const { refreshToken } = await registerAndLogin(
       "dave@example.com",
       "senha1234"
@@ -80,13 +80,13 @@ describe("RefreshTokenUseCase", () => {
 
     await sut.execute({ refreshToken });
 
-    // Tentar usar o mesmo token novamente
+    // Try to use the same token again
     await expect(sut.execute({ refreshToken })).rejects.toThrow(
       InvalidRefreshTokenError
     );
   });
 
-  it("deve lançar InvalidRefreshTokenError para token expirado", async () => {
+  it("should throw InvalidRefreshTokenError for expired token", async () => {
     const { refreshToken } = await registerAndLogin(
       "eve@example.com",
       "senha1234"

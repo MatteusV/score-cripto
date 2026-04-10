@@ -37,7 +37,7 @@ describe("Usage E2E — check, consume e limites mensais", () => {
   });
 
   describe("GET /usage/:userId", () => {
-    it("deve retornar uso inicial com 5 remaining para FREE_TIER", async () => {
+    it("should return initial usage with 5 remaining for FREE_TIER", async () => {
       const userId = await registerAndGetUserId(app, "usage-get@example.com");
 
       const res = await app.inject({
@@ -56,7 +56,7 @@ describe("Usage E2E — check, consume e limites mensais", () => {
       expect(body.limit).toBe(5);
     });
 
-    it("deve retornar 404 para userId inexistente", async () => {
+    it("should return 404 for non-existent userId", async () => {
       const res = await app.inject({
         method: "GET",
         url: "/usage/user-nao-existe",
@@ -67,7 +67,7 @@ describe("Usage E2E — check, consume e limites mensais", () => {
   });
 
   describe("POST /usage/check", () => {
-    it("deve retornar 200 com allowed=true quando dentro do limite", async () => {
+    it("should return 200 with allowed=true when within limit", async () => {
       const userId = await registerAndGetUserId(app, "check-ok@example.com");
 
       const res = await app.inject({
@@ -80,10 +80,10 @@ describe("Usage E2E — check, consume e limites mensais", () => {
       expect((res.json() as { allowed: boolean }).allowed).toBe(true);
     });
 
-    it("deve retornar 429 quando limite atingido", async () => {
+    it("should return 429 when limit reached", async () => {
       const userId = await registerAndGetUserId(app, "check-limit@example.com");
 
-      // Consome todas as 5 análises
+      // Consume all 5 analyses
       for (let i = 0; i < 5; i++) {
         await app.inject({
           method: "POST",
@@ -106,7 +106,7 @@ describe("Usage E2E — check, consume e limites mensais", () => {
   });
 
   describe("POST /usage/consume", () => {
-    it("deve decrementar remaining após consumo", async () => {
+    it("should decrement remaining after consumption", async () => {
       const userId = await registerAndGetUserId(app, "consume-dec@example.com");
 
       const before = await app.inject({
@@ -131,13 +131,13 @@ describe("Usage E2E — check, consume e limites mensais", () => {
       expect(afterRemaining).toBe(beforeRemaining - 1);
     });
 
-    it("deve retornar 429 ao exceder limite de 5 análises", async () => {
+    it("should return 429 when exceeding limit of 5 analyses", async () => {
       const userId = await registerAndGetUserId(
         app,
         "consume-limit@example.com"
       );
 
-      // Consome 5 (limite FREE_TIER)
+      // Consume 5 (FREE_TIER limit)
       for (let i = 0; i < 5; i++) {
         const res = await app.inject({
           method: "POST",
@@ -147,7 +147,7 @@ describe("Usage E2E — check, consume e limites mensais", () => {
         expect(res.statusCode).toBe(200);
       }
 
-      // 6ª deve ser bloqueada
+      // 6th should be blocked
       const res = await app.inject({
         method: "POST",
         url: "/usage/consume",
@@ -157,7 +157,7 @@ describe("Usage E2E — check, consume e limites mensais", () => {
       expect(res.statusCode).toBe(429);
     });
 
-    it("deve persistir contagem no banco de dados", async () => {
+    it("should persist count in the database", async () => {
       const userId = await registerAndGetUserId(app, "consume-db@example.com");
 
       await app.inject({

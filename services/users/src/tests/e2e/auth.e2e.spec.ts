@@ -24,7 +24,7 @@ describe("Auth E2E — register, login, refresh", () => {
   });
 
   describe("POST /auth/register", () => {
-    it("deve registrar novo usuário e retornar 201", async () => {
+    it("should register new user and return 201", async () => {
       const res = await app.inject({
         method: "POST",
         url: "/auth/register",
@@ -42,7 +42,7 @@ describe("Auth E2E — register, login, refresh", () => {
       expect(body.id).toBeTruthy();
     });
 
-    it("deve criar subscription FREE_TIER ao registrar", async () => {
+    it("should create FREE_TIER subscription when registering", async () => {
       await app.inject({
         method: "POST",
         url: "/auth/register",
@@ -57,7 +57,7 @@ describe("Auth E2E — register, login, refresh", () => {
       expect(rows.rows[0].status).toBe("active");
     });
 
-    it("deve retornar 409 ao registrar e-mail duplicado", async () => {
+    it("should return 409 when registering duplicate email", async () => {
       await app.inject({
         method: "POST",
         url: "/auth/register",
@@ -76,7 +76,7 @@ describe("Auth E2E — register, login, refresh", () => {
   });
 
   describe("POST /auth/login", () => {
-    it("deve autenticar e retornar tokens", async () => {
+    it("should authenticate and return tokens", async () => {
       await app.inject({
         method: "POST",
         url: "/auth/register",
@@ -100,7 +100,7 @@ describe("Auth E2E — register, login, refresh", () => {
       expect(body.user.email).toBe("login@example.com");
     });
 
-    it("deve retornar 401 com senha errada", async () => {
+    it("should return 401 with wrong password", async () => {
       await app.inject({
         method: "POST",
         url: "/auth/register",
@@ -118,7 +118,7 @@ describe("Auth E2E — register, login, refresh", () => {
   });
 
   describe("POST /auth/refresh", () => {
-    it("deve renovar tokens com refresh token válido", async () => {
+    it("should renew tokens with valid refresh token", async () => {
       await app.inject({
         method: "POST",
         url: "/auth/register",
@@ -148,7 +148,7 @@ describe("Auth E2E — register, login, refresh", () => {
       expect(body.refreshToken).not.toBe(refreshToken);
     });
 
-    it("deve retornar 401 ao reutilizar refresh token revogado", async () => {
+    it("should return 401 when reusing revoked refresh token", async () => {
       await app.inject({
         method: "POST",
         url: "/auth/register",

@@ -24,7 +24,7 @@ describe("LoginUserUseCase", () => {
     sut = new LoginUserUseCase(userRepo, refreshTokenRepo, jwtService);
   });
 
-  it("deve retornar accessToken, refreshToken e dados do usuário com credenciais válidas", async () => {
+  it("should return accessToken, refreshToken and user data with valid credentials", async () => {
     await createUser("alice@example.com", "senha1234");
 
     const result = await sut.execute({
@@ -37,7 +37,7 @@ describe("LoginUserUseCase", () => {
     expect(result.user.email).toBe("alice@example.com");
   });
 
-  it("não deve expor passwordHash no retorno do usuário", async () => {
+  it("should not expose passwordHash in user response", async () => {
     await createUser("bob@example.com", "senha1234");
 
     const result = await sut.execute({
@@ -48,7 +48,7 @@ describe("LoginUserUseCase", () => {
     expect(result.user).not.toHaveProperty("passwordHash");
   });
 
-  it("deve persistir o refresh token (hash SHA-256) no repositório", async () => {
+  it("should persist refresh token (SHA-256 hash) in repository", async () => {
     await createUser("carol@example.com", "senha1234");
 
     const { refreshToken } = await sut.execute({
@@ -61,13 +61,13 @@ describe("LoginUserUseCase", () => {
     expect(refreshTokenRepo.items[0].tokenHash).not.toBe(refreshToken);
   });
 
-  it("deve lançar InvalidCredentialsError para email inexistente", async () => {
+  it("should throw InvalidCredentialsError for non-existent email", async () => {
     await expect(
       sut.execute({ email: "nao@existe.com", password: "senha1234" })
     ).rejects.toThrow(InvalidCredentialsError);
   });
 
-  it("deve lançar InvalidCredentialsError para senha incorreta", async () => {
+  it("should throw InvalidCredentialsError for incorrect password", async () => {
     await createUser("dave@example.com", "senha1234");
 
     await expect(
@@ -75,7 +75,7 @@ describe("LoginUserUseCase", () => {
     ).rejects.toThrow(InvalidCredentialsError);
   });
 
-  it("deve definir expiresAt do refresh token para 7 dias no futuro", async () => {
+  it("should set refresh token expiresAt to 7 days in the future", async () => {
     await createUser("eve@example.com", "senha1234");
 
     const before = new Date();
