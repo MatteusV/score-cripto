@@ -8,6 +8,7 @@ vi.mock("../config.js", () => ({
     port: 3001,
     databaseUrl: "postgresql://test",
     rabbitmqUrl: "amqp://localhost",
+    usersServiceUrl: "http://users:3003",
   },
 }));
 
@@ -20,6 +21,11 @@ vi.mock("../services/database.js", () => ({
   },
 }));
 
+const mockPublishConsumed = vi.fn().mockReturnValue(true);
+vi.mock("../events/publisher.js", () => ({
+  publishUserAnalysisConsumed: mockPublishConsumed,
+}));
+
 describe("api-gateway consumer handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -29,7 +35,23 @@ describe("api-gateway consumer handlers", () => {
     it("deve atualizar status para COMPLETED com resultado", async () => {
       const { handleScoreCalculated } = await import("./consumer.js");
       mockFindUnique.mockResolvedValue({ id: "req-001", status: "PROCESSING" });
-      mockUpdate.mockResolvedValue({});
+      mockUpdate.mockResolvedValue({
+        id: "req-001",
+        userId: "user-1",
+        chain: "ethereum",
+        address: "0xabc",
+        status: "COMPLETED",
+        score: 85,
+        confidence: 0.9,
+        reasoning: "Trustworthy",
+        positiveFactors: ["Old wallet"],
+        riskFactors: [],
+        modelVersion: "gpt-4o-mini",
+        promptVersion: "v1.0",
+        requestedAt: new Date(),
+        completedAt: new Date(),
+        failureReason: null,
+      });
 
       const payload = JSON.stringify({
         event: "wallet.score.calculated",
@@ -58,6 +80,13 @@ describe("api-gateway consumer handlers", () => {
           confidence: 0.9,
         }),
       });
+      expect(mockPublishConsumed).toHaveBeenCalledWith({
+        userId: "user-1",
+        analysisId: "req-001",
+        status: "completed",
+        chain: "ethereum",
+        address: "0xabc",
+      });
     });
 
     it("deve lançar erro para payload inválido", async () => {
@@ -74,10 +103,26 @@ describe("api-gateway consumer handlers", () => {
   });
 
   describe("handleScoreFailed", () => {
-    it("deve atualizar status para FAILED com reason", async () => {
+    it("deve atualizar status para FAILED com reason e publicar evento de consumo", async () => {
       const { handleScoreFailed } = await import("./consumer.js");
       mockFindUnique.mockResolvedValue({ id: "req-001", status: "PROCESSING" });
-      mockUpdate.mockResolvedValue({});
+      mockUpdate.mockResolvedValue({
+        id: "req-001",
+        userId: "user-1",
+        chain: "ethereum",
+        address: "0xabc",
+        status: "FAILED",
+        score: null,
+        confidence: null,
+        reasoning: null,
+        positiveFactors: [],
+        riskFactors: [],
+        modelVersion: null,
+        promptVersion: null,
+        requestedAt: new Date(),
+        completedAt: null,
+        failureReason: "AI service error",
+      });
 
       const payload = JSON.stringify({
         event: "wallet.score.failed",
@@ -96,6 +141,13 @@ describe("api-gateway consumer handlers", () => {
           status: "FAILED",
           failureReason: "AI service error",
         }),
+      });
+      expect(mockPublishConsumed).toHaveBeenCalledWith({
+        userId: "user-1",
+        analysisId: "req-001",
+        status: "failed",
+        chain: "ethereum",
+        address: "0xabc",
       });
     });
   });

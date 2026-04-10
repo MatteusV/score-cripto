@@ -1,6 +1,7 @@
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { z } from "zod";
 import { config } from "../config.js";
+import { publishUserAnalysisConsumed } from "../events/publisher.js";
 import { AnalysisRequestPrismaRepository } from "../repositories/prisma/analysis-request-prisma-repository.js";
 import { prisma } from "../services/database.js";
 import { CompleteAnalysisRequestUseCase } from "../use-cases/analysis-request/complete-analysis-request-use-case.js";
@@ -55,6 +56,8 @@ export async function handleScoreCalculated(raw: string): Promise<void> {
 
   const {
     requestId,
+    chain,
+    address,
     score,
     confidence,
     reasoning,
@@ -66,7 +69,7 @@ export async function handleScoreCalculated(raw: string): Promise<void> {
 
   console.log(`RECEBIDO: wallet.score.calculated | requestId=${requestId}`);
 
-  await completeUseCase.execute({
+  const { analysisRequest } = await completeUseCase.execute({
     id: requestId,
     result: {
       score,
@@ -77,6 +80,14 @@ export async function handleScoreCalculated(raw: string): Promise<void> {
       modelVersion,
       promptVersion,
     },
+  });
+
+  publishUserAnalysisConsumed({
+    userId: analysisRequest.userId,
+    analysisId: requestId,
+    status: "completed",
+    chain,
+    address,
   });
 }
 
@@ -95,7 +106,18 @@ export async function handleScoreFailed(raw: string): Promise<void> {
 
   console.log(`RECEBIDO: wallet.score.failed | requestId=${requestId}`);
 
-  await failUseCase.execute({ id: requestId, reason });
+  const { analysisRequest } = await failUseCase.execute({
+    id: requestId,
+    reason,
+  });
+
+  publishUserAnalysisConsumed({
+    userId: analysisRequest.userId,
+    analysisId: requestId,
+    status: "failed",
+    chain: analysisRequest.chain,
+    address: analysisRequest.address,
+  });
 }
 
 let connection: ChannelModel | null = null;

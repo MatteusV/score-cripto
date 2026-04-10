@@ -5,6 +5,7 @@ import { publishWalletDataRequested } from "../../../events/publisher";
 import type { AnalysisRequest } from "../../../generated/prisma/client";
 import { AnalysisRequestPrismaRepository } from "../../../repositories/prisma/analysis-request-prisma-repository";
 import { prisma } from "../../../services/database";
+import { checkUsage, UsersServiceError } from "../../../services/users-service";
 import { CreateAnalysisRequestUseCase } from "../../../use-cases/analysis-request/create-analysis-request-use-case";
 import { FindActiveAnalysisRequestUseCase } from "../../../use-cases/analysis-request/find-active-analysis-request-use-case";
 import { GetAnalysisRequestUseCase } from "../../../use-cases/analysis-request/get-analysis-request-use-case";
@@ -85,6 +86,9 @@ export async function analysisRequestHandler(app: FastifyInstance) {
               status: z.literal("pending"),
             })
             .describe("Análise criada — pipeline iniciado"),
+          429: z
+            .object({ error: z.string() })
+            .describe("Limite de análises do plano atingido"),
         },
       },
     },
@@ -102,6 +106,20 @@ export async function analysisRequestHandler(app: FastifyInstance) {
           requestId: existing.id,
           status: existing.status.toLowerCase() as "pending" | "processing",
         });
+      }
+
+      try {
+        await checkUsage(userId);
+      } catch (err) {
+        if (err instanceof UsersServiceError && err.statusCode === 429) {
+          return reply.status(429).send({
+            error: "Usage limit exceeded for this billing period",
+          });
+        }
+        console.warn(
+          "[api-gateway] Users service unavailable, proceeding with analysis:",
+          (err as Error).message
+        );
       }
 
       const { analysisRequest } = await createUseCase.execute({

@@ -88,3 +88,18 @@ export function publishWalletDataRequested(data: {
     data,
   });
 }
+
+export function publishUserAnalysisConsumed(data: {
+  userId: string;
+  analysisId: string;
+  status: "completed" | "failed";
+  chain: string;
+  address: string;
+}): boolean {
+  return publishEvent("user.analysis.consumed", {
+    event: "user.analysis.consumed",
+    schemaVersion: "1",
+    timestamp: new Date().toISOString(),
+    data,
+  });
+}

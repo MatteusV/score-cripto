@@ -17,11 +17,36 @@ vi.mock("../services/database.js", () => ({
 const mockPublish = vi.fn().mockReturnValue(true);
 vi.mock("../events/publisher.js", () => ({
   publishWalletDataRequested: mockPublish,
+  publishUserAnalysisConsumed: vi.fn().mockReturnValue(true),
+}));
+
+const mockCheckUsage = vi.fn().mockResolvedValue({
+  allowed: true,
+  remaining: 4,
+  limit: 5,
+  resetsAt: new Date().toISOString(),
+});
+vi.mock("../services/users-service.js", () => ({
+  checkUsage: mockCheckUsage,
+  UsersServiceError: class UsersServiceError extends Error {
+    readonly statusCode: number;
+    constructor(message: string, statusCode: number) {
+      super(message);
+      this.name = "UsersServiceError";
+      this.statusCode = statusCode;
+    }
+  },
 }));
 
 describe("api-gateway HTTP server (Fastify)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCheckUsage.mockResolvedValue({
+      allowed: true,
+      remaining: 4,
+      limit: 5,
+      resetsAt: new Date().toISOString(),
+    });
   });
 
   describe("POST /analysis", () => {
@@ -82,6 +107,33 @@ describe("api-gateway HTTP server (Fastify)", () => {
       });
       expect(mockCreate).not.toHaveBeenCalled();
       expect(mockPublish).not.toHaveBeenCalled();
+
+      await app.close();
+    });
+
+    it("deve retornar 429 quando limite de uso do usuário foi atingido", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      mockFindFirst.mockResolvedValue(null);
+      const { UsersServiceError } = await import(
+        "../services/users-service.js"
+      );
+      mockCheckUsage.mockRejectedValue(
+        new UsersServiceError("Usage limit exceeded", 429)
+      );
+
+      const res = await app.inject({
+        method: "POST",
+        url: "/analysis",
+        payload: { chain: "ethereum", address: "0xabc", userId: "user-1" },
+      });
+
+      expect(res.statusCode).toBe(429);
+      expect(res.json()).toMatchObject({
+        error: "Usage limit exceeded for this billing period",
+      });
+      expect(mockCreate).not.toHaveBeenCalled();
 
       await app.close();
     });
