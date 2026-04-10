@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
 
 const E2E_DATABASE_URL =
   process.env.E2E_DATABASE_URL ??
-  "postgresql://test:test@localhost:5435/test";
+  "postgresql://score_cripto:score_cripto@localhost:5435/score_cripto_users";
 
 export async function setup({ provide }: GlobalSetupContext) {
   const client = new Client({
