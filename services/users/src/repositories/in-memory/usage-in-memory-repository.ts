@@ -35,4 +35,25 @@ export class UsageInMemoryRepository implements UsageRepository {
       ) ?? null
     );
   }
+
+  async increment(id: string) {
+    const record = this.items.find((r) => r.id === id);
+    if (!record) {
+      throw new Error(`UsageRecord ${id} not found`);
+    }
+    record.analysisCount += 1;
+    record.updatedAt = new Date();
+    return record;
+  }
+
+  async reset(id: string, resetAt: Date) {
+    const record = this.items.find((r) => r.id === id);
+    if (!record) {
+      throw new Error(`UsageRecord ${id} not found`);
+    }
+    record.analysisCount = 0;
+    record.resetAt = resetAt;
+    record.updatedAt = new Date();
+    return record;
+  }
 }

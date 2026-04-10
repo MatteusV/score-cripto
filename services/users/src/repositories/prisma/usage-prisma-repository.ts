@@ -24,4 +24,18 @@ export class UsagePrismaRepository implements UsageRepository {
       },
     });
   }
+
+  async increment(id: string) {
+    return this.prisma.usageRecord.update({
+      where: { id },
+      data: { analysisCount: { increment: 1 } },
+    });
+  }
+
+  async reset(id: string, resetAt: Date) {
+    return this.prisma.usageRecord.update({
+      where: { id },
+      data: { analysisCount: 0, resetAt },
+    });
+  }
 }
