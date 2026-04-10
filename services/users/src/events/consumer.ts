@@ -1,5 +1,10 @@
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { config } from "../config.js";
+import {
+  processUserAnalysisConsumedMessage,
+  QUEUE_NAME,
+  ROUTING_KEY,
+} from "./user-analysis-consumer.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
 const EXCHANGE_TYPE = "topic";
@@ -7,32 +12,57 @@ const EXCHANGE_TYPE = "topic";
 let connection: ChannelModel | null = null;
 let channel: Channel | null = null;
 
-export async function connectRabbitMQ(): Promise<void> {
+export async function startConsumer(): Promise<void> {
   try {
     connection = await amqplib.connect(config.rabbitmqUrl);
     channel = await connection.createChannel();
+
     await channel.assertExchange(EXCHANGE_NAME, EXCHANGE_TYPE, {
       durable: true,
     });
-    console.log("[users][RabbitMQ] Connected and exchange asserted");
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+    await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
+
+    channel.prefetch(1);
+
+    channel.consume(QUEUE_NAME, async (msg) => {
+      if (!msg) {
+        return;
+      }
+
+      const result = await processUserAnalysisConsumedMessage(
+        msg.content.toString()
+      );
+
+      if (result.outcome === "invalid_payload") {
+        channel?.nack(msg, false, false); // dead-letter
+      } else if (result.outcome === "error") {
+        channel?.nack(msg, false, true); // retry
+      } else {
+        channel?.ack(msg); // processed ou limit_exceeded
+      }
+    });
 
     connection.on("close", () => {
-      console.log("[users][RabbitMQ] Connection closed");
+      console.log("[users][Consumer] Connection closed");
       connection = null;
       channel = null;
     });
+
     connection.on("error", (err) => {
-      console.error("[users][RabbitMQ] Connection error:", err.message);
+      console.error("[users][Consumer] Connection error:", err.message);
     });
+
+    console.log(`[users][Consumer] Listening on queue: ${QUEUE_NAME}`);
   } catch (error) {
     console.warn(
-      "[users][RabbitMQ] Failed to connect, events will not be consumed:",
+      "[users][Consumer] Failed to connect, events will not be consumed:",
       (error as Error).message
     );
   }
 }
 
-export async function disconnectRabbitMQ(): Promise<void> {
+export async function stopConsumer(): Promise<void> {
   try {
     if (channel) {
       await channel.close();
@@ -46,15 +76,4 @@ export async function disconnectRabbitMQ(): Promise<void> {
     channel = null;
     connection = null;
   }
-}
-
-export async function startConsumer(): Promise<void> {
-  // TODO: implement queue bindings and message handlers
-  // for user.analysis.consumed and other events
-  console.log("[users][RabbitMQ] Consumer stub — no queues bound yet");
-}
-
-export async function stopConsumer(): Promise<void> {
-  // TODO: gracefully close consumer channels
-  console.log("[users][RabbitMQ] Consumer stub — stopping");
 }
