@@ -67,7 +67,7 @@ export async function createHttpServer() {
     },
     async (_request, reply) => {
       return reply.status(200).send({ status: "ok" });
-    }
+    },
   );
 
   // Scalar precisa ser registrado após as rotas para que fastify.swagger() tenha o spec completo

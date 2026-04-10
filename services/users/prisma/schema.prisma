@@ -8,13 +8,85 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Models will be defined in the schema design issue (score-cripto-4jy)
-// Temporary model to allow prisma generate to succeed
-model ConfigEntry {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  value     String
-  createdAt DateTime @default(now())
+// ─── Enums ────────────────────────────────────────────────────────────────────
 
-  @@map("config_entries")
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Plan {
+  FREE_TIER
+  PRO
+}
+
+enum SubscriptionStatus {
+  active
+  past_due
+  canceled
+  trialing
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  name             String?
+  passwordHash     String
+  role             Role     @default(USER)
+  stripeCustomerId String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+  subscription  Subscription?
+  usageRecords  UsageRecord[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  tokenHash String
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  plan                 Plan               @default(FREE_TIER)
+  stripeSubscriptionId String?            @unique
+  stripePriceId        String?
+  status               SubscriptionStatus @default(active)
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model UsageRecord {
+  id            String   @id @default(cuid())
+  userId        String
+  analysisCount Int      @default(0)
+  periodMonth   Int
+  periodYear    Int
+  resetAt       DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, periodYear, periodMonth])
+  @@map("usage_records")
 }
