@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import type { RefreshTokenRepository } from "../../repositories/refresh-token-repository";
 import type { UserRepository } from "../../repositories/user-repository";
 import type { JwtService } from "../../services/jwt-service";

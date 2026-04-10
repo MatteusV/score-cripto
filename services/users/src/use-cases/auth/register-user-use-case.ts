@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { z } from "zod/v4";
 import type { User } from "../../generated/prisma/client";
 import type { SubscriptionRepository } from "../../repositories/subscription-repository";

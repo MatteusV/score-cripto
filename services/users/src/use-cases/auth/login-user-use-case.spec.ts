@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { beforeEach, describe, expect, it } from "vitest";
 import { RefreshTokenInMemoryRepository } from "../../repositories/in-memory/refresh-token-in-memory-repository";
 import { UserInMemoryRepository } from "../../repositories/in-memory/user-in-memory-repository";
