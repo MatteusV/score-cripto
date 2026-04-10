@@ -1,4 +1,10 @@
 import { Client, type QueryResult } from "pg";
+import * as fs from "fs";
+import * as path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const E2E_CONFIG_FILE = path.join(__dirname, ".e2e-config.json");
 
 export class E2EDatabase {
   private readonly client: Client;
@@ -45,20 +51,32 @@ export class E2EDatabase {
 }
 
 export function createE2EDatabase(): E2EDatabase {
-  const schema = process.env.E2E_SCHEMA;
+  // Tenta ler do arquivo de configuração primeiro (globalSetup)
+  let schema: string | undefined;
+  let e2eDatabaseUrl: string | undefined;
+
+  if (fs.existsSync(E2E_CONFIG_FILE)) {
+    const config = JSON.parse(fs.readFileSync(E2E_CONFIG_FILE, "utf-8"));
+    schema = config.E2E_SCHEMA;
+    e2eDatabaseUrl = config.E2E_DATABASE_URL;
+  }
+
+  // Fallback para process.env
+  schema = schema ?? process.env.E2E_SCHEMA;
+  e2eDatabaseUrl = e2eDatabaseUrl ?? process.env.E2E_DATABASE_URL;
+
   if (!schema) {
     throw new Error(
       "[E2E] E2E_SCHEMA não definido. Certifique-se que globalSetup rodou."
     );
   }
 
-  const url = process.env.E2E_DATABASE_URL;
-  if (!url) {
+  if (!e2eDatabaseUrl) {
     throw new Error(
       "[E2E] E2E_DATABASE_URL não definido. Certifique-se que globalSetup rodou."
     );
   }
 
-  const baseUrl = url.split("?")[0];
+  const baseUrl = e2eDatabaseUrl.split("?")[0];
   return new E2EDatabase(schema, baseUrl);
 }
