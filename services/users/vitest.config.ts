@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.spec.ts"],
+    exclude: ["src/tests/e2e/**"],
     env: {
       DATABASE_URL: "postgresql://test:test@localhost:5435/test",
       JWT_SECRET: "test-secret-for-vitest",
