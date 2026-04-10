@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "vitest run",
+    "test:e2e": "vitest run --config vitest.e2e.ts",
     "test:watch": "vitest",
     "db:generate": "prisma generate",
     "check": "ultracite check",
