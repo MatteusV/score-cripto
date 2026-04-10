@@ -45,7 +45,7 @@ describe("Users HTTP server (Fastify)", () => {
 
   // ── GET /health ──────────────────────────────────────────────────────────────
   describe("GET /health", () => {
-    it("deve retornar status ok", async () => {
+    it("should return ok status", async () => {
       const app = await getApp();
       const res = await app.inject({ method: "GET", url: "/health" });
       expect(res.statusCode).toBe(200);
@@ -56,10 +56,10 @@ describe("Users HTTP server (Fastify)", () => {
 
   // ── POST /auth/register ──────────────────────────────────────────────────────
   describe("POST /auth/register", () => {
-    it("deve registrar usuário e retornar 201", async () => {
+    it("should register a new user and return 201", async () => {
       const app = await getApp();
 
-      // findByEmail → null (não existe), create → usuário novo
+      // findByEmail → null (doesn't exist), create → new user
       mockUser.mockResolvedValueOnce(null);
       const { prisma } = await import("../services/database.js");
       vi.mocked(prisma.user.create).mockResolvedValueOnce({
@@ -89,7 +89,7 @@ describe("Users HTTP server (Fastify)", () => {
       await app.close();
     });
 
-    it("deve retornar 409 quando email já existe", async () => {
+    it("should return 409 when email already exists", async () => {
       const app = await getApp();
 
       mockUser.mockResolvedValueOnce({
@@ -108,7 +108,7 @@ describe("Users HTTP server (Fastify)", () => {
       await app.close();
     });
 
-    it("deve retornar 400 para body inválido", async () => {
+    it("should return 400 for invalid body", async () => {
       const app = await getApp();
 
       const res = await app.inject({
@@ -124,7 +124,7 @@ describe("Users HTTP server (Fastify)", () => {
 
   // ── POST /auth/login ─────────────────────────────────────────────────────────
   describe("POST /auth/login", () => {
-    it("deve retornar 200 com tokens para credenciais válidas", async () => {
+    it("should return 200 with tokens for valid credentials", async () => {
       const app = await getApp();
       const passwordHash = await bcrypt.hash("senha1234", 10);
 
@@ -154,7 +154,7 @@ describe("Users HTTP server (Fastify)", () => {
       await app.close();
     });
 
-    it("deve retornar 401 para credenciais inválidas", async () => {
+    it("should return 401 for invalid credentials", async () => {
       const app = await getApp();
 
       mockUser.mockResolvedValueOnce(null);
@@ -173,7 +173,7 @@ describe("Users HTTP server (Fastify)", () => {
 
   // ── POST /usage/check ────────────────────────────────────────────────────────
   describe("POST /usage/check", () => {
-    it("deve retornar 200 quando usuário tem limite disponível", async () => {
+    it("should return 200 when user has available limit", async () => {
       const app = await getApp();
       const now = new Date();
 
@@ -202,7 +202,7 @@ describe("Users HTTP server (Fastify)", () => {
       await app.close();
     });
 
-    it("deve retornar 429 quando usuário atingiu o limite", async () => {
+    it("should return 429 when user reached the limit", async () => {
       const app = await getApp();
       const now = new Date();
 
@@ -227,7 +227,7 @@ describe("Users HTTP server (Fastify)", () => {
       await app.close();
     });
 
-    it("deve retornar 404 para userId inexistente", async () => {
+    it("should return 404 for non-existent userId", async () => {
       const app = await getApp();
 
       mockUser.mockResolvedValueOnce(null);
