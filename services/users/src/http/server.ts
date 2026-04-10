@@ -9,6 +9,8 @@ import {
   type ZodTypeProvider,
 } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
+import { authHandler } from "./controllers/auth/routes.js";
+import { usageHandler } from "./controllers/usage/routes.js";
 
 export async function createHttpServer() {
   const app = fastify({
@@ -52,6 +54,9 @@ export async function createHttpServer() {
     }
     reply.send(error);
   });
+
+  await app.register(authHandler, { prefix: "/auth" });
+  await app.register(usageHandler, { prefix: "/usage" });
 
   // GET /health
   app.withTypeProvider<ZodTypeProvider>().get(
