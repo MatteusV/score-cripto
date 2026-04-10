@@ -68,7 +68,7 @@ export async function usageHandler(app: FastifyInstance) {
         body: z.object({ userId: z.string().min(1) }),
         response: {
           200: UsageResponseSchema,
-          404: z.object({ error: z.string() }),
+          404: z.object({ error: z.string("User not found") }),
           429: z.object({ error: z.string(), retryAt: z.string() }),
         },
       },
@@ -111,6 +111,7 @@ export async function usageHandler(app: FastifyInstance) {
         response: {
           200: z.object({ remaining: z.number(), limit: z.number() }),
           429: z.object({ error: z.string() }),
+          404: z.object({ error: z.string("User not found") }),
         },
       },
     },

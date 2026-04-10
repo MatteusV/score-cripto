@@ -1,7 +1,7 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { Client, type QueryResult } from "pg";
-import * as fs from "fs";
-import * as path from "path";
-import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const E2E_CONFIG_FILE = path.join(__dirname, ".e2e-config.json");

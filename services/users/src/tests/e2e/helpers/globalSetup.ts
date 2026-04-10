@@ -1,10 +1,10 @@
-import type { GlobalSetupContext } from "vitest/node";
-import { Client } from "pg";
+import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { execa } from "execa";
-import { randomUUID } from "crypto";
-import * as fs from "fs";
-import * as path from "path";
-import { fileURLToPath } from "url";
+import { Client } from "pg";
+import type { GlobalSetupContext } from "vitest/node";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const E2E_DATABASE_URL =
@@ -42,7 +42,10 @@ export async function setup({ provide }: GlobalSetupContext) {
   );
 
   // Disponibiliza para os testes via arquivo (processo separado)
-  const config = { E2E_SCHEMA: schema, E2E_DATABASE_URL: databaseUrlWithSchema };
+  const config = {
+    E2E_SCHEMA: schema,
+    E2E_DATABASE_URL: databaseUrlWithSchema,
+  };
   fs.writeFileSync(E2E_CONFIG_FILE, JSON.stringify(config, null, 2));
 
   provide("E2E_SCHEMA", schema);
