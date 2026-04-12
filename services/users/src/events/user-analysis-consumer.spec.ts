@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SubscriptionInMemoryRepository } from "../repositories/in-memory/subscription-in-memory-repository";
 import { UsageInMemoryRepository } from "../repositories/in-memory/usage-in-memory-repository";
+import { UserInMemoryRepository } from "../repositories/in-memory/user-in-memory-repository";
 import { ConsumeUsageUseCase } from "../use-cases/usage/consume-usage-use-case";
 import { processUserAnalysisConsumedMessage } from "./user-analysis-consumer";
 
@@ -11,6 +12,7 @@ vi.mock("../use-cases/factories/make-consume-usage-use-case.js", () => ({
 
 let usageRepo: UsageInMemoryRepository;
 let subscriptionRepo: SubscriptionInMemoryRepository;
+let userRepo: UserInMemoryRepository;
 let consumeUseCase: ConsumeUsageUseCase;
 
 function makeValidEvent(overrides: Record<string, unknown> = {}) {
@@ -32,11 +34,22 @@ describe("processUserAnalysisConsumedMessage", () => {
   beforeEach(() => {
     usageRepo = new UsageInMemoryRepository();
     subscriptionRepo = new SubscriptionInMemoryRepository();
-    consumeUseCase = new ConsumeUsageUseCase(usageRepo, subscriptionRepo);
+    userRepo = new UserInMemoryRepository();
+    consumeUseCase = new ConsumeUsageUseCase(
+      usageRepo,
+      subscriptionRepo,
+      userRepo
+    );
     vi.clearAllMocks();
   });
 
   it("processa evento válido e incrementa usage", async () => {
+    await userRepo.create({
+      id: "user-1",
+      email: "test@example.com",
+      passwordHash: "hashed",
+      role: "USER",
+    });
     await subscriptionRepo.create({
       userId: "user-1",
       plan: "FREE_TIER",
@@ -86,6 +99,12 @@ describe("processUserAnalysisConsumedMessage", () => {
   });
 
   it("não incrementa usage para análise com status failed", async () => {
+    await userRepo.create({
+      id: "user-1",
+      email: "test@example.com",
+      passwordHash: "hashed",
+      role: "USER",
+    });
     await subscriptionRepo.create({
       userId: "user-1",
       plan: "FREE_TIER",
@@ -102,6 +121,12 @@ describe("processUserAnalysisConsumedMessage", () => {
 
   it("retorna limit_exceeded sem erro quando limite já atingido", async () => {
     const now = new Date();
+    await userRepo.create({
+      id: "user-1",
+      email: "test@example.com",
+      passwordHash: "hashed",
+      role: "USER",
+    });
     await subscriptionRepo.create({
       userId: "user-1",
       plan: "FREE_TIER",

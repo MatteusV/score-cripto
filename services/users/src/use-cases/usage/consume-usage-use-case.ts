@@ -1,7 +1,9 @@
 import type { SubscriptionRepository } from "../../repositories/subscription-repository";
 import type { UsageRepository } from "../../repositories/usage-repository";
+import type { UserRepository } from "../../repositories/user-repository";
 import { getLimitForPlan } from "../../services/plan-service";
 import { UsageLimitExceededError } from "../errors/usage-limit-exceeded-error";
+import { UserNotFoundError } from "../errors/user-not-found-error";
 
 interface ConsumeUsageRequest {
   userId: string;
@@ -15,18 +17,26 @@ interface ConsumeUsageResponse {
 export class ConsumeUsageUseCase {
   private readonly usageRepository: UsageRepository;
   private readonly subscriptionRepository: SubscriptionRepository;
+  private readonly userRepository: UserRepository;
 
   constructor(
     usageRepository: UsageRepository,
-    subscriptionRepository: SubscriptionRepository
+    subscriptionRepository: SubscriptionRepository,
+    userRepository: UserRepository
   ) {
     this.usageRepository = usageRepository;
     this.subscriptionRepository = subscriptionRepository;
+    this.userRepository = userRepository;
   }
 
   async execute({
     userId,
   }: ConsumeUsageRequest): Promise<ConsumeUsageResponse> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new UserNotFoundError();
+    }
+
     const subscription = await this.subscriptionRepository.findByUserId(userId);
     const plan = subscription?.plan ?? "FREE_TIER";
     const limit = getLimitForPlan(plan);

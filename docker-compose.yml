@@ -308,6 +308,7 @@ services:
       - ./services/users:/app
       - users_node_modules:/app/node_modules
       - users_pnpm_store:/pnpm/store
+      - users_generated_prisma:/app/src/generated/prisma
     ports:
       - "${USERS_HOST_PORT:-3003}:3003"
     command:
@@ -333,6 +334,7 @@ services:
       NEXT_TELEMETRY_DISABLED: 1
       # Server-side (API routes): usa o nome do serviço Docker
       API_BASE_URL: ${API_BASE_URL:-http://api-gateway:3001}
+      USERS_URL: ${USERS_URL:-http://users:3003}
       # Client-side (browser): usa localhost com porta exposta
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3001}
       CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-1}
@@ -373,3 +375,4 @@ volumes:
   users_postgres_data:
   users_node_modules:
   users_pnpm_store:
+  users_generated_prisma:

@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { UsageLimitExceededError } from "../use-cases/errors/usage-limit-exceeded-error.js";
+import { UserNotFoundError } from "../use-cases/errors/user-not-found-error.js";
 import { makeConsumeUsageUseCase } from "../use-cases/factories/make-consume-usage-use-case.js";
 
 const QUEUE_NAME = "users.user.analysis.consumed";
@@ -22,7 +23,12 @@ export type UserAnalysisConsumedEvent = z.infer<
 >;
 
 export interface ProcessMessageResult {
-  outcome: "processed" | "invalid_payload" | "limit_exceeded" | "error";
+  outcome:
+    | "processed"
+    | "invalid_payload"
+    | "limit_exceeded"
+    | "user_not_found"
+    | "error";
 }
 
 export async function processUserAnalysisConsumedMessage(
@@ -71,6 +77,13 @@ export async function processUserAnalysisConsumedMessage(
         `[users][Consumer] Usage limit already exceeded for userId=${userId}, acking anyway`
       );
       return { outcome: "limit_exceeded" };
+    }
+    if (err instanceof UserNotFoundError) {
+      // Usuário não existe — evento órfão, acknowledge silencioso
+      console.warn(
+        `[users][Consumer] User not found for userId=${userId}, skipping orphan event`
+      );
+      return { outcome: "user_not_found" };
     }
     console.error(
       "[users][Consumer] Transient error processing event:",

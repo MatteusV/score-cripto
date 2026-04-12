@@ -1,14 +1,26 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { SubscriptionInMemoryRepository } from "../../repositories/in-memory/subscription-in-memory-repository";
 import { UsageInMemoryRepository } from "../../repositories/in-memory/usage-in-memory-repository";
+import { UserInMemoryRepository } from "../../repositories/in-memory/user-in-memory-repository";
 import { UsageLimitExceededError } from "../errors/usage-limit-exceeded-error";
+import { UserNotFoundError } from "../errors/user-not-found-error";
 import { ConsumeUsageUseCase } from "./consume-usage-use-case";
 
 let usageRepo: UsageInMemoryRepository;
 let subscriptionRepo: SubscriptionInMemoryRepository;
+let userRepo: UserInMemoryRepository;
 let sut: ConsumeUsageUseCase;
 
 const USER_ID = "user-1";
+
+async function createUser() {
+  return userRepo.create({
+    id: USER_ID,
+    email: "test@example.com",
+    passwordHash: "hashed",
+    role: "USER",
+  });
+}
 
 async function createSubscription(plan: "FREE_TIER" | "PRO") {
   return subscriptionRepo.create({ userId: USER_ID, plan, status: "active" });
@@ -29,10 +41,12 @@ describe("ConsumeUsageUseCase", () => {
   beforeEach(() => {
     usageRepo = new UsageInMemoryRepository();
     subscriptionRepo = new SubscriptionInMemoryRepository();
-    sut = new ConsumeUsageUseCase(usageRepo, subscriptionRepo);
+    userRepo = new UserInMemoryRepository();
+    sut = new ConsumeUsageUseCase(usageRepo, subscriptionRepo, userRepo);
   });
 
   it("incrementa analysisCount e retorna remaining correto", async () => {
+    await createUser();
     await createSubscription("FREE_TIER");
     await createUsageRecord(2);
 
@@ -44,6 +58,7 @@ describe("ConsumeUsageUseCase", () => {
   });
 
   it("cria UsageRecord automaticamente na primeira análise", async () => {
+    await createUser();
     await createSubscription("FREE_TIER");
 
     const result = await sut.execute({ userId: USER_ID });
@@ -54,6 +69,7 @@ describe("ConsumeUsageUseCase", () => {
   });
 
   it("lança UsageLimitExceededError quando usuário FREE_TIER atingiu o limite", async () => {
+    await createUser();
     await createSubscription("FREE_TIER");
     await createUsageRecord(5);
 
@@ -63,6 +79,7 @@ describe("ConsumeUsageUseCase", () => {
   });
 
   it("lança UsageLimitExceededError quando usuário PRO atingiu o limite", async () => {
+    await createUser();
     await createSubscription("PRO");
     await createUsageRecord(15);
 
@@ -72,6 +89,7 @@ describe("ConsumeUsageUseCase", () => {
   });
 
   it("usuário PRO pode consumir até 15 análises", async () => {
+    await createUser();
     await createSubscription("PRO");
     await createUsageRecord(14);
 
@@ -83,11 +101,18 @@ describe("ConsumeUsageUseCase", () => {
   });
 
   it("remaining nunca é negativo", async () => {
+    await createUser();
     await createSubscription("FREE_TIER");
     await createUsageRecord(4);
 
     const result = await sut.execute({ userId: USER_ID });
 
     expect(result.remaining).toBe(0);
+  });
+
+  it("lança UserNotFoundError quando usuário não existe", async () => {
+    await expect(sut.execute({ userId: "non-existent" })).rejects.toThrow(
+      UserNotFoundError
+    );
   });
 });
