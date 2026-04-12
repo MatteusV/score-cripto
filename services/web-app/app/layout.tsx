@@ -1,6 +1,7 @@
 import "./globals.css"
 import type { Metadata } from "next"
 import { DM_Sans, Fira_Code, Space_Grotesk } from "next/font/google"
+import { AuthProvider } from "@/contexts/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
 
 const dmSans = DM_Sans({
@@ -43,7 +44,7 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider defaultTheme="light" enableSystem={false}>
-          {children}
+          <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
       </body>
     </html>

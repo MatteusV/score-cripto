@@ -10,6 +10,7 @@ import {
   SparklesIcon,
   ZapIcon,
 } from "lucide-react"
+import { AuthHeader } from "@/components/auth-header"
 import { WalletIntakeForm } from "@/components/wallet-intake-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -88,16 +89,11 @@ export default function Page() {
                 asChild
                 variant="ghost"
                 size="sm"
-                className="cursor-pointer"
+                className="cursor-pointer hidden md:flex"
               >
                 <Link href="#como-funciona">Como funciona</Link>
               </Button>
-              <Button asChild size="sm" className="cursor-pointer">
-                <Link href="#consultar">
-                  <ArrowRightIcon data-icon="inline-end" />
-                  Analisar
-                </Link>
-              </Button>
+              <AuthHeader />
             </div>
           </header>
 
