@@ -10,6 +10,8 @@ import {
 } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
 import { authHandler } from "./controllers/auth/routes.js";
+import { billingHandler } from "./controllers/billing/routes.js";
+import { profileHandler } from "./controllers/profile/routes.js";
 import { usageHandler } from "./controllers/usage/routes.js";
 
 export async function createHttpServer() {
@@ -38,6 +40,7 @@ export async function createHttpServer() {
         { name: "auth", description: "Autenticação e registro de usuários" },
         { name: "usage", description: "Controle de consumo e limites mensais" },
         { name: "billing", description: "Integração com Stripe e assinaturas" },
+        { name: "profile", description: "Perfil e conta do usuário" },
         { name: "system", description: "Status e saúde do serviço" },
       ],
     },
@@ -57,6 +60,8 @@ export async function createHttpServer() {
 
   await app.register(authHandler, { prefix: "/auth" });
   await app.register(usageHandler, { prefix: "/usage" });
+  await app.register(profileHandler, { prefix: "/profile" });
+  await app.register(billingHandler, { prefix: "/billing" });
 
   // GET /health
   app.withTypeProvider<ZodTypeProvider>().get(

@@ -7,6 +7,11 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default("15m"),
   REFRESH_TOKEN_EXPIRES_IN: z.string().default("7d"),
   RABBITMQ_URL: z.string().default("amqp://localhost:5672"),
+  STRIPE_SECRET_KEY: z.string().default(""),
+  STRIPE_WEBHOOK_SECRET: z.string().default(""),
+  STRIPE_FREE_PRICE_ID: z.string().default(""),
+  STRIPE_PRO_PRICE_ID: z.string().default(""),
+  APP_BASE_URL: z.string().default("http://localhost:3000"),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -26,4 +31,9 @@ export const config = {
   jwtExpiresIn: parsed.data.JWT_EXPIRES_IN,
   refreshTokenExpiresIn: parsed.data.REFRESH_TOKEN_EXPIRES_IN,
   rabbitmqUrl: parsed.data.RABBITMQ_URL,
+  stripeSecretKey: parsed.data.STRIPE_SECRET_KEY,
+  stripeWebhookSecret: parsed.data.STRIPE_WEBHOOK_SECRET,
+  stripeFreePriceId: parsed.data.STRIPE_FREE_PRICE_ID,
+  stripeProPriceId: parsed.data.STRIPE_PRO_PRICE_ID,
+  appBaseUrl: parsed.data.APP_BASE_URL,
 } as const;

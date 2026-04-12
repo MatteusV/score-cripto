@@ -1,6 +1,9 @@
 import type { PrismaClient } from "../../generated/prisma/client";
 import type { SubscriptionUncheckedCreateInput } from "../../generated/prisma/models/Subscription";
-import type { SubscriptionRepository } from "../subscription-repository";
+import type {
+  SubscriptionRepository,
+  SubscriptionUpdateData,
+} from "../subscription-repository";
 
 export class SubscriptionPrismaRepository implements SubscriptionRepository {
   private readonly prisma: PrismaClient;
@@ -15,5 +18,15 @@ export class SubscriptionPrismaRepository implements SubscriptionRepository {
 
   async findByUserId(userId: string) {
     return this.prisma.subscription.findUnique({ where: { userId } });
+  }
+
+  async findByStripeCustomerId(stripeCustomerId: string) {
+    return this.prisma.subscription.findFirst({
+      where: { user: { stripeCustomerId } },
+    });
+  }
+
+  async update(id: string, data: SubscriptionUpdateData) {
+    return this.prisma.subscription.update({ where: { id }, data });
   }
 }

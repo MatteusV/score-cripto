@@ -1,7 +1,10 @@
 import { randomUUID } from "node:crypto";
 import type { Subscription } from "../../generated/prisma/client";
 import type { SubscriptionUncheckedCreateInput } from "../../generated/prisma/models/Subscription";
-import type { SubscriptionRepository } from "../subscription-repository";
+import type {
+  SubscriptionRepository,
+  SubscriptionUpdateData,
+} from "../subscription-repository";
 
 export class SubscriptionInMemoryRepository implements SubscriptionRepository {
   items: Subscription[] = [];
@@ -28,5 +31,18 @@ export class SubscriptionInMemoryRepository implements SubscriptionRepository {
 
   async findByUserId(userId: string) {
     return this.items.find((s) => s.userId === userId) ?? null;
+  }
+
+  async findByStripeCustomerId(_stripeCustomerId: string) {
+    return null;
+  }
+
+  async update(id: string, data: SubscriptionUpdateData) {
+    const idx = this.items.findIndex((s) => s.id === id);
+    if (idx === -1) {
+      throw new Error(`Subscription not found: ${id}`);
+    }
+    this.items[idx] = { ...this.items[idx], ...data } as Subscription;
+    return this.items[idx];
   }
 }
