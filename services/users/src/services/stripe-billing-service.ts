@@ -83,7 +83,11 @@ export class StripeBillingService implements BillingService {
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
-        const priceId = sub.items.data[0]?.price.id;
+        const item = sub.items.data[0];
+        const priceId = item?.price.id;
+        // current_period_start/end movidos para SubscriptionItem na API 2025+
+        const periodStart = item?.current_period_start;
+        const periodEnd = item?.current_period_end;
         return {
           type: event.type,
           data: {
@@ -91,8 +95,8 @@ export class StripeBillingService implements BillingService {
             subscriptionId: sub.id,
             priceId,
             status: sub.status,
-            currentPeriodStart: new Date(sub.current_period_start * 1000),
-            currentPeriodEnd: new Date(sub.current_period_end * 1000),
+            currentPeriodStart: periodStart ? new Date(periodStart * 1000) : undefined,
+            currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : undefined,
             cancelAtPeriodEnd: sub.cancel_at_period_end,
           },
         };
@@ -110,11 +114,17 @@ export class StripeBillingService implements BillingService {
       }
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
+        // subscription foi movido para invoice.parent.subscription_details.subscription na API 2025+
+        const subscriptionId =
+          (invoice as unknown as { subscription?: string }).subscription ??
+          (invoice.parent as unknown as { subscription_details?: { subscription?: string } })
+            ?.subscription_details?.subscription ??
+          null;
         return {
           type: event.type,
           data: {
             customerId: invoice.customer as string,
-            subscriptionId: invoice.subscription as string,
+            subscriptionId: subscriptionId as string,
             status: "past_due",
           },
         };
