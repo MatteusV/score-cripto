@@ -5,13 +5,11 @@ import { usePathname } from "next/navigation"
 import {
   ClockIcon,
   CreditCardIcon,
-  KeyRoundIcon,
   LayoutDashboardIcon,
   SearchIcon,
-  SettingsIcon,
   ShieldIcon,
 } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
+import { useUser } from "@/hooks/use-user"
 import { cn } from "@/lib/utils"
 
 const NAV_MAIN = [
@@ -22,24 +20,11 @@ const NAV_MAIN = [
 
 const NAV_ACCOUNT = [
   { label: "Planos & Billing", href: "/settings/billing", icon: CreditCardIcon },
-  { label: "API Keys", href: "/settings/api-keys", icon: KeyRoundIcon },
-  { label: "Configurações", href: "/settings", icon: SettingsIcon },
 ]
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const { user, logout } = useAuth()
-
-  const initials = user?.name
-    ? user.name
-        .split(" ")
-        .slice(0, 2)
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-    : user?.email?.slice(0, 2).toUpperCase() ?? "??"
-
-  const planLabel = user?.plan === "PRO" ? "Pro" : "Free Tier"
+  const { user, isPro, initials, planLabel, logout } = useUser()
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border bg-sidebar px-4 py-6">

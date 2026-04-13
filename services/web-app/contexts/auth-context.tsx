@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json() as { user?: UserProfile; error?: string }
       if (!res.ok) throw new Error(data.error ?? "Falha no login")
       setState({ user: data.user ?? null, loading: false })
-      startTransition(() => router.push("/"))
+      startTransition(() => router.push("/dashboard"))
     },
     [router],
   )
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json() as { user?: UserProfile; error?: string }
       if (!res.ok) throw new Error(data.error ?? "Falha no registro")
       setState({ user: data.user ?? null, loading: false })
-      startTransition(() => router.push("/"))
+      startTransition(() => router.push("/dashboard"))
     },
     [router],
   )

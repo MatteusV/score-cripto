@@ -10,7 +10,7 @@ import {
   ShieldCheckIcon,
   ZapIcon,
 } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
+import { useUser } from "@/hooks/use-user"
 import { ChainChips } from "@/components/chain-chips"
 import { StatCard } from "@/components/stat-card"
 import { ScoreBadge } from "@/components/score-badge"
@@ -45,7 +45,17 @@ function truncate(addr: string) {
 }
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const {
+    user,
+    isPro,
+    firstName,
+    analysisCount,
+    analysisLimit,
+    analysisRemaining,
+    usagePct,
+    limitReached,
+    planLabel,
+  } = useUser()
   const router = useRouter()
   const [chain, setChain] = useState("ethereum")
   const [address, setAddress] = useState("")
@@ -56,14 +66,12 @@ export default function DashboardPage() {
     router.push(`/analyze?chain=${chain}&address=${encodeURIComponent(address.trim())}`)
   }
 
-  const firstName = user?.name?.split(" ")[0] ?? "de volta"
-
   return (
     <div className="flex flex-col">
       <Topbar
         title="Dashboard"
         subtitle={`Bem-vindo de volta, ${firstName}`}
-        showUpgrade={user?.plan !== "PRO"}
+        showUpgrade={!isPro}
       />
 
       <div className="flex flex-col gap-8 p-6">
@@ -103,17 +111,15 @@ export default function DashboardPage() {
           {user && (
             <div className="mt-5 border-t border-border pt-4">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>
-                  {user.analysisCount} de {user.analysisLimit} análises este mês
-                </span>
-                <span className={user.analysisCount >= user.analysisLimit ? "text-destructive" : "text-primary"}>
-                  {user.analysisLimit - user.analysisCount} restantes
+                <span>{analysisCount} de {analysisLimit} análises este mês</span>
+                <span className={limitReached ? "text-destructive" : "text-primary"}>
+                  {analysisRemaining} restantes
                 </span>
               </div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/6">
                 <div
                   className="h-full rounded-full bg-primary transition-all"
-                  style={{ width: `${Math.min((user.analysisCount / user.analysisLimit) * 100, 100)}%` }}
+                  style={{ width: `${usagePct}%` }}
                 />
               </div>
             </div>
@@ -122,21 +128,9 @@ export default function DashboardPage() {
 
         {/* Stats grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            label="Análises totais"
-            value={user?.analysisCount ?? 0}
-            icon={ActivityIcon}
-          />
-          <StatCard
-            label="Restantes"
-            value={user ? user.analysisLimit - user.analysisCount : "—"}
-            icon={ZapIcon}
-          />
-          <StatCard
-            label="Plano atual"
-            value={user?.plan === "PRO" ? "Pro" : "Free"}
-            icon={ShieldCheckIcon}
-          />
+          <StatCard label="Análises totais" value={analysisCount} icon={ActivityIcon} />
+          <StatCard label="Restantes"      value={analysisRemaining}             icon={ZapIcon} />
+          <StatCard label="Plano atual"    value={isPro ? "Pro" : "Free"}         icon={ShieldCheckIcon} />
           <StatCard
             label="Score médio"
             value="63"

@@ -140,31 +140,46 @@ export async function billingHandler(app: FastifyInstance) {
     }
   );
 
-  // POST /billing/webhooks/stripe — raw body, sem JSON parse
-  app.post(
-    "/webhooks/stripe",
-    {
-      config: { rawBody: true },
+  // rawBody não está no tipo base FastifyContextConfig mas é suportado em runtime
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const webhookConfig = {
+    config: { rawBody: true },
+    schema: {
+      tags: ["billing"],
+      summary: "Receber eventos do Stripe via webhook",
+      headers: z.object({ "stripe-signature": z.string() }),
+      response: {
+        200: z.object({ received: z.boolean() }),
+        400: z.object({ error: z.string() }),
+      },
     },
-    async (request, reply) => {
-      const signature = request.headers["stripe-signature"] as string;
-      if (!signature) {
-        return reply
-          .status(400)
-          .send({ error: "Missing stripe-signature header" });
-      }
+  } as any;
 
-      const payload =
-        (request as unknown as { rawBody?: Buffer }).rawBody?.toString() ??
-        JSON.stringify(request.body);
-
-      try {
-        await webhookUseCase.execute({ payload, signature });
-        return reply.status(200).send({ received: true });
-      } catch (err) {
-        app.log.error(err, "Stripe webhook error");
-        return reply.status(400).send({ error: "Webhook processing failed" });
-      }
+  async function handleStripeWebhook(
+    request: import("fastify").FastifyRequest,
+    reply: import("fastify").FastifyReply
+  ) {
+    const signature = request.headers["stripe-signature"] as string;
+    if (!signature) {
+      return reply.status(400).send({ error: "Missing stripe-signature header" });
     }
-  );
+
+    const payload =
+      (request as unknown as { rawBody?: Buffer }).rawBody?.toString() ??
+      JSON.stringify(request.body);
+
+    try {
+      await webhookUseCase.execute({ payload, signature });
+      return reply.status(200).send({ received: true });
+    } catch (err) {
+      app.log.error(err, "Stripe webhook error");
+      return reply.status(400).send({ error: "Webhook processing failed" });
+    }
+  }
+
+  // POST /billing/webhook  — path configurado no Stripe Dashboard
+  app.post("/webhook", webhookConfig, handleStripeWebhook);
+
+  // POST /billing/webhooks/stripe — alias alternativo
+  app.post("/webhooks/stripe", webhookConfig, handleStripeWebhook);
 }

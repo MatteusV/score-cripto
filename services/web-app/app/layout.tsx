@@ -42,7 +42,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`antialiased ${orbitron.variable} ${exo2.variable} ${firaCode.variable}`}
     >
-      <body>
+      <body suppressHydrationWarning>
         <ThemeProvider defaultTheme="dark" enableSystem={false}>
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>

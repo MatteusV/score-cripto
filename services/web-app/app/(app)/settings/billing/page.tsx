@@ -10,7 +10,7 @@ import {
   SparklesIcon,
   ZapIcon,
 } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
+import { useUser } from "@/hooks/use-user"
 import { PlanCard } from "@/components/plan-card"
 import { Topbar } from "@/components/topbar"
 import { Button } from "@/components/ui/button"
@@ -23,7 +23,7 @@ interface Subscription {
 }
 
 function UsageBar({ count, limit }: { count: number; limit: number }) {
-  const pct = Math.min((count / limit) * 100, 100)
+  const pct = limit > 0 ? Math.min((count / limit) * 100, 100) : 0
   const color =
     pct >= 90 ? "bg-destructive" : pct >= 70 ? "bg-amber-400" : "bg-primary"
 
@@ -50,7 +50,7 @@ function UsageBar({ count, limit }: { count: number; limit: number }) {
 }
 
 export default function BillingPage() {
-  const { user } = useAuth()
+  const { user, isPro, analysisCount, analysisLimit } = useUser()
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loadingSub, setLoadingSub] = useState(true)
   const [redirecting, setRedirecting] = useState<"checkout" | "portal" | null>(null)
@@ -86,7 +86,6 @@ export default function BillingPage() {
   }
 
   const plan = user?.plan ?? "FREE_TIER"
-  const isPro = plan === "PRO"
 
   const FREE_FEATURES = [
     { label: "5 análises por mês",          included: true  },
@@ -190,7 +189,7 @@ export default function BillingPage() {
             <span className="font-heading text-sm font-semibold tracking-wider">Uso mensal</span>
           </div>
           {user ? (
-            <UsageBar count={user.analysisCount} limit={user.analysisLimit} />
+            <UsageBar count={analysisCount} limit={analysisLimit} />
           ) : (
             <div className="h-16 animate-pulse rounded-xl bg-muted" />
           )}
