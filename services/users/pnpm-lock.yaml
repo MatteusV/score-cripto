@@ -21,8 +21,8 @@ importers:
         specifier: ^6.19.3
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
       '@scalar/fastify-api-reference':
-        specifier: ^1.52.0
-        version: 1.52.0
+        specifier: ^1.52.1
+        version: 1.52.1
       amqplib:
         specifier: ^0.10.9
         version: 0.10.9
@@ -64,8 +64,8 @@ importers:
         specifier: ^8.20.0
         version: 8.20.0
       dotenv:
-        specifier: ^17.4.1
-        version: 17.4.1
+        specifier: ^17.4.2
+        version: 17.4.2
       execa:
         specifier: ^9.6.1
         version: 9.6.1
@@ -521,8 +521,8 @@ packages:
     resolution: {integrity: sha512-quPUndgBB1fwUkdIgJiCVA3vR6hyCgMYgca9YPI+RwbAB7/H/1otNEKfLBzLVbNllXlGnY4BxmGSft4fUg49jg==}
     engines: {node: '>=22'}
 
-  '@scalar/fastify-api-reference@1.52.0':
-    resolution: {integrity: sha512-kj3EUomMcaSjOY2Od6JhlC0pLTy3GKA9fBjpGU01zMGJCBmOBF0wBZwEFcwOGp1mcE8en0ndw2yGh35NgMvWaw==}
+  '@scalar/fastify-api-reference@1.52.1':
+    resolution: {integrity: sha512-luJylCXr+BYn9tK5lIFLmN1XS6JfFwr9HBCuK7caMZEXao0PblC8NAekXlqJh+kulJfEpmpTDnnEO9XAIVAqZQ==}
     engines: {node: '>=22'}
 
   '@scalar/helpers@0.4.3':
@@ -751,8 +751,8 @@ packages:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
     engines: {node: '>=12'}
 
-  dotenv@17.4.1:
-    resolution: {integrity: sha512-k8DaKGP6r1G30Lx8V4+pCsLzKr8vLmV2paqEj1Y55GdAgJuIqpRp5FfajGF8KtwMxCz9qJc6wUIJnm053d/WCw==}
+  dotenv@17.4.2:
+    resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
     engines: {node: '>=12'}
 
   ecdsa-sig-formatter@1.0.11:
@@ -1729,7 +1729,7 @@ snapshots:
       '@scalar/client-side-rendering': 0.1.0
       '@scalar/types': 0.8.0
 
-  '@scalar/fastify-api-reference@1.52.0':
+  '@scalar/fastify-api-reference@1.52.1':
     dependencies:
       '@scalar/core': 0.5.0
       '@scalar/openapi-parser': 0.25.8
@@ -1961,7 +1961,7 @@ snapshots:
 
   dotenv@16.6.1: {}
 
-  dotenv@17.4.1: {}
+  dotenv@17.4.2: {}
 
   ecdsa-sig-formatter@1.0.11:
     dependencies:

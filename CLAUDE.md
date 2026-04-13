@@ -321,7 +321,7 @@ Documentation and capabilities reference for Etherscan
 Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, artifacts, posters, or applications (examples include websites, landing pages, dashboards, React components, HTML/CSS layouts, or when styling/beaut...
 
 - `.claude/skills/frontend-design/SKILL.md`
-
+ 
 ## SEO optimization
 
 Optimize for search engine visibility and ranking. Use when asked to "improve SEO", "optimize for search", "fix meta tags", "add structured data", "sitemap optimization", or "search engine optimization".
