@@ -22,7 +22,9 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(data)
+    // Gateway retorna requestId; frontend espera processId — normalizar aqui
+    const { requestId, ...rest } = data as { requestId?: string; [k: string]: unknown }
+    return NextResponse.json({ ...rest, processId: requestId ?? rest.processId })
   } catch {
     return NextResponse.json(
       { error: "Failed to reach analysis service" },
