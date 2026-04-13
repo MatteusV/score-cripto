@@ -3,7 +3,8 @@ import { z } from "zod";
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3003),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  JWT_SECRET: z.string().min(1, "JWT_SECRET is required"),
+  JWT_PRIVATE_KEY: z.string().min(1, "JWT_PRIVATE_KEY is required"),
+  JWT_PUBLIC_KEY: z.string().min(1, "JWT_PUBLIC_KEY is required"),
   JWT_EXPIRES_IN: z.string().default("15m"),
   REFRESH_TOKEN_EXPIRES_IN: z.string().default("7d"),
   RABBITMQ_URL: z.string().default("amqp://localhost:5672"),
@@ -27,7 +28,8 @@ if (!parsed.success) {
 export const config = {
   port: parsed.data.PORT,
   databaseUrl: parsed.data.DATABASE_URL,
-  jwtSecret: parsed.data.JWT_SECRET,
+  jwtPrivateKey: parsed.data.JWT_PRIVATE_KEY.replace(/\\n/g, "\n"),
+  jwtPublicKey: parsed.data.JWT_PUBLIC_KEY.replace(/\\n/g, "\n"),
   jwtExpiresIn: parsed.data.JWT_EXPIRES_IN,
   refreshTokenExpiresIn: parsed.data.REFRESH_TOKEN_EXPIRES_IN,
   rabbitmqUrl: parsed.data.RABBITMQ_URL,

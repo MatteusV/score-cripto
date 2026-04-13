@@ -1,8 +1,23 @@
+import jwt from "jsonwebtoken";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+// TEST_JWT_PRIVATE_KEY é gerado pelo vitest.config.ts e disponível para assinar tokens nos testes
+const TEST_PRIVATE_KEY = process.env.TEST_JWT_PRIVATE_KEY as string;
+
+function signToken(userId = "user-test-1") {
+  return jwt.sign(
+    { sub: userId, email: "test@example.com" },
+    TEST_PRIVATE_KEY,
+    { algorithm: "RS256", expiresIn: "15m" }
+  );
+}
 
 const mockFindFirst = vi.fn();
 const mockCreate = vi.fn();
 const mockFindUnique = vi.fn();
+const mockFindMany = vi.fn();
+const mockCount = vi.fn();
+const mockAggregate = vi.fn();
 
 vi.mock("../services/database.js", () => ({
   prisma: {
@@ -10,6 +25,9 @@ vi.mock("../services/database.js", () => ({
       findFirst: mockFindFirst,
       create: mockCreate,
       findUnique: mockFindUnique,
+      findMany: mockFindMany,
+      count: mockCount,
+      aggregate: mockAggregate,
     },
   },
 }));
@@ -60,14 +78,15 @@ describe("api-gateway HTTP server (Fastify)", () => {
         status: "PENDING",
         chain: "ethereum",
         address: "0xabc",
-        userId: "user-1",
+        userId: "user-test-1",
         requestedAt: new Date(),
       });
 
       const res = await app.inject({
         method: "POST",
         url: "/analysis",
-        payload: { chain: "ethereum", address: "0xabc", userId: "user-1" },
+        headers: { authorization: `Bearer ${signToken("user-test-1")}` },
+        payload: { chain: "ethereum", address: "0xabc" },
       });
 
       expect(res.statusCode).toBe(202);
@@ -75,12 +94,29 @@ describe("api-gateway HTTP server (Fastify)", () => {
         requestId: "req-001",
         status: "pending",
       });
-      expect(mockPublish).toHaveBeenCalledWith({
-        requestId: "req-001",
-        userId: "user-1",
-        chain: "ethereum",
-        address: "0xabc",
+      expect(mockPublish).toHaveBeenCalledWith(
+        expect.objectContaining({
+          requestId: "req-001",
+          userId: "user-test-1",
+          chain: "ethereum",
+          address: "0xabc",
+        })
+      );
+
+      await app.close();
+    });
+
+    it("deve retornar 401 sem token de autenticação", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      const res = await app.inject({
+        method: "POST",
+        url: "/analysis",
+        payload: { chain: "ethereum", address: "0xabc" },
       });
+
+      expect(res.statusCode).toBe(401);
 
       await app.close();
     });
@@ -97,7 +133,8 @@ describe("api-gateway HTTP server (Fastify)", () => {
       const res = await app.inject({
         method: "POST",
         url: "/analysis",
-        payload: { chain: "ethereum", address: "0xabc", userId: "user-1" },
+        headers: { authorization: `Bearer ${signToken()}` },
+        payload: { chain: "ethereum", address: "0xabc" },
       });
 
       expect(res.statusCode).toBe(200);
@@ -126,7 +163,8 @@ describe("api-gateway HTTP server (Fastify)", () => {
       const res = await app.inject({
         method: "POST",
         url: "/analysis",
-        payload: { chain: "ethereum", address: "0xabc", userId: "user-1" },
+        headers: { authorization: `Bearer ${signToken()}` },
+        payload: { chain: "ethereum", address: "0xabc" },
       });
 
       expect(res.statusCode).toBe(429);
@@ -145,7 +183,8 @@ describe("api-gateway HTTP server (Fastify)", () => {
       const res = await app.inject({
         method: "POST",
         url: "/analysis",
-        payload: { chain: "ethereum" }, // faltando address e userId
+        headers: { authorization: `Bearer ${signToken()}` },
+        payload: { chain: "ethereum" }, // faltando address
       });
 
       expect(res.statusCode).toBe(400);
@@ -155,7 +194,75 @@ describe("api-gateway HTTP server (Fastify)", () => {
     });
   });
 
+  describe("GET /analysis", () => {
+    it("deve retornar 401 sem token de autenticação", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      const res = await app.inject({ method: "GET", url: "/analysis" });
+
+      expect(res.statusCode).toBe(401);
+      await app.close();
+    });
+
+    it("deve retornar summary, data e pagination para usuário autenticado", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      mockFindMany.mockResolvedValue([
+        {
+          id: "req-001", chain: "ethereum", address: "0xabc",
+          score: 85, requestedAt: new Date("2026-04-13T10:00:00Z"),
+          completedAt: new Date("2026-04-13T10:01:00Z"),
+          userId: "user-test-1", status: "COMPLETED",
+          confidence: 0.9, reasoning: null, positiveFactors: [], riskFactors: [],
+          modelVersion: null, promptVersion: null, failedAt: null, failureReason: null,
+        },
+      ]);
+      // listByUserId: count(total=1)
+      // summarizeByUserId: count(total=1), aggregate, count(trusted=1), count(attention=0), count(risky=0)
+      mockCount
+        .mockResolvedValueOnce(1) // listByUserId total
+        .mockResolvedValueOnce(1) // summarizeByUserId total
+        .mockResolvedValueOnce(1) // trusted
+        .mockResolvedValueOnce(0) // attention
+        .mockResolvedValueOnce(0); // risky
+      mockAggregate.mockResolvedValue({ _avg: { score: 85 }, _count: { _all: 1 } });
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/analysis",
+        headers: { authorization: `Bearer ${signToken()}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body).toHaveProperty("summary");
+      expect(body).toHaveProperty("data");
+      expect(body).toHaveProperty("pagination");
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].score).toBe(85);
+      expect(body.pagination.page).toBe(1);
+
+      await app.close();
+    });
+  });
+
   describe("GET /analysis/:id", () => {
+    it("deve retornar 401 sem token de autenticação", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/analysis/req-001",
+      });
+
+      expect(res.statusCode).toBe(401);
+
+      await app.close();
+    });
+
     it("deve retornar 404 quando request não existe", async () => {
       const { createHttpServer } = await import("./server.js");
       const app = await createHttpServer();
@@ -165,6 +272,7 @@ describe("api-gateway HTTP server (Fastify)", () => {
       const res = await app.inject({
         method: "GET",
         url: "/analysis/req-nao-existe",
+        headers: { authorization: `Bearer ${signToken()}` },
       });
 
       expect(res.statusCode).toBe(404);
@@ -184,7 +292,11 @@ describe("api-gateway HTTP server (Fastify)", () => {
         address: "0xabc",
       });
 
-      const res = await app.inject({ method: "GET", url: "/analysis/req-001" });
+      const res = await app.inject({
+        method: "GET",
+        url: "/analysis/req-001",
+        headers: { authorization: `Bearer ${signToken()}` },
+      });
       const body = res.json();
 
       expect(res.statusCode).toBe(200);
@@ -212,7 +324,11 @@ describe("api-gateway HTTP server (Fastify)", () => {
         promptVersion: "v1.0",
       });
 
-      const res = await app.inject({ method: "GET", url: "/analysis/req-001" });
+      const res = await app.inject({
+        method: "GET",
+        url: "/analysis/req-001",
+        headers: { authorization: `Bearer ${signToken()}` },
+      });
       const body = res.json();
 
       expect(res.statusCode).toBe(200);
@@ -234,7 +350,11 @@ describe("api-gateway HTTP server (Fastify)", () => {
         failureReason: "AI service unavailable",
       });
 
-      const res = await app.inject({ method: "GET", url: "/analysis/req-001" });
+      const res = await app.inject({
+        method: "GET",
+        url: "/analysis/req-001",
+        headers: { authorization: `Bearer ${signToken()}` },
+      });
       const body = res.json();
 
       expect(res.statusCode).toBe(200);

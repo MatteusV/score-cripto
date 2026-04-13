@@ -1,4 +1,5 @@
 import type { AnalysisRequest } from "../generated/prisma/browser";
+import type { AnalysisSummary } from "../use-cases/analysis-request/list-analyses-use-case";
 
 export interface CreateAnalysisRequestData {
   address: string;
@@ -29,4 +30,12 @@ export interface AnalysisRequestRepository {
     result: CompleteAnalysisRequestData
   ) => Promise<AnalysisRequest>;
   markFailed: (id: string, reason: string) => Promise<AnalysisRequest>;
+  listByUserId: (
+    userId: string,
+    page: number,
+    limit: number
+  ) => Promise<{ items: AnalysisRequest[]; total: number }>;
+  summarizeByUserId: (
+    userId: string
+  ) => Promise<{ summary: AnalysisSummary }>;
 }

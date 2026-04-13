@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "db:generate": "prisma generate",
     "check": "ultracite check",
-    "fix": "ultracite fix"
+    "fix": "ultracite fix",
+    "keys:generate": "tsx src/scripts/generate-keys.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",

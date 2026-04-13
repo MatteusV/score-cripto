@@ -9,12 +9,15 @@ import { checkUsage, UsersServiceError } from "../../../services/users-service";
 import { CreateAnalysisRequestUseCase } from "../../../use-cases/analysis-request/create-analysis-request-use-case";
 import { FindActiveAnalysisRequestUseCase } from "../../../use-cases/analysis-request/find-active-analysis-request-use-case";
 import { GetAnalysisRequestUseCase } from "../../../use-cases/analysis-request/get-analysis-request-use-case";
+import { ListAnalysesUseCase } from "../../../use-cases/analysis-request/list-analyses-use-case";
 import { AnalysisRequestNotFoundError } from "../../../use-cases/errors/analysis-request-not-found-error";
+import { authenticate } from "../../middleware/authenticate";
 
 const repository = new AnalysisRequestPrismaRepository(prisma);
 const createUseCase = new CreateAnalysisRequestUseCase(repository);
 const findActiveUseCase = new FindActiveAnalysisRequestUseCase(repository);
 const getUseCase = new GetAnalysisRequestUseCase(repository);
+const listUseCase = new ListAnalysesUseCase(repository);
 
 const ScoreResultSchema = z
   .object({
@@ -53,21 +56,19 @@ export async function analysisRequestHandler(app: FastifyInstance) {
   typed.post(
     "/",
     {
+      preHandler: [authenticate],
       schema: {
         tags: ["analysis"],
         summary: "Iniciar análise de carteira",
         description:
-          "Cria uma análise de confiabilidade para a carteira informada e inicia o pipeline assíncrono via evento `wallet.data.requested`. Use o `requestId` retornado para polling em `GET /analysis/:id`.",
+          "Cria uma análise de confiabilidade para a carteira informada e inicia o pipeline assíncrono via evento `wallet.data.requested`. Use o `requestId` retornado para polling em `GET /analysis/:id`. Requer autenticação JWT RS256.",
+        security: [{ bearerAuth: [] }],
         body: z.object({
           chain: z.string().min(1).describe("Identificador da rede blockchain"),
           address: z
             .string()
             .min(1)
             .describe("Endereço da carteira a ser analisada"),
-          userId: z
-            .string()
-            .min(1)
-            .describe("Identificador do usuário que solicita a análise"),
         }),
         response: {
           200: z
@@ -86,6 +87,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
               status: z.literal("pending"),
             })
             .describe("Análise criada — pipeline iniciado"),
+          401: z.object({ error: z.string() }).describe("Não autenticado"),
           429: z
             .object({ error: z.string() })
             .describe("Limite de análises do plano atingido"),
@@ -93,7 +95,8 @@ export async function analysisRequestHandler(app: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { chain, address, userId } = request.body;
+      const { chain, address } = request.body;
+      const userId = request.user.id;
 
       const existing = await findActiveUseCase.execute({
         userId,
@@ -146,15 +149,80 @@ export async function analysisRequestHandler(app: FastifyInstance) {
     }
   );
 
+  // GET / — lista paginada de análises do usuário autenticado
+  typed.get(
+    "/",
+    {
+      preHandler: [authenticate],
+      schema: {
+        tags: ["analysis"],
+        summary: "Listar análises do usuário com summary e paginação",
+        security: [{ bearerAuth: [] }],
+        querystring: z.object({
+          page: z.coerce.number().int().positive().default(1),
+          limit: z.coerce.number().int().min(1).max(100).default(20),
+        }),
+        response: {
+          200: z.object({
+            summary: z.object({
+              total: z.number(),
+              avgScore: z.number(),
+              trusted: z.number(),
+              attention: z.number(),
+              risky: z.number(),
+            }),
+            data: z.array(
+              z.object({
+                id: z.string(),
+                chain: z.string(),
+                address: z.string(),
+                score: z.number(),
+                requestedAt: z.string(),
+                completedAt: z.string(),
+              })
+            ),
+            pagination: z.object({
+              page: z.number(),
+              limit: z.number(),
+              total: z.number(),
+            }),
+          }),
+          401: z.object({ error: z.string() }),
+        },
+      },
+    },
+    async (request, reply) => {
+      const { page, limit } = request.query as { page: number; limit: number };
+      const userId = request.user.id;
+
+      const result = await listUseCase.execute({ userId, page, limit });
+
+      return reply.status(200).send({
+        summary: result.summary,
+        data: result.data.map((item) => ({
+          id: item.id,
+          chain: item.chain,
+          address: item.address,
+          score: item.score,
+          requestedAt: item.requestedAt.toISOString(),
+          completedAt: item.completedAt.toISOString(),
+        })),
+        pagination: result.pagination,
+      });
+    }
+  );
+
   // GET /:id
   typed.get(
     "/:id",
     {
+      preHandler: [authenticate],
       schema: {
         tags: ["analysis"],
         summary: "Consultar status e resultado de uma análise",
         description:
-          "Retorna o status atual da análise. Quando `status = completed`, inclui o campo `result` com o score e fatores da carteira. Recomenda-se polling a cada 2s até `completed` ou `failed`.",
+          "Retorna o status atual da análise. Quando `status = completed`, inclui o campo `result` com o score e fatores da carteira. Recomenda-se polling a cada 2s até `completed` ou `failed`. Requer autenticação JWT RS256.",
+        security: [{ bearerAuth: [] }],
         params: z.object({
           id: z.string().describe("ID da análise retornado no POST /analysis"),
         }),
@@ -170,6 +238,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
             address: z.string(),
             result: ScoreResultSchema.optional(),
           }),
+          401: z.object({ error: z.string() }).describe("Não autenticado"),
           404: z
             .object({ error: z.string() })
             .describe("Análise não encontrada"),

@@ -95,8 +95,12 @@ export class StripeBillingService implements BillingService {
             subscriptionId: sub.id,
             priceId,
             status: sub.status,
-            currentPeriodStart: periodStart ? new Date(periodStart * 1000) : undefined,
-            currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : undefined,
+            currentPeriodStart: periodStart
+              ? new Date(periodStart * 1000)
+              : undefined,
+            currentPeriodEnd: periodEnd
+              ? new Date(periodEnd * 1000)
+              : undefined,
             cancelAtPeriodEnd: sub.cancel_at_period_end,
           },
         };
@@ -117,8 +121,11 @@ export class StripeBillingService implements BillingService {
         // subscription foi movido para invoice.parent.subscription_details.subscription na API 2025+
         const subscriptionId =
           (invoice as unknown as { subscription?: string }).subscription ??
-          (invoice.parent as unknown as { subscription_details?: { subscription?: string } })
-            ?.subscription_details?.subscription ??
+          (
+            invoice.parent as unknown as {
+              subscription_details?: { subscription?: string };
+            }
+          )?.subscription_details?.subscription ??
           null;
         return {
           type: event.type,

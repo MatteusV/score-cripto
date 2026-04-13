@@ -1,30 +1,32 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { config } from "../../config";
-import { JwtServiceImpl } from "../../services/jwt-service";
+import jwt from "jsonwebtoken";
+import { config } from "../../config.js";
 
-const jwtService = new JwtServiceImpl(
-  config.jwtPrivateKey,
-  config.jwtPublicKey,
-  config.jwtExpiresIn
-);
+interface JwtPayload {
+  sub: string;
+  email: string;
+}
 
 export async function authenticate(
   request: FastifyRequest,
   reply: FastifyReply
-) {
+): Promise<void> {
   const authHeader = request.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
-    return reply
+    reply
       .status(401)
-      .send({ error: "Missing or invalid authorization header" });
+      .send({ error: "Missing or invalid Authorization header" });
+    return;
   }
 
   const token = authHeader.slice(7);
   try {
-    const payload = jwtService.verify(token);
+    const payload = jwt.verify(token, config.jwtPublicKey, {
+      algorithms: ["RS256"],
+    }) as JwtPayload;
     request.user = { id: payload.sub, email: payload.email };
   } catch {
-    return reply.status(401).send({ error: "Invalid or expired token" });
+    reply.status(401).send({ error: "Invalid or expired token" });
   }
 }
 

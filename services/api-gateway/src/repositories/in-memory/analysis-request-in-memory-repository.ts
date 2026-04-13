@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { AnalysisRequest } from "../../generated/prisma/client";
+import type { AnalysisSummary } from "../../use-cases/analysis-request/list-analyses-use-case";
 import type {
   AnalysisRequestRepository,
   CompleteAnalysisRequestData,
@@ -100,5 +101,47 @@ export class AnalysisRequestInMemoryRepository
     this.items[index] = updated;
 
     return updated;
+  }
+
+  async listByUserId(
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<{ items: AnalysisRequest[]; total: number }> {
+    const completed = this.items
+      .filter((item) => item.userId === userId && item.status === "COMPLETED")
+      .sort((a, b) => {
+        const aTime = (a.completedAt ?? a.requestedAt).getTime();
+        const bTime = (b.completedAt ?? b.requestedAt).getTime();
+        return bTime - aTime; // most recent first
+      });
+
+    const total = completed.length;
+    const offset = (page - 1) * limit;
+    const items = completed.slice(offset, offset + limit);
+
+    return { items, total };
+  }
+
+  async summarizeByUserId(userId: string): Promise<{ summary: AnalysisSummary }> {
+    const completed = this.items.filter(
+      (item) => item.userId === userId && item.status === "COMPLETED"
+    );
+
+    const total = completed.length;
+
+    if (total === 0) {
+      return {
+        summary: { total: 0, avgScore: 0, trusted: 0, attention: 0, risky: 0 },
+      };
+    }
+
+    const scores = completed.map((item) => item.score as number);
+    const avgScore = Math.round(scores.reduce((s, v) => s + v, 0) / total);
+    const trusted = scores.filter((s) => s >= 70).length;
+    const attention = scores.filter((s) => s >= 40 && s < 70).length;
+    const risky = scores.filter((s) => s < 40).length;
+
+    return { summary: { total, avgScore, trusted, attention, risky } };
   }
 }

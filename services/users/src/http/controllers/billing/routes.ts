@@ -161,7 +161,9 @@ export async function billingHandler(app: FastifyInstance) {
   ) {
     const signature = request.headers["stripe-signature"] as string;
     if (!signature) {
-      return reply.status(400).send({ error: "Missing stripe-signature header" });
+      return reply
+        .status(400)
+        .send({ error: "Missing stripe-signature header" });
     }
 
     const payload =

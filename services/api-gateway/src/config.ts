@@ -5,6 +5,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   RABBITMQ_URL: z.string().default("amqp://localhost:5672"),
   USERS_SERVICE_URL: z.string().default("http://users:3003"),
+  JWT_PUBLIC_KEY: z.string().min(1, "JWT_PUBLIC_KEY is required"),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -22,4 +23,5 @@ export const config = {
   databaseUrl: parsed.data.DATABASE_URL,
   rabbitmqUrl: parsed.data.RABBITMQ_URL,
   usersServiceUrl: parsed.data.USERS_SERVICE_URL,
+  jwtPublicKey: parsed.data.JWT_PUBLIC_KEY.replace(/\\n/g, "\n"),
 } as const;

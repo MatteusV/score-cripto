@@ -1,8 +1,8 @@
 import { fastifyCors } from "@fastify/cors";
-import fastifyRawBody from "fastify-raw-body";
 import fastifySwagger from "@fastify/swagger";
 import ScalarApiReference from "@scalar/fastify-api-reference";
 import fastify from "fastify";
+import fastifyRawBody from "fastify-raw-body";
 import {
   jsonSchemaTransform,
   serializerCompiler,
@@ -26,7 +26,7 @@ export async function createHttpServer() {
   // Preserva o raw body para verificação de assinatura do webhook Stripe
   await app.register(fastifyRawBody, {
     field: "rawBody",
-    global: false,   // só ativo nas rotas com config: { rawBody: true }
+    global: false, // só ativo nas rotas com config: { rawBody: true }
     encoding: "utf8",
     runFirst: true,
   });

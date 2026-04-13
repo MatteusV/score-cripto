@@ -11,33 +11,13 @@ import {
   ZapIcon,
 } from "lucide-react"
 import { useUser } from "@/hooks/use-user"
+import { formatDate, useHistory } from "@/hooks/use-history"
 import { ChainChips } from "@/components/chain-chips"
 import { StatCard } from "@/components/stat-card"
 import { ScoreBadge } from "@/components/score-badge"
 import { ChainIcon } from "@/components/chain-icon"
 import { Topbar } from "@/components/topbar"
 import { Button } from "@/components/ui/button"
-
-const RECENT_ANALYSES = [
-  {
-    address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-    chain: "ethereum",
-    score: 83,
-    date: "Hoje, 14:22",
-  },
-  {
-    address: "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B",
-    chain: "ethereum",
-    score: 61,
-    date: "Hoje, 11:05",
-  },
-  {
-    address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
-    chain: "bitcoin",
-    score: 45,
-    date: "Ontem",
-  },
-]
 
 function truncate(addr: string) {
   if (addr.length <= 18) return addr
@@ -56,6 +36,7 @@ export default function DashboardPage() {
     limitReached,
     planLabel,
   } = useUser()
+  const { summary, data: recentAnalyses, loading: historyLoading } = useHistory({ limit: 3 })
   const router = useRouter()
   const [chain, setChain] = useState("ethereum")
   const [address, setAddress] = useState("")
@@ -133,9 +114,7 @@ export default function DashboardPage() {
           <StatCard label="Plano atual"    value={isPro ? "Pro" : "Free"}         icon={ShieldCheckIcon} />
           <StatCard
             label="Score médio"
-            value="63"
-            delta="+4 vs. semana passada"
-            deltaPositive
+            value={historyLoading ? "—" : (summary.avgScore > 0 ? summary.avgScore : "—")}
             icon={BarChart2Icon}
           />
         </div>
@@ -153,22 +132,41 @@ export default function DashboardPage() {
               </Button>
             </div>
             <div className="divide-y divide-border">
-              {RECENT_ANALYSES.map((item) => (
-                <a
-                  key={item.address}
-                  href={`/analyze?chain=${item.chain}&address=${item.address}`}
-                  className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/3"
-                >
-                  <ChainIcon chain={item.chain} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-mono text-xs text-foreground/80">
-                      {truncate(item.address)}
-                    </p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">{item.date}</p>
+              {historyLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 px-5 py-4">
+                    <div className="size-7 animate-pulse rounded-full bg-muted/40" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-2.5 w-32 animate-pulse rounded bg-muted/40" />
+                      <div className="h-2 w-16 animate-pulse rounded bg-muted/40" />
+                    </div>
+                    <div className="h-5 w-10 animate-pulse rounded-full bg-muted/40" />
                   </div>
-                  <ScoreBadge score={item.score} />
-                </a>
-              ))}
+                ))
+              ) : recentAnalyses.length === 0 ? (
+                <div className="px-5 py-8 text-center text-sm text-muted-foreground">
+                  Nenhuma análise ainda — comece agora!
+                </div>
+              ) : (
+                recentAnalyses.map((item) => (
+                  <a
+                    key={item.id}
+                    href={`/analyze?chain=${item.chain}&address=${item.address}`}
+                    className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/3"
+                  >
+                    <ChainIcon chain={item.chain} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-mono text-xs text-foreground/80">
+                        {truncate(item.address)}
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground">
+                        {formatDate(item.completedAt)}
+                      </p>
+                    </div>
+                    <ScoreBadge score={item.score} />
+                  </a>
+                ))
+              )}
             </div>
           </div>
 

@@ -19,22 +19,26 @@ const userRepo = new UserPrismaRepository(prisma);
 const subscriptionRepo = new SubscriptionPrismaRepository(prisma);
 const usageRepo = new UsagePrismaRepository(prisma);
 const refreshTokenRepo = new RefreshTokenPrismaRepository(prisma);
-const jwtService = new JwtServiceImpl(config.jwtSecret, config.jwtExpiresIn);
+const jwtService = new JwtServiceImpl(
+  config.jwtPrivateKey,
+  config.jwtPublicKey,
+  config.jwtExpiresIn
+);
 
 const registerUseCase = new RegisterUserUseCase(
   userRepo,
   subscriptionRepo,
-  usageRepo,
+  usageRepo
 );
 const loginUseCase = new LoginUserUseCase(
   userRepo,
   refreshTokenRepo,
-  jwtService,
+  jwtService
 );
 const refreshUseCase = new RefreshTokenUseCase(
   refreshTokenRepo,
   userRepo,
-  jwtService,
+  jwtService
 );
 
 const UserResponseSchema = z.object({
@@ -85,7 +89,7 @@ export async function authHandler(app: FastifyInstance) {
         }
         throw err;
       }
-    },
+    }
   );
 
   // POST /auth/login
@@ -119,7 +123,7 @@ export async function authHandler(app: FastifyInstance) {
         }
         throw err;
       }
-    },
+    }
   );
 
   // POST /auth/refresh
@@ -148,6 +152,6 @@ export async function authHandler(app: FastifyInstance) {
         }
         throw err;
       }
-    },
+    }
   );
 }
