@@ -7,8 +7,8 @@
 ---
 
 **Project:** Score Cripto
-**Generated:** 2026-04-02 14:35:52
-**Category:** Luxury/Premium Brand
+**Generated:** 2026-04-13 16:56:08
+**Category:** Fintech/Crypto
 
 ---
 
@@ -28,14 +28,14 @@
 
 ### Typography
 
-- **Heading Font:** Satoshi
-- **Body Font:** General Sans
-- **Mood:** premium, modern, clean, sophisticated, versatile, balanced
-- **Google Fonts:** [Satoshi + General Sans](https://fonts.google.com/share?selection.family=DM+Sans:wght@400;500;700)
+- **Heading Font:** Orbitron
+- **Body Font:** Exo 2
+- **Mood:** crypto, web3, futuristic, tech, blockchain, digital
+- **Google Fonts:** [Orbitron + Exo 2](https://fonts.google.com/share?selection.family=Exo+2:wght@300;400;500;600;700|Orbitron:wght@400;500;600;700)
 
 **CSS Import:**
 ```css
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700&display=swap');
 ```
 
 ### Spacing Variables
@@ -153,27 +153,28 @@
 
 ## Style Guidelines
 
-**Style:** Liquid Glass
+**Style:** Dark Mode (OLED)
 
-**Keywords:** Flowing glass, morphing, smooth transitions, fluid effects, translucent, animated blur, iridescent, chromatic aberration
+**Keywords:** Dark theme, low light, high contrast, deep black, midnight blue, eye-friendly, OLED, night mode, power efficient
 
-**Best For:** Premium SaaS, high-end e-commerce, creative platforms, branding experiences, luxury portfolios
+**Best For:** Night-mode apps, coding platforms, entertainment, eye-strain prevention, OLED devices, low-light
 
-**Key Effects:** Morphing elements (SVG/CSS), fluid animations (400-600ms curves), dynamic blur (backdrop-filter), color transitions
+**Key Effects:** Minimal glow (text-shadow: 0 0 10px), dark-to-light transitions, low white emission, high readability, visible focus
 
 ### Page Pattern
 
-**Pattern Name:** Storytelling + Feature-Rich
+**Pattern Name:** Hero + Testimonials + CTA
 
-- **CTA Placement:** Above fold
-- **Section Order:** Hero > Features > CTA
+- **Conversion Strategy:** Social proof before CTA. Use 3-5 testimonials. Include photo + name + role. CTA after social proof.
+- **CTA Placement:** Hero (sticky) + Post-testimonials
+- **Section Order:** 1. Hero, 2. Problem statement, 3. Solution overview, 4. Testimonials carousel, 5. CTA
 
 ---
 
 ## Anti-Patterns (Do NOT Use)
 
-- ❌ Cheap visuals
-- ❌ Fast animations
+- ❌ Light backgrounds
+- ❌ No security indicators
 
 ### Additional Forbidden Patterns
 

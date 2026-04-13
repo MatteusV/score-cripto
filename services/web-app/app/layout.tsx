@@ -1,20 +1,20 @@
 import "./globals.css"
 import type { Metadata } from "next"
-import { DM_Sans, Fira_Code, Space_Grotesk } from "next/font/google"
+import { Exo_2, Fira_Code, Orbitron } from "next/font/google"
 import { AuthProvider } from "@/contexts/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
 
-const dmSans = DM_Sans({
+const orbitron = Orbitron({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-dm-sans",
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-orbitron",
   display: "swap",
 })
 
-const spaceGrotesk = Space_Grotesk({
+const exo2 = Exo_2({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-space-grotesk",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-exo2",
   display: "swap",
 })
 
@@ -40,10 +40,10 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`antialiased ${dmSans.variable} ${spaceGrotesk.variable} ${firaCode.variable}`}
+      className={`antialiased ${orbitron.variable} ${exo2.variable} ${firaCode.variable}`}
     >
       <body>
-        <ThemeProvider defaultTheme="light" enableSystem={false}>
+        <ThemeProvider defaultTheme="dark" enableSystem={false}>
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
       </body>
