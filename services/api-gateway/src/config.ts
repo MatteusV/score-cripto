@@ -6,6 +6,9 @@ const envSchema = z.object({
   RABBITMQ_URL: z.string().default("amqp://localhost:5672"),
   USERS_SERVICE_URL: z.string().default("http://users:3003"),
   JWT_PUBLIC_KEY: z.string().min(1, "JWT_PUBLIC_KEY is required"),
+  RATE_LIMIT_MAX_AUTH: z.coerce.number().int().positive().default(60),
+  RATE_LIMIT_MAX_ANON: z.coerce.number().int().positive().default(30),
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -24,4 +27,7 @@ export const config = {
   rabbitmqUrl: parsed.data.RABBITMQ_URL,
   usersServiceUrl: parsed.data.USERS_SERVICE_URL,
   jwtPublicKey: parsed.data.JWT_PUBLIC_KEY.replace(/\\n/g, "\n"),
+  rateLimitMaxAuth: parsed.data.RATE_LIMIT_MAX_AUTH,
+  rateLimitMaxAnon: parsed.data.RATE_LIMIT_MAX_ANON,
+  rateLimitWindowMs: parsed.data.RATE_LIMIT_WINDOW_MS,
 } as const;

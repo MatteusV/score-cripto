@@ -10,6 +10,7 @@ import {
 } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
 import { analysisRequestHandler } from "./controllers/analysis-request/routes.js";
+import { registerRateLimit } from "./plugins/rate-limit.js";
 
 export async function createHttpServer() {
   const app = fastify({
@@ -18,6 +19,9 @@ export async function createHttpServer() {
 
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
+
+  await registerRateLimit(app);
+
   app.register(fastifyCors, {
     origin: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

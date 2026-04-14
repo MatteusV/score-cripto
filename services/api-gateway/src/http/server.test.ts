@@ -407,4 +407,110 @@ describe("api-gateway HTTP server (Fastify)", () => {
       await app.close();
     });
   });
+
+  describe("rate limiting", () => {
+    // RATE_LIMIT_MAX_ANON=3, RATE_LIMIT_MAX_AUTH=5 (via vitest.config.ts)
+
+    it("flood anônimo retorna 429 após RATE_LIMIT_MAX_ANON requests e inclui headers", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      // Primeiras 3 requests (sem auth) → 401 (passam pelo rate-limit, falham no authenticate)
+      for (let i = 0; i < 3; i++) {
+        const res = await app.inject({ method: "GET", url: "/analysis" });
+        expect(res.statusCode).toBe(401);
+      }
+
+      // 4ª request → rate-limit esgotado → 429
+      const limited = await app.inject({ method: "GET", url: "/analysis" });
+      expect(limited.statusCode).toBe(429);
+
+      const body = limited.json();
+      expect(body.error).toBe("Too Many Requests");
+      expect(body.message).toBeDefined();
+      expect(limited.headers["x-ratelimit-limit"]).toBeDefined();
+      expect(limited.headers["retry-after"]).toBeDefined();
+
+      await app.close();
+    });
+
+    it("flood autenticado retorna 429 após RATE_LIMIT_MAX_AUTH requests", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      mockFindMany.mockResolvedValue([]);
+      mockCount.mockResolvedValue(0);
+      mockAggregate.mockResolvedValue({
+        _avg: { score: null },
+        _count: { _all: 0 },
+      });
+
+      const token = signToken("user-rate-test");
+
+      // Primeiras 5 requests → passam (200)
+      for (let i = 0; i < 5; i++) {
+        const res = await app.inject({
+          method: "GET",
+          url: "/analysis",
+          headers: { authorization: `Bearer ${token}` },
+        });
+        expect(res.statusCode).toBe(200);
+      }
+
+      // 6ª request → 429
+      const limited = await app.inject({
+        method: "GET",
+        url: "/analysis",
+        headers: { authorization: `Bearer ${token}` },
+      });
+      expect(limited.statusCode).toBe(429);
+
+      await app.close();
+    });
+
+    it("usuários diferentes têm buckets independentes", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      mockFindMany.mockResolvedValue([]);
+      mockCount.mockResolvedValue(0);
+      mockAggregate.mockResolvedValue({
+        _avg: { score: null },
+        _count: { _all: 0 },
+      });
+
+      const tokenA = signToken("user-bucket-a");
+      const tokenB = signToken("user-bucket-b");
+
+      // Cada usuário faz MAX_AUTH - 1 = 4 requests → nenhum deve receber 429
+      for (let i = 0; i < 4; i++) {
+        const resA = await app.inject({
+          method: "GET",
+          url: "/analysis",
+          headers: { authorization: `Bearer ${tokenA}` },
+        });
+        const resB = await app.inject({
+          method: "GET",
+          url: "/analysis",
+          headers: { authorization: `Bearer ${tokenB}` },
+        });
+        expect(resA.statusCode).not.toBe(429);
+        expect(resB.statusCode).not.toBe(429);
+      }
+
+      await app.close();
+    });
+
+    it("GET /health nunca retorna 429 independente do número de requests", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      for (let i = 0; i < 50; i++) {
+        const res = await app.inject({ method: "GET", url: "/health" });
+        expect(res.statusCode).toBe(200);
+      }
+
+      await app.close();
+    });
+  });
 });

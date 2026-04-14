@@ -51,20 +51,20 @@ Cada log deve incluir: `requestId`, `userId`, `chain`, `address`, `service`, `le
 
 ### 3. Rate Limiting HTTP no api-gateway
 
-**Status:** MISSING
-**Problema:** O gateway valida limites de análise por plano (FREE_TIER: 5/mês, PRO: 15/mês) via chamada HTTP ao `users` service, mas não tem rate limiting de infraestrutura. Sem isso, é possível fazer flood de requests autenticados e causar carga desnecessária no pipeline.
+**Status:** ✅ IMPLEMENTED
+**Solução implementada:**
+- `@fastify/rate-limit@^10` registrado globalmente com hook `onRequest`
+- `keyGenerator` verifica JWT RS256 no header Authorization e extrai `sub` → chave `user:<sub>`; sem token ou inválido → chave `ip:<req.ip>`
+- Limites diferenciados: 60 req/min/usuário autenticado, 30 req/min/IP anônimo (tunáveis via env)
+- `allowList` exclui `/health` (liveness probes) e `/docs` (Scalar)
+- 4 novos testes de integração: flood anônimo, flood autenticado, buckets independentes, skip de /health
+- 8 testes unitários do `keyGenerator` (JWT válido/expirado/inválido, header ausente/malformado)
 
-**Solução:** Adicionar `@fastify/rate-limit` no api-gateway com limites por IP e por `userId` extraído do JWT.
+**Envs configuráveis:** `RATE_LIMIT_MAX_AUTH` (default 60), `RATE_LIMIT_MAX_ANON` (default 30), `RATE_LIMIT_WINDOW_MS` (default 60000)
 
-```typescript
-import rateLimit from '@fastify/rate-limit'
+**Arquivo principal:** `services/api-gateway/src/http/plugins/rate-limit.ts`
 
-await app.register(rateLimit, {
-  max: 60,           // 60 requests/minuto por chave
-  timeWindow: '1 minute',
-  keyGenerator: (req) => req.user?.id ?? req.ip,
-})
-```
+**Próximos passos:** Redis store para multi-instância (follow-up — issue a criar)
 
 **Serviços afetados:** `api-gateway`
 
@@ -191,7 +191,7 @@ app.get('/analysis/:id/stream', async (req, reply) => {
 |---|-----|-----------|-----------------|
 | 1 | Dead Letter Queue (DLQ) | 🔴 Crítico | Médio (~1 dia) |
 | 2 | Observabilidade (logs + traces) | 🔴 Crítico | Alto (~3-5 dias) |
-| 3 | Rate Limiting HTTP | 🔴 Crítico | Baixo (~2h) |
+| 3 | Rate Limiting HTTP | ✅ Implementado | — |
 | 4 | Retry com backoff + max tentativas | 🟡 Importante | Médio (~1 dia) |
 | 5 | CI/CD Pipeline | 🟡 Importante | Médio (~1-2 dias) |
 | 6 | Health checks nos workers | 🟡 Importante | Baixo (~4h) |

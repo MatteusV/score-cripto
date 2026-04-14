@@ -22,6 +22,9 @@ pnpm fix                  # Auto-fix de lint
 | `PORT` | `3001` | Porta do servidor Fastify |
 | `DATABASE_URL` | — | PostgreSQL connection string (banco próprio do gateway) |
 | `RABBITMQ_URL` | `amqp://localhost:5672` | RabbitMQ connection |
+| `RATE_LIMIT_MAX_AUTH` | `60` | Máximo de req/janela por usuário autenticado |
+| `RATE_LIMIT_MAX_ANON` | `30` | Máximo de req/janela por IP anônimo |
+| `RATE_LIMIT_WINDOW_MS` | `60000` | Janela de rate limit em ms (padrão: 1 minuto) |
 
 ## Responsabilidades
 

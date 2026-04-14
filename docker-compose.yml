@@ -96,6 +96,9 @@ services:
       DATABASE_URL: postgresql://${API_GATEWAY_POSTGRES_USER:-score_cripto}:${API_GATEWAY_POSTGRES_PASSWORD:-score_cripto}@api-gateway-postgres:5432/${API_GATEWAY_POSTGRES_DB:-score_cripto_gateway}?schema=public
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
       CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-1}
+      RATE_LIMIT_MAX_AUTH: ${RATE_LIMIT_MAX_AUTH:-60}
+      RATE_LIMIT_MAX_ANON: ${RATE_LIMIT_MAX_ANON:-30}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-60000}
     volumes:
       - ./services/api-gateway:/app
       - api_gateway_node_modules:/app/node_modules

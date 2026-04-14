@@ -18,6 +18,10 @@ export default defineConfig({
       JWT_PUBLIC_KEY: publicKey,
       // Disponível para os testes que precisam assinar tokens
       TEST_JWT_PRIVATE_KEY: privateKey,
+      // Limites baixos para tornar os testes de rate-limit rápidos
+      RATE_LIMIT_MAX_AUTH: "5",
+      RATE_LIMIT_MAX_ANON: "3",
+      RATE_LIMIT_WINDOW_MS: "60000",
     },
   },
 });
