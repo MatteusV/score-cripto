@@ -19,23 +19,33 @@ export interface CompleteAnalysisRequestData {
 
 export interface AnalysisRequestRepository {
   create: (data: CreateAnalysisRequestData) => Promise<AnalysisRequest>;
+  createWithPublicId: (
+    data: CreateAnalysisRequestData
+  ) => Promise<AnalysisRequest>;
   findActive: (
     userId: string,
     chain: string,
     address: string
   ) => Promise<AnalysisRequest | null>;
   findById: (id: string) => Promise<AnalysisRequest | null>;
-  markCompleted: (
-    id: string,
-    result: CompleteAnalysisRequestData
-  ) => Promise<AnalysisRequest>;
-  markFailed: (id: string, reason: string) => Promise<AnalysisRequest>;
+  findByUserChainAddress: (
+    userId: string,
+    chain: string,
+    address: string
+  ) => Promise<AnalysisRequest | null>;
+  findByUserIdAndPublicId: (
+    userId: string,
+    publicId: number
+  ) => Promise<AnalysisRequest | null>;
   listByUserId: (
     userId: string,
     page: number,
     limit: number
   ) => Promise<{ items: AnalysisRequest[]; total: number }>;
-  summarizeByUserId: (
-    userId: string
-  ) => Promise<{ summary: AnalysisSummary }>;
+  markCompleted: (
+    id: string,
+    result: CompleteAnalysisRequestData
+  ) => Promise<AnalysisRequest>;
+  markFailed: (id: string, reason: string) => Promise<AnalysisRequest>;
+  summarizeByUserId: (userId: string) => Promise<{ summary: AnalysisSummary }>;
 }

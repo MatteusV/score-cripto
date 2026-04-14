@@ -18,6 +18,7 @@ enum AnalysisStatus {
 model AnalysisRequest {
   id          String         @id @default(cuid())
   userId      String         @map("user_id")
+  publicId    Int?           @map("public_id")
   chain       String
   address     String
   status      AnalysisStatus @default(PENDING)
@@ -35,9 +36,18 @@ model AnalysisRequest {
   modelVersion    String? @map("model_version")
   promptVersion   String? @map("prompt_version")
 
+  @@unique([userId, publicId])
   @@index([userId])
+  @@index([userId, publicId])
   @@index([status])
   @@index([chain, address])
   @@index([userId, chain, address])
   @@map("analysis_requests")
+}
+
+model UserAnalysisCounter {
+  userId  String @id @map("user_id")
+  counter Int    @default(0)
+
+  @@map("user_analysis_counters")
 }

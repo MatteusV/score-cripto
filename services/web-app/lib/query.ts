@@ -16,9 +16,24 @@ export function normalizeChainInput(input: string) {
   )
 }
 
+export type AnalyzeParams =
+  | { mode: "history"; publicId: number }
+  | { mode: "new"; chain: string; address: string }
+
 export function parseAnalyzeSearchParams(
   searchParams: Record<string, string | string[] | undefined>,
-) {
+): AnalyzeParams {
+  const rawId = Array.isArray(searchParams.id)
+    ? searchParams.id[0]
+    : searchParams.id
+
+  if (rawId !== undefined) {
+    const publicId = Number(rawId)
+    if (Number.isInteger(publicId) && publicId > 0) {
+      return { mode: "history", publicId }
+    }
+  }
+
   const rawChain = Array.isArray(searchParams.chain)
     ? searchParams.chain[0]
     : searchParams.chain
@@ -27,6 +42,7 @@ export function parseAnalyzeSearchParams(
     : searchParams.address
 
   return {
+    mode: "new",
     chain: normalizeChainInput(rawChain ?? "ethereum"),
     address: (rawAddress ?? "").trim(),
   }

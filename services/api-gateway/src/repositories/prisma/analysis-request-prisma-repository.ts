@@ -29,6 +29,52 @@ export class AnalysisRequestPrismaRepository
     });
   }
 
+  async createWithPublicId(
+    data: CreateAnalysisRequestData
+  ): Promise<AnalysisRequest> {
+    return await this.prisma.$transaction(async (tx) => {
+      const counter = await tx.userAnalysisCounter.upsert({
+        where: { userId: data.userId },
+        update: { counter: { increment: 1 } },
+        create: { userId: data.userId, counter: 1 },
+      });
+
+      return tx.analysisRequest.create({
+        data: {
+          userId: data.userId,
+          chain: data.chain,
+          address: data.address,
+          status: "PENDING",
+          publicId: counter.counter,
+        },
+      });
+    });
+  }
+
+  async findByUserChainAddress(
+    userId: string,
+    chain: string,
+    address: string
+  ): Promise<AnalysisRequest | null> {
+    const result = await this.prisma.analysisRequest.findFirst({
+      where: { userId, chain, address },
+      orderBy: { requestedAt: "desc" },
+    });
+
+    return result ?? null;
+  }
+
+  async findByUserIdAndPublicId(
+    userId: string,
+    publicId: number
+  ): Promise<AnalysisRequest | null> {
+    const result = await this.prisma.analysisRequest.findUnique({
+      where: { userId_publicId: { userId, publicId } },
+    });
+
+    return result ?? null;
+  }
+
   async findActive(
     userId: string,
     chain: string,
@@ -102,6 +148,7 @@ export class AnalysisRequestPrismaRepository
         select: {
           id: true,
           userId: true,
+          publicId: true,
           chain: true,
           address: true,
           status: true,
@@ -124,7 +171,9 @@ export class AnalysisRequestPrismaRepository
     return { items, total };
   }
 
-  async summarizeByUserId(userId: string): Promise<{ summary: AnalysisSummary }> {
+  async summarizeByUserId(
+    userId: string
+  ): Promise<{ summary: AnalysisSummary }> {
     const where = { userId, status: "COMPLETED" as const };
 
     const [total, agg] = await Promise.all([
@@ -137,13 +186,21 @@ export class AnalysisRequestPrismaRepository
     ]);
 
     if (total === 0) {
-      return { summary: { total: 0, avgScore: 0, trusted: 0, attention: 0, risky: 0 } };
+      return {
+        summary: { total: 0, avgScore: 0, trusted: 0, attention: 0, risky: 0 },
+      };
     }
 
     const [trusted, attention, risky] = await Promise.all([
-      this.prisma.analysisRequest.count({ where: { ...where, score: { gte: 70 } } }),
-      this.prisma.analysisRequest.count({ where: { ...where, score: { gte: 40, lt: 70 } } }),
-      this.prisma.analysisRequest.count({ where: { ...where, score: { lt: 40 } } }),
+      this.prisma.analysisRequest.count({
+        where: { ...where, score: { gte: 70 } },
+      }),
+      this.prisma.analysisRequest.count({
+        where: { ...where, score: { gte: 40, lt: 70 } },
+      }),
+      this.prisma.analysisRequest.count({
+        where: { ...where, score: { lt: 40 } },
+      }),
     ]);
 
     return {

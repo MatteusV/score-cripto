@@ -8,6 +8,8 @@ import { prisma } from "../../../services/database";
 import { checkUsage, UsersServiceError } from "../../../services/users-service";
 import { CreateAnalysisRequestUseCase } from "../../../use-cases/analysis-request/create-analysis-request-use-case";
 import { FindActiveAnalysisRequestUseCase } from "../../../use-cases/analysis-request/find-active-analysis-request-use-case";
+import { FindCachedAnalysisUseCase } from "../../../use-cases/analysis-request/find-cached-analysis-use-case";
+import { GetAnalysisByPublicIdUseCase } from "../../../use-cases/analysis-request/get-analysis-by-public-id-use-case";
 import { GetAnalysisRequestUseCase } from "../../../use-cases/analysis-request/get-analysis-request-use-case";
 import { ListAnalysesUseCase } from "../../../use-cases/analysis-request/list-analyses-use-case";
 import { AnalysisRequestNotFoundError } from "../../../use-cases/errors/analysis-request-not-found-error";
@@ -16,6 +18,8 @@ import { authenticate } from "../../middleware/authenticate";
 const repository = new AnalysisRequestPrismaRepository(prisma);
 const createUseCase = new CreateAnalysisRequestUseCase(repository);
 const findActiveUseCase = new FindActiveAnalysisRequestUseCase(repository);
+const findCachedUseCase = new FindCachedAnalysisUseCase(repository);
+const getByPublicIdUseCase = new GetAnalysisByPublicIdUseCase(repository);
 const getUseCase = new GetAnalysisRequestUseCase(repository);
 const listUseCase = new ListAnalysesUseCase(repository);
 
@@ -84,6 +88,10 @@ export async function analysisRequestHandler(app: FastifyInstance) {
               requestId: z
                 .string()
                 .describe("Use para polling em GET /analysis/:id"),
+              publicId: z
+                .number()
+                .int()
+                .describe("ID público incremental por usuário"),
               status: z.literal("pending"),
             })
             .describe("Análise criada — pipeline iniciado"),
@@ -144,6 +152,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
 
       return reply.status(202).send({
         requestId: analysisRequest.id,
+        publicId: analysisRequest.publicId as number,
         status: "pending",
       });
     }
@@ -174,6 +183,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
             data: z.array(
               z.object({
                 id: z.string(),
+                publicId: z.number().int().nullable().optional(),
                 chain: z.string(),
                 address: z.string(),
                 score: z.number(),
@@ -201,6 +211,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
         summary: result.summary,
         data: result.data.map((item) => ({
           id: item.id,
+          publicId: item.publicId,
           chain: item.chain,
           address: item.address,
           score: item.score,
@@ -229,6 +240,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
         response: {
           200: z.object({
             requestId: z.string(),
+            publicId: z.number().int().nullable().optional(),
             status: z
               .enum(["pending", "processing", "completed", "failed"])
               .describe(
@@ -268,6 +280,162 @@ export async function analysisRequestHandler(app: FastifyInstance) {
 
       const base = {
         requestId: analysisRequest.id,
+        publicId: analysisRequest.publicId,
+        status,
+        chain: analysisRequest.chain,
+        address: analysisRequest.address,
+      };
+
+      if (analysisRequest.status !== "COMPLETED") {
+        return reply.status(200).send(base);
+      }
+
+      return reply.status(200).send({
+        ...base,
+        result: {
+          score: analysisRequest.score as number,
+          confidence: analysisRequest.confidence as number,
+          reasoning: analysisRequest.reasoning as string,
+          positiveFactors: analysisRequest.positiveFactors as string[],
+          riskFactors: analysisRequest.riskFactors as string[],
+          modelVersion: analysisRequest.modelVersion as string,
+          promptVersion: analysisRequest.promptVersion as string,
+        },
+      });
+    }
+  );
+
+  // GET /by-wallet?chain=X&address=Y — busca análise em cache por carteira
+  typed.get(
+    "/by-wallet",
+    {
+      preHandler: [authenticate],
+      schema: {
+        tags: ["analysis"],
+        summary: "Buscar análise em cache por chain+address",
+        description:
+          "Retorna análise existente válida para a carteira informada. Use antes de criar uma nova análise para evitar chamadas desnecessárias à IA.",
+        security: [{ bearerAuth: [] }],
+        querystring: z.object({
+          chain: z.string().min(1),
+          address: z.string().min(1),
+        }),
+        response: {
+          200: z.object({
+            requestId: z.string(),
+            publicId: z.number().int().nullable().optional(),
+            status: z.enum(["pending", "processing", "completed"]),
+            chain: z.string(),
+            address: z.string(),
+            result: ScoreResultSchema.optional(),
+          }),
+          401: z.object({ error: z.string() }),
+          404: z.object({ error: z.string() }),
+        },
+      },
+    },
+    async (request, reply) => {
+      const { chain, address } = request.query as {
+        chain: string;
+        address: string;
+      };
+      const userId = request.user.id;
+
+      const found = await findCachedUseCase.execute({ userId, chain, address });
+
+      if (found.kind === "miss") {
+        return reply.status(404).send({ error: "No cached analysis found" });
+      }
+
+      const { analysisRequest } = found;
+      const status = analysisRequest.status.toLowerCase() as
+        | "pending"
+        | "processing"
+        | "completed";
+
+      const base = {
+        requestId: analysisRequest.id,
+        publicId: analysisRequest.publicId,
+        status,
+        chain: analysisRequest.chain,
+        address: analysisRequest.address,
+      };
+
+      if (analysisRequest.status !== "COMPLETED") {
+        return reply.status(200).send(base);
+      }
+
+      return reply.status(200).send({
+        ...base,
+        result: {
+          score: analysisRequest.score as number,
+          confidence: analysisRequest.confidence as number,
+          reasoning: analysisRequest.reasoning as string,
+          positiveFactors: analysisRequest.positiveFactors as string[],
+          riskFactors: analysisRequest.riskFactors as string[],
+          modelVersion: analysisRequest.modelVersion as string,
+          promptVersion: analysisRequest.promptVersion as string,
+        },
+      });
+    }
+  );
+
+  // GET /p/:publicId — busca análise histórica pelo ID público do usuário
+  typed.get(
+    "/p/:publicId",
+    {
+      preHandler: [authenticate],
+      schema: {
+        tags: ["analysis"],
+        summary: "Buscar análise histórica pelo ID público",
+        description:
+          "Retorna análise identificada pelo publicId incremental do usuário. Usado para abrir análises do histórico via URL.",
+        security: [{ bearerAuth: [] }],
+        params: z.object({
+          publicId: z.coerce.number().int().positive(),
+        }),
+        response: {
+          200: z.object({
+            requestId: z.string(),
+            publicId: z.number().int().nullable().optional(),
+            status: z.enum(["pending", "processing", "completed", "failed"]),
+            chain: z.string(),
+            address: z.string(),
+            result: ScoreResultSchema.optional(),
+          }),
+          401: z.object({ error: z.string() }),
+          404: z.object({ error: z.string() }),
+        },
+      },
+    },
+    async (request, reply) => {
+      const { publicId } = request.params as { publicId: number };
+      const userId = request.user.id;
+
+      let analysisRequest: AnalysisRequest;
+      try {
+        ({ analysisRequest } = await getByPublicIdUseCase.execute({
+          userId,
+          publicId,
+        }));
+      } catch (err) {
+        if (err instanceof AnalysisRequestNotFoundError) {
+          return reply
+            .status(404)
+            .send({ error: "Analysis request not found" });
+        }
+        throw err;
+      }
+
+      const status = analysisRequest.status.toLowerCase() as
+        | "pending"
+        | "processing"
+        | "completed"
+        | "failed";
+
+      const base = {
+        requestId: analysisRequest.id,
+        publicId: analysisRequest.publicId,
         status,
         chain: analysisRequest.chain,
         address: analysisRequest.address,

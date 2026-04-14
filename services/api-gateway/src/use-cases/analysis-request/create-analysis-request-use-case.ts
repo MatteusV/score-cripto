@@ -21,7 +21,7 @@ export class CreateAnalysisRequestUseCase {
   async execute(
     data: CreateAnalysisRequestUseCaseRequest
   ): Promise<CreateAnalysisRequestUseCaseResponse> {
-    const analysisRequest = await this.repository.create({
+    const analysisRequest = await this.repository.createWithPublicId({
       userId: data.userId,
       chain: data.chain,
       address: data.address,

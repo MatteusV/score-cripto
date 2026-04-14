@@ -11,11 +11,13 @@ export class AnalysisRequestInMemoryRepository
   implements AnalysisRequestRepository
 {
   items: AnalysisRequest[] = [];
+  private readonly counters: Map<string, number> = new Map();
 
   async create(data: CreateAnalysisRequestData): Promise<AnalysisRequest> {
     const item: AnalysisRequest = {
       id: randomUUID(),
       userId: data.userId,
+      publicId: null,
       chain: data.chain,
       address: data.address,
       status: "PENDING",
@@ -35,6 +37,67 @@ export class AnalysisRequestInMemoryRepository
     this.items.push(item);
 
     return item;
+  }
+
+  async createWithPublicId(
+    data: CreateAnalysisRequestData
+  ): Promise<AnalysisRequest> {
+    const current = this.counters.get(data.userId) ?? 0;
+    const next = current + 1;
+    this.counters.set(data.userId, next);
+
+    const item: AnalysisRequest = {
+      id: randomUUID(),
+      userId: data.userId,
+      publicId: next,
+      chain: data.chain,
+      address: data.address,
+      status: "PENDING",
+      requestedAt: new Date(),
+      completedAt: null,
+      failedAt: null,
+      failureReason: null,
+      score: null,
+      confidence: null,
+      reasoning: null,
+      positiveFactors: null,
+      riskFactors: null,
+      modelVersion: null,
+      promptVersion: null,
+    };
+
+    this.items.push(item);
+
+    return item;
+  }
+
+  async findByUserChainAddress(
+    userId: string,
+    chain: string,
+    address: string
+  ): Promise<AnalysisRequest | null> {
+    const result = this.items
+      .filter(
+        (item) =>
+          item.userId === userId &&
+          item.chain === chain &&
+          item.address === address
+      )
+      .sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime())
+      .at(0);
+
+    return result ?? null;
+  }
+
+  async findByUserIdAndPublicId(
+    userId: string,
+    publicId: number
+  ): Promise<AnalysisRequest | null> {
+    const result = this.items.find(
+      (item) => item.userId === userId && item.publicId === publicId
+    );
+
+    return result ?? null;
   }
 
   async findActive(
@@ -123,7 +186,9 @@ export class AnalysisRequestInMemoryRepository
     return { items, total };
   }
 
-  async summarizeByUserId(userId: string): Promise<{ summary: AnalysisSummary }> {
+  async summarizeByUserId(
+    userId: string
+  ): Promise<{ summary: AnalysisSummary }> {
     const completed = this.items.filter(
       (item) => item.userId === userId && item.status === "COMPLETED"
     );

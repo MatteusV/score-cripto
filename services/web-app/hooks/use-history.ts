@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 
 export interface AnalysisItem {
   id: string
+  publicId?: number | null
   chain: string
   address: string
   score: number

@@ -4,13 +4,15 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 vi.mock("@/lib/api", () => ({
   startAnalysis: vi.fn(),
   pollAnalysis: vi.fn(),
+  lookupCachedAnalysis: vi.fn().mockResolvedValue(null),
 }))
 
-import { pollAnalysis, startAnalysis } from "@/lib/api"
+import { lookupCachedAnalysis, pollAnalysis, startAnalysis } from "@/lib/api"
 import { useWalletScore } from "./use-wallet-score"
 
 const mockStart = vi.mocked(startAnalysis)
 const mockPoll = vi.mocked(pollAnalysis)
+const mockLookup = vi.mocked(lookupCachedAnalysis)
 
 afterEach(() => {
   vi.restoreAllMocks()

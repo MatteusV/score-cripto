@@ -129,7 +129,11 @@ export default function HistoryPage() {
               {filtered.map((row) => (
                 <a
                   key={row.id}
-                  href={`/analyze?chain=${row.chain}&address=${row.address}`}
+                  href={
+                    row.publicId
+                      ? `/analyze?id=${row.publicId}`
+                      : `/analyze?chain=${row.chain}&address=${row.address}`
+                  }
                   className="grid grid-cols-[1fr_80px_100px_100px] items-center gap-4 px-5 py-4 transition-colors hover:bg-white/3"
                 >
                   <div className="min-w-0">

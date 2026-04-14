@@ -5,6 +5,7 @@ import {
   type AnalysisResponse,
   type AnalysisStatus,
   type ScoreResult,
+  lookupCachedAnalysis,
   pollAnalysis,
   startAnalysis,
 } from "@/lib/api"
@@ -22,6 +23,7 @@ export interface WalletScoreState {
   result: ScoreResult | null
   error: string | null
   backendStatus: AnalysisStatus | null
+  fromCache: boolean
 }
 
 const POLL_INTERVAL_MS = 2_500
@@ -33,6 +35,7 @@ const initialState: WalletScoreState = {
   result: null,
   error: null,
   backendStatus: null,
+  fromCache: false,
 }
 
 export function useWalletScore(chain: string, address: string) {
@@ -63,7 +66,7 @@ export function useWalletScore(chain: string, address: string) {
     }
   }, [clearTimer])
 
-  const submit = useCallback(async () => {
+  const submit = useCallback(async (opts?: { force?: boolean }) => {
     if (!chain || !address) return
 
     clearTimer()
@@ -79,9 +82,42 @@ export function useWalletScore(chain: string, address: string) {
       result: null,
       error: null,
       backendStatus: null,
+      fromCache: false,
     })
 
     try {
+      // GET-first: verifica cache antes de criar nova análise
+      if (!opts?.force) {
+        const cached = await lookupCachedAnalysis(chain, address)
+
+        if (controller.signal.aborted) return
+
+        if (cached?.status === "completed" && cached.result) {
+          setState({
+            phase: "completed",
+            processId: cached.processId,
+            result: cached.result,
+            error: null,
+            backendStatus: "completed",
+            fromCache: true,
+          })
+          return
+        }
+
+        if (cached?.status === "pending" || cached?.status === "processing") {
+          setState((prev) => ({
+            ...prev,
+            phase: "polling",
+            processId: cached.processId,
+            backendStatus: cached.status as AnalysisStatus,
+            fromCache: false,
+          }))
+          poll(cached.processId, controller)
+          return
+        }
+      }
+
+      // Miss ou force: cria nova análise
       const { processId } = await startAnalysis({ chain, address })
 
       if (controller.signal.aborted) return

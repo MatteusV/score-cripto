@@ -18,6 +18,7 @@ const mockFindUnique = vi.fn();
 const mockFindMany = vi.fn();
 const mockCount = vi.fn();
 const mockAggregate = vi.fn();
+const mockCounterUpsert = vi.fn();
 
 vi.mock("../services/database.js", () => ({
   prisma: {
@@ -29,6 +30,16 @@ vi.mock("../services/database.js", () => ({
       count: mockCount,
       aggregate: mockAggregate,
     },
+    userAnalysisCounter: {
+      upsert: mockCounterUpsert,
+    },
+    $transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) => {
+      const tx = {
+        userAnalysisCounter: { upsert: mockCounterUpsert },
+        analysisRequest: { create: mockCreate },
+      };
+      return fn(tx);
+    }),
   },
 }));
 
@@ -73,8 +84,13 @@ describe("api-gateway HTTP server (Fastify)", () => {
       const app = await createHttpServer();
 
       mockFindFirst.mockResolvedValue(null);
+      mockCounterUpsert.mockResolvedValue({
+        userId: "user-test-1",
+        counter: 1,
+      });
       mockCreate.mockResolvedValue({
         id: "req-001",
+        publicId: 1,
         status: "PENDING",
         chain: "ethereum",
         address: "0xabc",
@@ -211,12 +227,22 @@ describe("api-gateway HTTP server (Fastify)", () => {
 
       mockFindMany.mockResolvedValue([
         {
-          id: "req-001", chain: "ethereum", address: "0xabc",
-          score: 85, requestedAt: new Date("2026-04-13T10:00:00Z"),
+          id: "req-001",
+          chain: "ethereum",
+          address: "0xabc",
+          score: 85,
+          requestedAt: new Date("2026-04-13T10:00:00Z"),
           completedAt: new Date("2026-04-13T10:01:00Z"),
-          userId: "user-test-1", status: "COMPLETED",
-          confidence: 0.9, reasoning: null, positiveFactors: [], riskFactors: [],
-          modelVersion: null, promptVersion: null, failedAt: null, failureReason: null,
+          userId: "user-test-1",
+          status: "COMPLETED",
+          confidence: 0.9,
+          reasoning: null,
+          positiveFactors: [],
+          riskFactors: [],
+          modelVersion: null,
+          promptVersion: null,
+          failedAt: null,
+          failureReason: null,
         },
       ]);
       // listByUserId: count(total=1)
@@ -227,7 +253,10 @@ describe("api-gateway HTTP server (Fastify)", () => {
         .mockResolvedValueOnce(1) // trusted
         .mockResolvedValueOnce(0) // attention
         .mockResolvedValueOnce(0); // risky
-      mockAggregate.mockResolvedValue({ _avg: { score: 85 }, _count: { _all: 1 } });
+      mockAggregate.mockResolvedValue({
+        _avg: { score: 85 },
+        _count: { _all: 1 },
+      });
 
       const res = await app.inject({
         method: "GET",
