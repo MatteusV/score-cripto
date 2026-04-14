@@ -18,7 +18,8 @@ describe("HandleStripeWebhookUseCase", () => {
     sut = new HandleStripeWebhookUseCase(
       userRepo,
       subscriptionRepo,
-      billingService
+      billingService,
+      "price_pro"
     );
   });
 
@@ -50,7 +51,28 @@ describe("HandleStripeWebhookUseCase", () => {
     expect(updated?.status).toBe("active");
   });
 
-  it("should update plan on customer.subscription.updated", async () => {
+  it("should set plan to PRO on customer.subscription.created with pro priceId", async () => {
+    const { sub } = await seedUserWithSubscription();
+
+    const payload = JSON.stringify({
+      type: "customer.subscription.created",
+      data: {
+        customerId: "cus_123",
+        subscriptionId: "sub_abc",
+        priceId: "price_pro",
+        status: "active",
+      },
+    });
+
+    await sut.execute({ payload, signature: "fake" });
+
+    const updated = subscriptionRepo.items.find((s) => s.id === sub.id);
+    expect(updated?.stripePriceId).toBe("price_pro");
+    expect(updated?.plan).toBe("PRO");
+    expect(updated?.status).toBe("active");
+  });
+
+  it("should set plan to PRO on customer.subscription.updated with pro priceId", async () => {
     const { sub } = await seedUserWithSubscription();
 
     const payload = JSON.stringify({
@@ -67,6 +89,27 @@ describe("HandleStripeWebhookUseCase", () => {
 
     const updated = subscriptionRepo.items.find((s) => s.id === sub.id);
     expect(updated?.stripePriceId).toBe("price_pro");
+    expect(updated?.plan).toBe("PRO");
+  });
+
+  it("should set plan to FREE_TIER on customer.subscription.updated with unknown priceId", async () => {
+    const { sub } = await seedUserWithSubscription();
+    await subscriptionRepo.update(sub.id, { plan: "PRO" });
+
+    const payload = JSON.stringify({
+      type: "customer.subscription.updated",
+      data: {
+        customerId: "cus_123",
+        subscriptionId: "sub_abc",
+        priceId: "price_other",
+        status: "active",
+      },
+    });
+
+    await sut.execute({ payload, signature: "fake" });
+
+    const updated = subscriptionRepo.items.find((s) => s.id === sub.id);
+    expect(updated?.plan).toBe("FREE_TIER");
   });
 
   it("should reset to FREE_TIER on customer.subscription.deleted", async () => {

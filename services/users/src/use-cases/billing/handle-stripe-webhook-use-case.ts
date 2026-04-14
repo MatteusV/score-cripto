@@ -11,15 +11,18 @@ export class HandleStripeWebhookUseCase {
   private readonly userRepo: UserRepository;
   private readonly subscriptionRepo: SubscriptionRepository;
   private readonly billingService: BillingService;
+  private readonly proPriceId: string;
 
   constructor(
     userRepo: UserRepository,
     subscriptionRepo: SubscriptionRepository,
-    billingService: BillingService
+    billingService: BillingService,
+    proPriceId: string
   ) {
     this.userRepo = userRepo;
     this.subscriptionRepo = subscriptionRepo;
     this.billingService = billingService;
+    this.proPriceId = proPriceId;
   }
 
   async execute(input: Input): Promise<void> {
@@ -57,10 +60,13 @@ export class HandleStripeWebhookUseCase {
 
       case "customer.subscription.created":
       case "customer.subscription.updated": {
+        const resolvedPriceId = data.priceId ?? subscription.stripePriceId;
+        const plan = resolvedPriceId === this.proPriceId ? "PRO" : "FREE_TIER";
         await this.subscriptionRepo.update(subscription.id, {
+          plan,
           stripeSubscriptionId:
             data.subscriptionId ?? subscription.stripeSubscriptionId,
-          stripePriceId: data.priceId ?? subscription.stripePriceId,
+          stripePriceId: resolvedPriceId,
           status:
             (data.status as "active" | "past_due" | "canceled" | "trialing") ??
             subscription.status,

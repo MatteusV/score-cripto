@@ -31,7 +31,8 @@ const portalUseCase = new CreatePortalSessionUseCase(userRepo, billingService);
 const webhookUseCase = new HandleStripeWebhookUseCase(
   userRepo,
   subscriptionRepo,
-  billingService
+  billingService,
+  config.stripeProPriceId
 );
 
 export async function billingHandler(app: FastifyInstance) {
