@@ -7,12 +7,11 @@ vi.mock("@/lib/api", () => ({
   lookupCachedAnalysis: vi.fn().mockResolvedValue(null),
 }))
 
-import { lookupCachedAnalysis, pollAnalysis, startAnalysis } from "@/lib/api"
+import { pollAnalysis, startAnalysis } from "@/lib/api"
 import { useWalletScore } from "./use-wallet-score"
 
 const mockStart = vi.mocked(startAnalysis)
 const mockPoll = vi.mocked(pollAnalysis)
-const mockLookup = vi.mocked(lookupCachedAnalysis)
 
 afterEach(() => {
   vi.restoreAllMocks()

@@ -24,7 +24,7 @@ const NAV_ACCOUNT = [
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const { user, isPro, initials, planLabel, logout } = useUser()
+  const { user, initials, planLabel, logout } = useUser()
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border bg-sidebar px-4 py-6">

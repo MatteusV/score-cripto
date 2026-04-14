@@ -35,7 +35,6 @@ function SkeletonRow() {
 export default function HistoryPage() {
   const { summary, data, loading } = useHistory({ limit: 50 })
   const t = useTranslations("history")
-  const tAnalyze = useTranslations("analyze")
   const [search, setSearch] = useState("")
   const [chainFilter, setChainFilter] = useState("all")
   const [scoreFilter, setScoreFilter] = useState("all")

@@ -87,8 +87,6 @@ export default function BillingPage() {
     }
   }
 
-  const plan = user?.plan ?? "FREE_TIER"
-
   const freeLabels = t.raw("plans.freeFeatures") as string[]
   const proLabels  = t.raw("plans.proFeatures")  as string[]
 
