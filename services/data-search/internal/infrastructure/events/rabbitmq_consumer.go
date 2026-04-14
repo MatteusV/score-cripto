@@ -74,14 +74,21 @@ func NewConsumerWithTopology(amqpURL string, uc WalletProcessor, topology Topolo
 		return nil, fmt.Errorf("exchange declare: %w", err)
 	}
 
-	// Declare queue.
+	// Declare DLX + DLQ before the source queue.
+	if err := AssertDLQ(ch, topology.ConsumeQueue); err != nil {
+		ch.Close()
+		conn.Close()
+		return nil, fmt.Errorf("dlq declare: %w", err)
+	}
+
+	// Declare queue with dead-letter arguments.
 	if _, err := ch.QueueDeclare(
 		topology.ConsumeQueue,
 		true,  // durable
 		false, // auto-delete
 		false, // exclusive
 		false, // no-wait
-		nil,
+		DLQArguments(topology.ConsumeQueue),
 	); err != nil {
 		ch.Close()
 		conn.Close()
@@ -146,8 +153,8 @@ func (c *Consumer) Start(ctx context.Context) error {
 				slog.Warn("invalid payload, sending to dead letter", "error", err)
 				msg.Nack(false, false) // no requeue
 			case TransientError:
-				slog.Warn("transient error, requeuing message", "error", err)
-				msg.Nack(false, true) // requeue
+				slog.Warn("transient error, routing to dead-letter queue", "error", err)
+				msg.Nack(false, false) // dead-letter — retry com backoff em score-cripto-51x
 			}
 		}
 	}

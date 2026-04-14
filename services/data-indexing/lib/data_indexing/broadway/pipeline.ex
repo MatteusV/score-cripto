@@ -142,8 +142,11 @@ defmodule DataIndexing.Broadway.Pipeline do
               Enum.map(Config.rabbitmq_routing_keys(), fn routing_key ->
                 {exchange, [routing_key: routing_key]}
               end),
-            after_connect: &declare_exchange(&1, exchange),
-            declare: [durable: true],
+            after_connect: &declare_exchange_and_dlq(&1, exchange, Keyword.get(opts, :queue, Config.rabbitmq_queue())),
+            declare: [
+              durable: true,
+              arguments: DataIndexing.Broadway.DlqTopology.queue_arguments(Keyword.get(opts, :queue, Config.rabbitmq_queue()))
+            ],
             on_failure: :reject_and_requeue_once,
             qos: [prefetch_count: 10]
           },
@@ -165,6 +168,17 @@ defmodule DataIndexing.Broadway.Pipeline do
 
       {:error, reason} ->
         Logger.error("failed to declare rabbitmq exchange #{exchange}: #{inspect(reason)}")
+        {:error, reason}
+    end
+  end
+
+  defp declare_exchange_and_dlq(channel, exchange, source_queue) do
+    with :ok <- declare_exchange(channel, exchange),
+         :ok <- DataIndexing.Broadway.DlqTopology.declare_dlq_for(channel, source_queue) do
+      :ok
+    else
+      {:error, reason} ->
+        Logger.error("failed to declare DLQ topology for #{source_queue}: #{inspect(reason)}")
         {:error, reason}
     end
   end

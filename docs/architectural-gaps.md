@@ -8,22 +8,22 @@ Análise do que está faltando ou incompleto na arquitetura atual, com base na l
 
 ### 1. Dead Letter Queue (DLQ) no RabbitMQ
 
-**Status:** MISSING
-**Problema:** Mensagens que falham no processamento são reenfileiradas via `nack(msg, false, true)` sem limite de tentativas. Uma mensagem corrompida ou com payload inválido entra em loop infinito, consumindo recursos e potencialmente travando o consumer inteiro.
+**Status:** ✅ IMPLEMENTED
+**Solução implementada:**
+- DLX `score-cripto.events.dlx` (direct, durable) declarado por cada consumer antes das filas de origem
+- Uma DLQ por fila de origem (`<queue>.dlq`), vinculada ao DLX com routing key própria
+- Todos os `nack(false, true)` convertidos para `nack(false, false)` — mensagens com falha vão para a DLQ em vez de loop infinito
+- Helpers de topologia: `dlq-topology.ts` (Node), `dlq_topology.go` (Go), `dlq_topology.ex` (Elixir)
 
-**Solução:** Configurar `x-dead-letter-exchange` nas filas no momento da criação, com um exchange/fila separada de DLQ. Mensagens que excedem N tentativas são roteadas automaticamente para a DLQ onde podem ser inspecionadas manualmente ou via admin.
+**DLQs criadas:**
+- `api-gateway.wallet.score.calculated.dlq`
+- `api-gateway.wallet.score.failed.dlq`
+- `process-data-ia.wallet.data.cached.dlq`
+- `users.user.analysis.consumed.dlq`
+- `data-search.wallet.data.requested.dlq`
+- `data-indexing.wallet.events.dlq`
 
-```typescript
-// Exemplo: declarar fila com DLQ binding
-channel.assertQueue('wallet.data.requested', {
-  durable: true,
-  arguments: {
-    'x-dead-letter-exchange': 'score-cripto.dlq',
-    'x-dead-letter-routing-key': 'dlq.wallet.data.requested',
-    'x-message-ttl': 60000,
-  },
-});
-```
+**Próximos passos:** `score-cripto-51x` — retry com backoff exponencial sobre a infra de DLQ
 
 **Serviços afetados:** `api-gateway`, `data-search`, `process-data-ia`, `data-indexing`, `users`
 

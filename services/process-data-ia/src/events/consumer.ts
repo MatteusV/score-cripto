@@ -1,8 +1,9 @@
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { z } from "zod";
 import { config } from "../config.js";
-import { makeAnalysisWorkflow } from "../use-cases/analysis-workflow/analysis-workflow.js";
 import { WalletContextInputSchema } from "../schemas/score.js";
+import { makeAnalysisWorkflow } from "../use-cases/analysis-workflow/analysis-workflow.js";
+import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
 const EXCHANGE_TYPE = "topic";
@@ -37,7 +38,9 @@ export async function processWalletDataCachedMessage(
 
   const { requestId, userId, walletContext } = parsed.data.data;
 
-  console.log(`RECEBIDO: wallet.data.cached | requestId=${requestId} chain=${walletContext.chain} address=${walletContext.address}`);
+  console.log(
+    `RECEBIDO: wallet.data.cached | requestId=${requestId} chain=${walletContext.chain} address=${walletContext.address}`
+  );
 
   const orchestrator = makeAnalysisWorkflow();
   await orchestrator.execute({ requestId, walletContext, userId });
@@ -59,7 +62,11 @@ export async function startConsumer(): Promise<void> {
     await channel.assertExchange(EXCHANGE_NAME, EXCHANGE_TYPE, {
       durable: true,
     });
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
+    await assertDlqForQueue(channel, QUEUE_NAME);
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: dlqArgumentsFor(QUEUE_NAME),
+    });
     await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
 
     channel.prefetch(1);
@@ -85,8 +92,8 @@ export async function startConsumer(): Promise<void> {
           (error as Error).message
         );
 
-        // Erros transitórios (rede, DB) recolocam na fila para retry
-        channel?.nack(msg, false, true);
+        // Erros transitórios vão para DLQ — retry com backoff será implementado em score-cripto-51x
+        channel?.nack(msg, false, false);
       }
     });
 

@@ -6,6 +6,7 @@ import { AnalysisRequestPrismaRepository } from "../repositories/prisma/analysis
 import { prisma } from "../services/database.js";
 import { CompleteAnalysisRequestUseCase } from "../use-cases/analysis-request/complete-analysis-request-use-case.js";
 import { FailAnalysisRequestUseCase } from "../use-cases/analysis-request/fail-analysis-request-use-case.js";
+import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
 const EXCHANGE_TYPE = "topic";
@@ -132,8 +133,15 @@ export async function startConsumer(): Promise<void> {
       durable: true,
     });
 
+    // DLQ: declarar DLX + DLQs antes das filas de origem
+    await assertDlqForQueue(channel, QUEUE_CALCULATED);
+    await assertDlqForQueue(channel, QUEUE_FAILED);
+
     // Fila: wallet.score.calculated
-    await channel.assertQueue(QUEUE_CALCULATED, { durable: true });
+    await channel.assertQueue(QUEUE_CALCULATED, {
+      durable: true,
+      arguments: dlqArgumentsFor(QUEUE_CALCULATED),
+    });
     await channel.bindQueue(
       QUEUE_CALCULATED,
       EXCHANGE_NAME,
@@ -141,7 +149,10 @@ export async function startConsumer(): Promise<void> {
     );
 
     // Fila: wallet.score.failed
-    await channel.assertQueue(QUEUE_FAILED, { durable: true });
+    await channel.assertQueue(QUEUE_FAILED, {
+      durable: true,
+      arguments: dlqArgumentsFor(QUEUE_FAILED),
+    });
     await channel.bindQueue(QUEUE_FAILED, EXCHANGE_NAME, "wallet.score.failed");
 
     channel.prefetch(1);
@@ -158,8 +169,7 @@ export async function startConsumer(): Promise<void> {
           "[api-gateway][Consumer] wallet.score.calculated error:",
           (error as Error).message
         );
-        const isInvalid = (error as Error).message === "invalid_payload";
-        channel?.nack(msg, false, !isInvalid);
+        channel?.nack(msg, false, false); // dead-letter — sem requeue
       }
     });
 
@@ -175,8 +185,7 @@ export async function startConsumer(): Promise<void> {
           "[api-gateway][Consumer] wallet.score.failed error:",
           (error as Error).message
         );
-        const isInvalid = (error as Error).message === "invalid_payload";
-        channel?.nack(msg, false, !isInvalid);
+        channel?.nack(msg, false, false); // dead-letter — sem requeue
       }
     });
 

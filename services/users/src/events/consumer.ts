@@ -1,5 +1,6 @@
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { config } from "../config.js";
+import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
 import {
   processUserAnalysisConsumedMessage,
   QUEUE_NAME,
@@ -20,7 +21,11 @@ export async function startConsumer(): Promise<void> {
     await channel.assertExchange(EXCHANGE_NAME, EXCHANGE_TYPE, {
       durable: true,
     });
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
+    await assertDlqForQueue(channel, QUEUE_NAME);
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: dlqArgumentsFor(QUEUE_NAME),
+    });
     await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
 
     channel.prefetch(1);
@@ -37,7 +42,7 @@ export async function startConsumer(): Promise<void> {
       if (result.outcome === "invalid_payload") {
         channel?.nack(msg, false, false); // dead-letter
       } else if (result.outcome === "error") {
-        channel?.nack(msg, false, true); // retry
+        channel?.nack(msg, false, false); // dead-letter — retry com backoff em score-cripto-51x
       } else {
         channel?.ack(msg); // processed ou limit_exceeded
       }
