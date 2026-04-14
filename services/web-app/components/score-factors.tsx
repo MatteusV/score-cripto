@@ -1,14 +1,14 @@
 import { CheckCircle2Icon, AlertTriangleIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface ScoreFactorsProps {
   positiveFactors: string[]
   riskFactors: string[]
 }
 
-export function ScoreFactors({
-  positiveFactors,
-  riskFactors,
-}: ScoreFactorsProps) {
+export function ScoreFactors({ positiveFactors, riskFactors }: ScoreFactorsProps) {
+  const t = useTranslations("analyze.factors")
+
   return (
     <div className="grid gap-5 md:grid-cols-2">
       <div className="space-y-3">
@@ -17,13 +17,13 @@ export function ScoreFactors({
             <CheckCircle2Icon className="size-3.5 text-chart-3" />
           </div>
           <span className="font-heading text-xs uppercase tracking-[0.15em] text-muted-foreground">
-            Fatores positivos
+            {t("positive")}
           </span>
         </div>
         <ul className="space-y-2">
           {positiveFactors.length === 0 && (
             <li className="rounded-lg border border-dashed border-border/40 px-3 py-2.5 text-sm text-muted-foreground/50">
-              Nenhum fator positivo identificado.
+              {t("noPositive")}
             </li>
           )}
           {positiveFactors.map((factor, i) => (
@@ -44,13 +44,13 @@ export function ScoreFactors({
             <AlertTriangleIcon className="size-3.5 text-destructive" />
           </div>
           <span className="font-heading text-xs uppercase tracking-[0.15em] text-muted-foreground">
-            Fatores de risco
+            {t("risk")}
           </span>
         </div>
         <ul className="space-y-2">
           {riskFactors.length === 0 && (
             <li className="rounded-lg border border-dashed border-border/40 px-3 py-2.5 text-sm text-muted-foreground/50">
-              Nenhum fator de risco identificado.
+              {t("noRisk")}
             </li>
           )}
           {riskFactors.map((factor, i) => (

@@ -23,6 +23,11 @@ export * from './enums';
  */
 export type AnalysisRequest = Prisma.AnalysisRequestModel
 /**
+ * Model AnalysisTranslation
+ * 
+ */
+export type AnalysisTranslation = Prisma.AnalysisTranslationModel
+/**
  * Model UserAnalysisCounter
  * 
  */

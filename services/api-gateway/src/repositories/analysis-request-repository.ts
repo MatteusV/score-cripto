@@ -1,4 +1,7 @@
-import type { AnalysisRequest } from "../generated/prisma/browser";
+import type {
+  AnalysisRequest,
+  AnalysisTranslation,
+} from "../generated/prisma/browser";
 import type { AnalysisSummary } from "../use-cases/analysis-request/list-analyses-use-case";
 
 export interface CreateAnalysisRequestData {
@@ -15,6 +18,14 @@ export interface CompleteAnalysisRequestData {
   reasoning: string;
   riskFactors: string[];
   score: number;
+}
+
+export interface UpsertTranslationData {
+  analysisId: string;
+  locale: string;
+  positiveFactors: string[] | null;
+  reasoning: string | null;
+  riskFactors: string[] | null;
 }
 
 export interface AnalysisRequestRepository {
@@ -37,6 +48,10 @@ export interface AnalysisRequestRepository {
     userId: string,
     publicId: number
   ) => Promise<AnalysisRequest | null>;
+  findTranslation: (
+    analysisId: string,
+    locale: string
+  ) => Promise<AnalysisTranslation | null>;
   listByUserId: (
     userId: string,
     page: number,
@@ -48,4 +63,7 @@ export interface AnalysisRequestRepository {
   ) => Promise<AnalysisRequest>;
   markFailed: (id: string, reason: string) => Promise<AnalysisRequest>;
   summarizeByUserId: (userId: string) => Promise<{ summary: AnalysisSummary }>;
+  upsertTranslation: (
+    data: UpsertTranslationData
+  ) => Promise<AnalysisTranslation>;
 }

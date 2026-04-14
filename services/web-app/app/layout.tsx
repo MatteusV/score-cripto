@@ -1,6 +1,8 @@
 import "./globals.css"
 import type { Metadata } from "next"
 import { Exo_2, Fira_Code, Orbitron } from "next/font/google"
+import { getLocale, getMessages } from "next-intl/server"
+import { NextIntlClientProvider } from "next-intl"
 import { AuthProvider } from "@/contexts/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
 
@@ -31,20 +33,25 @@ export const metadata: Metadata = {
     "Descubra se uma carteira merece confiança antes da transação. Score de confiabilidade gerado por IA a partir de dados on-chain.",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
     <html
-      lang="pt-BR"
+      lang={locale}
       suppressHydrationWarning
       className={`antialiased ${orbitron.variable} ${exo2.variable} ${firaCode.variable}`}
     >
       <body suppressHydrationWarning>
         <ThemeProvider defaultTheme="dark" enableSystem={false}>
-          <AuthProvider>{children}</AuthProvider>
+          <NextIntlClientProvider messages={messages}>
+            <AuthProvider>{children}</AuthProvider>
+          </NextIntlClientProvider>
         </ThemeProvider>
       </body>
     </html>

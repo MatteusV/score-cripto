@@ -312,6 +312,7 @@ export type AnalysisRequestWhereInput = {
   riskFactors?: Prisma.JsonNullableFilter<"AnalysisRequest">
   modelVersion?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
   promptVersion?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
+  translations?: Prisma.AnalysisTranslationListRelationFilter
 }
 
 export type AnalysisRequestOrderByWithRelationInput = {
@@ -332,6 +333,7 @@ export type AnalysisRequestOrderByWithRelationInput = {
   riskFactors?: Prisma.SortOrderInput | Prisma.SortOrder
   modelVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   promptVersion?: Prisma.SortOrderInput | Prisma.SortOrder
+  translations?: Prisma.AnalysisTranslationOrderByRelationAggregateInput
 }
 
 export type AnalysisRequestWhereUniqueInput = Prisma.AtLeast<{
@@ -356,6 +358,7 @@ export type AnalysisRequestWhereUniqueInput = Prisma.AtLeast<{
   riskFactors?: Prisma.JsonNullableFilter<"AnalysisRequest">
   modelVersion?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
   promptVersion?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
+  translations?: Prisma.AnalysisTranslationListRelationFilter
 }, "id" | "userId_publicId">
 
 export type AnalysisRequestOrderByWithAggregationInput = {
@@ -424,6 +427,7 @@ export type AnalysisRequestCreateInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: string | null
   promptVersion?: string | null
+  translations?: Prisma.AnalysisTranslationCreateNestedManyWithoutAnalysisInput
 }
 
 export type AnalysisRequestUncheckedCreateInput = {
@@ -444,6 +448,7 @@ export type AnalysisRequestUncheckedCreateInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: string | null
   promptVersion?: string | null
+  translations?: Prisma.AnalysisTranslationUncheckedCreateNestedManyWithoutAnalysisInput
 }
 
 export type AnalysisRequestUpdateInput = {
@@ -464,6 +469,7 @@ export type AnalysisRequestUpdateInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  translations?: Prisma.AnalysisTranslationUpdateManyWithoutAnalysisNestedInput
 }
 
 export type AnalysisRequestUncheckedUpdateInput = {
@@ -484,6 +490,7 @@ export type AnalysisRequestUncheckedUpdateInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  translations?: Prisma.AnalysisTranslationUncheckedUpdateManyWithoutAnalysisNestedInput
 }
 
 export type AnalysisRequestCreateManyInput = {
@@ -619,6 +626,11 @@ export type AnalysisRequestSumOrderByAggregateInput = {
   confidence?: Prisma.SortOrder
 }
 
+export type AnalysisRequestScalarRelationFilter = {
+  is?: Prisma.AnalysisRequestWhereInput
+  isNot?: Prisma.AnalysisRequestWhereInput
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -655,6 +667,145 @@ export type NullableFloatFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type AnalysisRequestCreateNestedOneWithoutTranslationsInput = {
+  create?: Prisma.XOR<Prisma.AnalysisRequestCreateWithoutTranslationsInput, Prisma.AnalysisRequestUncheckedCreateWithoutTranslationsInput>
+  connectOrCreate?: Prisma.AnalysisRequestCreateOrConnectWithoutTranslationsInput
+  connect?: Prisma.AnalysisRequestWhereUniqueInput
+}
+
+export type AnalysisRequestUpdateOneRequiredWithoutTranslationsNestedInput = {
+  create?: Prisma.XOR<Prisma.AnalysisRequestCreateWithoutTranslationsInput, Prisma.AnalysisRequestUncheckedCreateWithoutTranslationsInput>
+  connectOrCreate?: Prisma.AnalysisRequestCreateOrConnectWithoutTranslationsInput
+  upsert?: Prisma.AnalysisRequestUpsertWithoutTranslationsInput
+  connect?: Prisma.AnalysisRequestWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AnalysisRequestUpdateToOneWithWhereWithoutTranslationsInput, Prisma.AnalysisRequestUpdateWithoutTranslationsInput>, Prisma.AnalysisRequestUncheckedUpdateWithoutTranslationsInput>
+}
+
+export type AnalysisRequestCreateWithoutTranslationsInput = {
+  id?: string
+  userId: string
+  publicId?: number | null
+  chain: string
+  address: string
+  status?: $Enums.AnalysisStatus
+  requestedAt?: Date | string
+  completedAt?: Date | string | null
+  failedAt?: Date | string | null
+  failureReason?: string | null
+  score?: number | null
+  confidence?: number | null
+  reasoning?: string | null
+  positiveFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  modelVersion?: string | null
+  promptVersion?: string | null
+}
+
+export type AnalysisRequestUncheckedCreateWithoutTranslationsInput = {
+  id?: string
+  userId: string
+  publicId?: number | null
+  chain: string
+  address: string
+  status?: $Enums.AnalysisStatus
+  requestedAt?: Date | string
+  completedAt?: Date | string | null
+  failedAt?: Date | string | null
+  failureReason?: string | null
+  score?: number | null
+  confidence?: number | null
+  reasoning?: string | null
+  positiveFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  modelVersion?: string | null
+  promptVersion?: string | null
+}
+
+export type AnalysisRequestCreateOrConnectWithoutTranslationsInput = {
+  where: Prisma.AnalysisRequestWhereUniqueInput
+  create: Prisma.XOR<Prisma.AnalysisRequestCreateWithoutTranslationsInput, Prisma.AnalysisRequestUncheckedCreateWithoutTranslationsInput>
+}
+
+export type AnalysisRequestUpsertWithoutTranslationsInput = {
+  update: Prisma.XOR<Prisma.AnalysisRequestUpdateWithoutTranslationsInput, Prisma.AnalysisRequestUncheckedUpdateWithoutTranslationsInput>
+  create: Prisma.XOR<Prisma.AnalysisRequestCreateWithoutTranslationsInput, Prisma.AnalysisRequestUncheckedCreateWithoutTranslationsInput>
+  where?: Prisma.AnalysisRequestWhereInput
+}
+
+export type AnalysisRequestUpdateToOneWithWhereWithoutTranslationsInput = {
+  where?: Prisma.AnalysisRequestWhereInput
+  data: Prisma.XOR<Prisma.AnalysisRequestUpdateWithoutTranslationsInput, Prisma.AnalysisRequestUncheckedUpdateWithoutTranslationsInput>
+}
+
+export type AnalysisRequestUpdateWithoutTranslationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  chain?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAnalysisStatusFieldUpdateOperationsInput | $Enums.AnalysisStatus
+  requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  score?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  confidence?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  positiveFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  modelVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type AnalysisRequestUncheckedUpdateWithoutTranslationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  chain?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAnalysisStatusFieldUpdateOperationsInput | $Enums.AnalysisStatus
+  requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  score?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  confidence?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  reasoning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  positiveFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  modelVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+
+/**
+ * Count Type AnalysisRequestCountOutputType
+ */
+
+export type AnalysisRequestCountOutputType = {
+  translations: number
+}
+
+export type AnalysisRequestCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  translations?: boolean | AnalysisRequestCountOutputTypeCountTranslationsArgs
+}
+
+/**
+ * AnalysisRequestCountOutputType without action
+ */
+export type AnalysisRequestCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AnalysisRequestCountOutputType
+   */
+  select?: Prisma.AnalysisRequestCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * AnalysisRequestCountOutputType without action
+ */
+export type AnalysisRequestCountOutputTypeCountTranslationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AnalysisTranslationWhereInput
+}
 
 
 export type AnalysisRequestSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -675,6 +826,8 @@ export type AnalysisRequestSelect<ExtArgs extends runtime.Types.Extensions.Inter
   riskFactors?: boolean
   modelVersion?: boolean
   promptVersion?: boolean
+  translations?: boolean | Prisma.AnalysisRequest$translationsArgs<ExtArgs>
+  _count?: boolean | Prisma.AnalysisRequestCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["analysisRequest"]>
 
 export type AnalysisRequestSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -738,10 +891,18 @@ export type AnalysisRequestSelectScalar = {
 }
 
 export type AnalysisRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "publicId" | "chain" | "address" | "status" | "requestedAt" | "completedAt" | "failedAt" | "failureReason" | "score" | "confidence" | "reasoning" | "positiveFactors" | "riskFactors" | "modelVersion" | "promptVersion", ExtArgs["result"]["analysisRequest"]>
+export type AnalysisRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  translations?: boolean | Prisma.AnalysisRequest$translationsArgs<ExtArgs>
+  _count?: boolean | Prisma.AnalysisRequestCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type AnalysisRequestIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type AnalysisRequestIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $AnalysisRequestPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AnalysisRequest"
-  objects: {}
+  objects: {
+    translations: Prisma.$AnalysisTranslationPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
@@ -1154,6 +1315,7 @@ readonly fields: AnalysisRequestFieldRefs;
  */
 export interface Prisma__AnalysisRequestClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  translations<T extends Prisma.AnalysisRequest$translationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AnalysisRequest$translationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AnalysisTranslationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1217,6 +1379,10 @@ export type AnalysisRequestFindUniqueArgs<ExtArgs extends runtime.Types.Extensio
    */
   omit?: Prisma.AnalysisRequestOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnalysisRequestInclude<ExtArgs> | null
+  /**
    * Filter, which AnalysisRequest to fetch.
    */
   where: Prisma.AnalysisRequestWhereUniqueInput
@@ -1235,6 +1401,10 @@ export type AnalysisRequestFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.E
    */
   omit?: Prisma.AnalysisRequestOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnalysisRequestInclude<ExtArgs> | null
+  /**
    * Filter, which AnalysisRequest to fetch.
    */
   where: Prisma.AnalysisRequestWhereUniqueInput
@@ -1252,6 +1422,10 @@ export type AnalysisRequestFindFirstArgs<ExtArgs extends runtime.Types.Extension
    * Omit specific fields from the AnalysisRequest
    */
   omit?: Prisma.AnalysisRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnalysisRequestInclude<ExtArgs> | null
   /**
    * Filter, which AnalysisRequest to fetch.
    */
@@ -1301,6 +1475,10 @@ export type AnalysisRequestFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Ex
    */
   omit?: Prisma.AnalysisRequestOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnalysisRequestInclude<ExtArgs> | null
+  /**
    * Filter, which AnalysisRequest to fetch.
    */
   where?: Prisma.AnalysisRequestWhereInput
@@ -1349,6 +1527,10 @@ export type AnalysisRequestFindManyArgs<ExtArgs extends runtime.Types.Extensions
    */
   omit?: Prisma.AnalysisRequestOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnalysisRequestInclude<ExtArgs> | null
+  /**
    * Filter, which AnalysisRequests to fetch.
    */
   where?: Prisma.AnalysisRequestWhereInput
@@ -1391,6 +1573,10 @@ export type AnalysisRequestCreateArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the AnalysisRequest
    */
   omit?: Prisma.AnalysisRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnalysisRequestInclude<ExtArgs> | null
   /**
    * The data needed to create a AnalysisRequest.
    */
@@ -1439,6 +1625,10 @@ export type AnalysisRequestUpdateArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the AnalysisRequest
    */
   omit?: Prisma.AnalysisRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnalysisRequestInclude<ExtArgs> | null
   /**
    * The data needed to update a AnalysisRequest.
    */
@@ -1506,6 +1696,10 @@ export type AnalysisRequestUpsertArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   omit?: Prisma.AnalysisRequestOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnalysisRequestInclude<ExtArgs> | null
+  /**
    * The filter to search for the AnalysisRequest to update in case it exists.
    */
   where: Prisma.AnalysisRequestWhereUniqueInput
@@ -1532,6 +1726,10 @@ export type AnalysisRequestDeleteArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   omit?: Prisma.AnalysisRequestOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnalysisRequestInclude<ExtArgs> | null
+  /**
    * Filter which AnalysisRequest to delete.
    */
   where: Prisma.AnalysisRequestWhereUniqueInput
@@ -1552,6 +1750,30 @@ export type AnalysisRequestDeleteManyArgs<ExtArgs extends runtime.Types.Extensio
 }
 
 /**
+ * AnalysisRequest.translations
+ */
+export type AnalysisRequest$translationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AnalysisTranslation
+   */
+  select?: Prisma.AnalysisTranslationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AnalysisTranslation
+   */
+  omit?: Prisma.AnalysisTranslationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnalysisTranslationInclude<ExtArgs> | null
+  where?: Prisma.AnalysisTranslationWhereInput
+  orderBy?: Prisma.AnalysisTranslationOrderByWithRelationInput | Prisma.AnalysisTranslationOrderByWithRelationInput[]
+  cursor?: Prisma.AnalysisTranslationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AnalysisTranslationScalarFieldEnum | Prisma.AnalysisTranslationScalarFieldEnum[]
+}
+
+/**
  * AnalysisRequest without action
  */
 export type AnalysisRequestDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1563,4 +1785,8 @@ export type AnalysisRequestDefaultArgs<ExtArgs extends runtime.Types.Extensions.
    * Omit specific fields from the AnalysisRequest
    */
   omit?: Prisma.AnalysisRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnalysisRequestInclude<ExtArgs> | null
 }

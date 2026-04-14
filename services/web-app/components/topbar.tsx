@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { BellIcon, ZapIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { LocaleSwitcher } from "@/components/locale-switcher"
 
 interface TopbarProps {
   title: string
@@ -23,6 +24,8 @@ export function Topbar({ title, subtitle, children, showUpgrade = false }: Topba
 
       <div className="flex items-center gap-3">
         {children}
+
+        <LocaleSwitcher />
 
         {showUpgrade && (
           <Button

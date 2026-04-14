@@ -9,5 +9,6 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/AnalysisRequest'
+export type * from './models/AnalysisTranslation'
 export type * from './models/UserAnalysisCounter'
 export type * from './commonInputTypes'

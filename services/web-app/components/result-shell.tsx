@@ -9,6 +9,7 @@ import {
   RefreshCwIcon,
 } from "lucide-react"
 import { useEffect, useRef } from "react"
+import { useTranslations } from "next-intl"
 import { useWalletScore } from "@/hooks/use-wallet-score"
 import { AnalysisLoader } from "@/components/analysis-loader"
 import { QuickActions } from "@/components/quick-actions"
@@ -36,10 +37,8 @@ function truncateAddress(addr: string) {
 }
 
 export function ResultShell({ chain, address }: ResultShellProps) {
-  const { phase, result, error, backendStatus, fromCache, submit, reset } = useWalletScore(
-    chain,
-    address
-  )
+  const { phase, result, error, backendStatus, fromCache, submit, reset } = useWalletScore(chain, address)
+  const t = useTranslations("analyze")
 
   const autoStarted = useRef(false)
   useEffect(() => {
@@ -57,21 +56,15 @@ export function ResultShell({ chain, address }: ResultShellProps) {
           <Button asChild variant="ghost" size="sm" className="cursor-pointer">
             <Link href="/">
               <ArrowLeftIcon data-icon="inline-start" />
-              Voltar
+              {t("back")}
             </Link>
           </Button>
           <div className="hidden h-5 w-px bg-border/50 sm:block" />
           <div className="flex items-center gap-2">
-            <Badge
-              variant="outline"
-              className="border-primary/20 font-mono text-xs"
-            >
+            <Badge variant="outline" className="border-primary/20 font-mono text-xs">
               {chain}
             </Badge>
-            <Badge
-              variant="secondary"
-              className="text-[0.6rem] tracking-[0.2em] uppercase"
-            >
+            <Badge variant="secondary" className="text-[0.6rem] tracking-[0.2em] uppercase">
               Score Cripto
             </Badge>
           </div>
@@ -90,7 +83,7 @@ export function ResultShell({ chain, address }: ResultShellProps) {
               }}
             >
               <RefreshCwIcon data-icon="inline-start" />
-              Recalcular
+              {t("recalculate")}
             </Button>
           )}
         </div>
@@ -100,29 +93,26 @@ export function ResultShell({ chain, address }: ResultShellProps) {
       <div className="animate-fade-up animate-fade-up-delay-1 flex flex-col gap-3 rounded-2xl border border-border/30 bg-card/20 px-4 py-4 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
           <p className="font-heading text-[0.6rem] tracking-[0.2em] text-muted-foreground/60 uppercase">
-            Carteira analisada
+            {t("walletAnalyzed")}
           </p>
           <p className="mt-1 truncate font-mono text-sm text-foreground/90">
-            {address || "Nenhum endereço informado"}
+            {address || t("noAddress")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge
-            variant="outline"
-            className="border-border/40 text-[0.65rem] tracking-[0.2em] uppercase"
-          >
+          <Badge variant="outline" className="border-border/40 text-[0.65rem] tracking-[0.2em] uppercase">
             {phase === "completed"
-              ? "Concluído"
+              ? t("status.completed")
               : phase === "error"
-                ? "Erro"
-                : "Processando"}
+                ? t("status.error")
+                : t("status.processing")}
           </Badge>
           {fromCache && phase === "completed" && (
             <Badge
               variant="secondary"
               className="border-accent/20 text-[0.65rem] tracking-[0.2em] uppercase text-accent"
             >
-              Em cache
+              {t("badges.cached")}
             </Badge>
           )}
           {address && (
@@ -131,7 +121,7 @@ export function ResultShell({ chain, address }: ResultShellProps) {
               size="icon-xs"
               className="shrink-0 cursor-pointer"
               onClick={() => navigator.clipboard.writeText(address)}
-              aria-label="Copiar endereço"
+              aria-label={t("back")}
             >
               <CopyIcon />
             </Button>
@@ -155,16 +145,12 @@ export function ResultShell({ chain, address }: ResultShellProps) {
               <AlertCircleIcon className="size-7 text-destructive" />
             </div>
             <div className="max-w-sm space-y-1 text-center">
-              <p className="font-heading text-sm font-medium">Análise falhou</p>
+              <p className="font-heading text-sm font-medium">{t("error.title")}</p>
               <p className="text-sm text-muted-foreground">{error}</p>
             </div>
-            <Button
-              variant="outline"
-              className="cursor-pointer"
-              onClick={submit}
-            >
+            <Button variant="outline" className="cursor-pointer" onClick={submit}>
               <RefreshCwIcon data-icon="inline-start" />
-              Tentar novamente
+              {t("retry")}
             </Button>
           </CardContent>
         </Card>
@@ -173,11 +159,9 @@ export function ResultShell({ chain, address }: ResultShellProps) {
       {phase === "idle" && (
         <Card className="glass-panel animate-fade-up animate-fade-up-delay-2">
           <CardContent className="flex flex-col items-center gap-5 py-12">
-            <p className="text-sm text-muted-foreground">
-              Pronto para iniciar a análise.
-            </p>
+            <p className="text-sm text-muted-foreground">{t("readyToStart")}</p>
             <Button className="cursor-pointer" onClick={submit}>
-              Iniciar análise
+              {t("startAnalysis")}
             </Button>
           </CardContent>
         </Card>
@@ -189,10 +173,7 @@ export function ResultShell({ chain, address }: ResultShellProps) {
           <div className="animate-fade-up animate-fade-up-delay-2 grid gap-6 lg:grid-cols-[280px_1fr]">
             <Card className="glass-panel glow-line overflow-hidden">
               <CardContent className="flex items-center justify-center p-4">
-                <ScoreGauge
-                  score={result.score}
-                  confidence={result.confidence}
-                />
+                <ScoreGauge score={result.score} confidence={result.confidence} />
               </CardContent>
             </Card>
 
@@ -200,22 +181,18 @@ export function ResultShell({ chain, address }: ResultShellProps) {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <BrainCircuitIcon className="size-4 text-accent" />
-                  <CardTitle className="text-xs">Reasoning</CardTitle>
+                  <CardTitle className="text-xs">{t("reasoning.title")}</CardTitle>
                 </div>
                 <CardDescription className="sr-only">
-                  Explicação da IA sobre o score
+                  {t("reasoning.description")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm leading-7 text-foreground/85">
-                  {result.reasoning}
-                </p>
+                <p className="text-sm leading-7 text-foreground/85">{result.reasoning}</p>
               </CardContent>
               <CardFooter className="gap-4 text-[0.65rem] text-muted-foreground">
                 <span className="font-mono">model: {result.modelVersion}</span>
-                <span className="font-mono">
-                  prompt: {result.promptVersion}
-                </span>
+                <span className="font-mono">prompt: {result.promptVersion}</span>
               </CardFooter>
             </Card>
           </div>
@@ -223,10 +200,8 @@ export function ResultShell({ chain, address }: ResultShellProps) {
           {/* Factors */}
           <Card className="animate-fade-up animate-fade-up-delay-3 glass-panel">
             <CardHeader>
-              <CardTitle className="text-xs">Fatores da análise</CardTitle>
-              <CardDescription>
-                Sinais positivos e de risco detectados pelo pipeline de IA.
-              </CardDescription>
+              <CardTitle className="text-xs">{t("factors.title")}</CardTitle>
+              <CardDescription>{t("factors.description")}</CardDescription>
             </CardHeader>
             <CardContent>
               <ScoreFactors
@@ -239,12 +214,9 @@ export function ResultShell({ chain, address }: ResultShellProps) {
           {/* Meta */}
           <div className="animate-fade-up animate-fade-up-delay-4 grid gap-4 md:grid-cols-3">
             {[
-              { label: "Score", value: `${result.score}/100` },
-              {
-                label: "Confiança",
-                value: `${Math.round(result.confidence * 100)}%`,
-              },
-              { label: "Endereço", value: truncateAddress(address) },
+              { label: t("meta.score"), value: `${result.score}/100` },
+              { label: t("meta.confidence"), value: `${Math.round(result.confidence * 100)}%` },
+              { label: t("meta.address"), value: truncateAddress(address) },
             ].map((item) => (
               <div
                 key={item.label}

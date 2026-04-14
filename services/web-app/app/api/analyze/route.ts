@@ -1,9 +1,32 @@
+import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { fetchWithAuth } from "@/lib/fetch-with-auth"
 import { createLogger } from "@/lib/logger"
+import { ensureTranslation } from "@/lib/ensure-translation"
 
 const API_GATEWAY_URL = process.env.API_BASE_URL ?? "http://localhost:3001"
 const logger = createLogger("api/analyze")
+
+interface UpstreamResult {
+  reasoning: string
+  positiveFactors: string[]
+  riskFactors: string[]
+  [k: string]: unknown
+}
+
+async function applyTranslation(
+  processId: string,
+  result: UpstreamResult,
+  locale: string
+): Promise<UpstreamResult> {
+  const translated = await ensureTranslation(processId, locale, {
+    reasoning: result.reasoning,
+    positiveFactors: result.positiveFactors,
+    riskFactors: result.riskFactors,
+  })
+  if (!translated) return result
+  return { ...result, ...translated }
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
@@ -42,8 +65,23 @@ export async function GET(request: Request) {
     }
 
     const { requestId, ...rest } = data as { requestId?: string; [k: string]: unknown }
+    const normalized = { ...rest, processId: requestId ?? rest.processId }
+
+    // Apply lazy translation if analysis is completed and has result
+    if (
+      (normalized as { status?: string }).status === "completed" &&
+      (normalized as { result?: UpstreamResult }).result
+    ) {
+      const cookieStore = await cookies()
+      const locale = cookieStore.get("locale")?.value ?? "pt-BR"
+      const pid = normalized.processId as string
+      const translated = await applyTranslation(pid, (normalized as { result: UpstreamResult }).result, locale)
+      logger.info("cache lookup result", { chain, address, status: normalized.status })
+      return NextResponse.json({ ...normalized, result: translated })
+    }
+
     logger.info("cache lookup result", { chain, address, status: (rest as { status?: string }).status })
-    return NextResponse.json({ ...rest, processId: requestId ?? rest.processId })
+    return NextResponse.json(normalized)
   } catch (err) {
     logger.error("failed to reach analysis service", { chain, address }, err instanceof Error ? err : undefined)
     return NextResponse.json(

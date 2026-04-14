@@ -1,0 +1,227 @@
+{
+  "common": {
+    "back": "Voltar",
+    "copyAddress": "Copiar endereço",
+    "loading": "Carregando...",
+    "error": "Erro"
+  },
+  "auth": {
+    "login": {
+      "badge": "Acesso seguro",
+      "title": "Entrar na conta",
+      "description": "Acesse seu dashboard de análises on-chain.",
+      "email": "E-mail",
+      "emailPlaceholder": "voce@exemplo.com",
+      "password": "Senha",
+      "showPassword": "Mostrar senha",
+      "hidePassword": "Ocultar senha",
+      "submit": "Entrar",
+      "submitting": "Entrando…",
+      "noAccount": "Não tem conta?",
+      "createAccount": "Criar conta grátis",
+      "errorFallback": "Falha no login"
+    },
+    "register": {
+      "badge": "FREE_TIER — 5 análises/mês",
+      "title": "Criar conta",
+      "description": "Comece a analisar carteiras gratuitamente. Sem cartão de crédito.",
+      "name": "Nome",
+      "nameOptional": "(opcional)",
+      "namePlaceholder": "Seu nome",
+      "email": "E-mail",
+      "emailPlaceholder": "voce@exemplo.com",
+      "password": "Senha",
+      "passwordPlaceholder": "Mínimo 8 caracteres",
+      "showPassword": "Mostrar senha",
+      "hidePassword": "Ocultar senha",
+      "submit": "Criar conta grátis",
+      "submitting": "Criando conta…",
+      "terms": "Ao criar uma conta, você concorda com os termos de uso.",
+      "hasAccount": "Já tem conta?",
+      "login": "Entrar",
+      "errorFallback": "Falha no registro"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Bem-vindo de volta, {name}",
+    "analyzeCard": {
+      "title": "Analisar nova carteira",
+      "placeholder": "Cole o endereço da carteira aqui...",
+      "submit": "Analisar",
+      "usageMonth": "{count} de {limit} análises este mês",
+      "usageRemaining": "{remaining} restantes"
+    },
+    "stats": {
+      "total": "Análises totais",
+      "remaining": "Restantes",
+      "plan": "Plano atual",
+      "avgScore": "Score médio"
+    },
+    "recentAnalyses": {
+      "title": "Análises recentes",
+      "viewAll": "Ver todas",
+      "empty": "Nenhuma análise ainda — comece agora!"
+    },
+    "quickActions": {
+      "title": "Ações rápidas",
+      "newAnalysis": {
+        "title": "Nova análise",
+        "desc": "Consulte score de qualquer endereço"
+      },
+      "history": {
+        "title": "Ver histórico",
+        "desc": "Todas as suas análises anteriores"
+      },
+      "upgrade": {
+        "title": "Fazer upgrade",
+        "desc": "Amplie seus limites com o plano Pro"
+      }
+    }
+  },
+  "analyze": {
+    "pageTitle": "Análise de carteira",
+    "pageSubtitle": "Score gerado por IA a partir de dados on-chain",
+    "back": "Voltar",
+    "recalculate": "Recalcular",
+    "retry": "Tentar novamente",
+    "startAnalysis": "Iniciar análise",
+    "readyToStart": "Pronto para iniciar a análise.",
+    "walletAnalyzed": "Carteira analisada",
+    "noAddress": "Nenhum endereço informado",
+    "status": {
+      "completed": "Concluído",
+      "error": "Erro",
+      "processing": "Processando",
+      "history": "Histórico",
+      "loading": "Carregando"
+    },
+    "badges": {
+      "cached": "Em cache",
+      "analysis": "Análise #{id}"
+    },
+    "error": {
+      "title": "Análise falhou",
+      "notFound": "Análise não encontrada"
+    },
+    "historical": {
+      "loading": "Carregando análise histórica..."
+    },
+    "reasoning": {
+      "title": "Reasoning",
+      "description": "Explicação da IA sobre o score"
+    },
+    "factors": {
+      "title": "Fatores da análise",
+      "description": "Sinais positivos e de risco detectados pelo pipeline de IA.",
+      "positive": "Fatores positivos",
+      "risk": "Fatores de risco",
+      "noPositive": "Nenhum fator positivo identificado.",
+      "noRisk": "Nenhum fator de risco identificado."
+    },
+    "meta": {
+      "score": "Score",
+      "confidence": "Confiança",
+      "address": "Endereço"
+    },
+    "checklist": {
+      "title": "Checklist",
+      "onchain": "Coleta on-chain",
+      "onchainValue": "Em andamento",
+      "normalization": "Normalização",
+      "normalizationValue": "Automática",
+      "ai": "IA + reasoning",
+      "aiValue": "Versionado"
+    },
+    "observation": {
+      "title": "O que observar",
+      "body": "Score alto indica confiança, mas verifique fatores de risco, mixers e concentração excessiva antes de decidir."
+    }
+  },
+  "history": {
+    "title": "Histórico",
+    "subtitle": "Todas as suas análises anteriores",
+    "columns": {
+      "wallet": "Carteira",
+      "network": "Rede",
+      "score": "Score",
+      "date": "Data"
+    },
+    "filters": {
+      "searchPlaceholder": "Buscar por endereço ou rede...",
+      "allChains": "Todas as redes",
+      "allScores": "Todos os scores",
+      "high": "Alto (≥70)",
+      "mid": "Médio (40-69)",
+      "low": "Baixo (<40)"
+    },
+    "verdict": {
+      "trusted": "Confiável",
+      "attention": "Atenção",
+      "risky": "Risco"
+    },
+    "summary": {
+      "total": "Total de análises",
+      "avgScore": "Score médio",
+      "trusted": "Confiáveis",
+      "risky": "Alto risco"
+    },
+    "empty": "Nenhuma análise ainda — comece analisando uma carteira!",
+    "noFilter": "Nenhuma análise encontrada para esses filtros.",
+    "showing": "Mostrando {filtered} de {total} análises"
+  },
+  "billing": {
+    "title": "Planos & Billing",
+    "subtitle": "Gerencie seu plano e acompanhe o uso mensal",
+    "currentPlan": {
+      "free": "Plano Gratuito",
+      "pro": "Plano Pro",
+      "active": "Ativo",
+      "cancelAt": "Cancelamento em {date}"
+    },
+    "upgrade": "Fazer upgrade para Pro",
+    "upgradingStripe": "Abrindo Stripe…",
+    "manageSubscription": "Gerenciar assinatura",
+    "openingPortal": "Abrindo portal…",
+    "usage": {
+      "title": "Uso mensal",
+      "month": "Análises este mês",
+      "remaining": "{remaining} análise{s} restante{s} — reseta no dia 1 do próximo mês"
+    },
+    "plans": {
+      "title": "Planos disponíveis",
+      "freeName": "Free",
+      "proName": "Pro",
+      "freeDesc": "Para explorar a plataforma e análises pontuais.",
+      "proDesc": "Para uso profissional com mais análises e recursos completos.",
+      "period": "/mês",
+      "current": "Plano atual",
+      "subscribe": "Assinar Pro"
+    },
+    "account": "Conta"
+  },
+  "walletForm": {
+    "network": "Rede",
+    "networkDesc": "Redes EVM suportadas pelo pipeline atual.",
+    "networkPlaceholder": "Selecione a rede",
+    "address": "Endereço da carteira",
+    "addressPlaceholder": "Cole o endereço da carteira aqui...",
+    "analyze": "Analisar",
+    "errors": {
+      "empty": "Cole um endereço EVM para iniciar a análise.",
+      "invalid": "Endereço inválido. Use formato 0x com 40 caracteres hex."
+    },
+    "limitReached": {
+      "title": "Limite mensal atingido",
+      "desc": "Você usou todas as análises do seu plano este mês.",
+      "upgrade": "Fazer upgrade",
+      "upgradingStripe": "Abrindo Stripe…"
+    }
+  },
+  "locale": {
+    "label": "Idioma",
+    "pt-BR": "Português",
+    "en": "English",
+    "es": "Español"
+  }
+}

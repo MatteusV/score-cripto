@@ -36,6 +36,8 @@ model AnalysisRequest {
   modelVersion    String? @map("model_version")
   promptVersion   String? @map("prompt_version")
 
+  translations AnalysisTranslation[]
+
   @@unique([userId, publicId])
   @@index([userId])
   @@index([userId, publicId])
@@ -43,6 +45,21 @@ model AnalysisRequest {
   @@index([chain, address])
   @@index([userId, chain, address])
   @@map("analysis_requests")
+}
+
+model AnalysisTranslation {
+  id              String          @id @default(cuid())
+  analysisId      String          @map("analysis_id")
+  locale          String
+  reasoning       String?
+  positiveFactors Json?           @map("positive_factors")
+  riskFactors     Json?           @map("risk_factors")
+  translatedAt    DateTime        @default(now()) @map("translated_at")
+  analysis        AnalysisRequest @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@unique([analysisId, locale])
+  @@index([analysisId])
+  @@map("analysis_translations")
 }
 
 model UserAnalysisCounter {

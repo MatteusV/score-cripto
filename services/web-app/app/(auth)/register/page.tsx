@@ -4,6 +4,7 @@ import { startTransition, useState } from "react"
 import Link from "next/link"
 import { ViewTransition } from "react"
 import { EyeIcon, EyeOffIcon, SparklesIcon, UserPlusIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useAuth } from "@/contexts/auth-context"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input"
 
 export default function RegisterPage() {
   const { register } = useAuth()
+  const t = useTranslations("auth.register")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -27,7 +29,7 @@ export default function RegisterPage() {
     try {
       await register(email, password, name || undefined)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha no registro")
+      setError(err instanceof Error ? err.message : t("errorFallback"))
     } finally {
       setLoading(false)
     }
@@ -47,22 +49,22 @@ export default function RegisterPage() {
                 <SparklesIcon className="size-5 text-accent" />
               </div>
               <Badge variant="outline" className="text-xs border-accent/30 text-accent">
-                FREE_TIER — 5 análises/mês
+                {t("badge")}
               </Badge>
             </div>
-            <CardTitle className="text-2xl font-bold">Criar conta</CardTitle>
-            <CardDescription>
-              Comece a analisar carteiras gratuitamente. Sem cartão de crédito.
-            </CardDescription>
+            <CardTitle className="text-2xl font-bold">{t("title")}</CardTitle>
+            <CardDescription>{t("description")}</CardDescription>
           </CardHeader>
 
           <CardContent>
             <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
               <Field>
-                <FieldLabel>Nome <span className="text-muted-foreground/60 text-xs">(opcional)</span></FieldLabel>
+                <FieldLabel>
+                  {t("name")} <span className="text-muted-foreground/60 text-xs">{t("nameOptional")}</span>
+                </FieldLabel>
                 <Input
                   type="text"
-                  placeholder="Seu nome"
+                  placeholder={t("namePlaceholder")}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="name"
@@ -71,10 +73,10 @@ export default function RegisterPage() {
               </Field>
 
               <Field>
-                <FieldLabel>E-mail</FieldLabel>
+                <FieldLabel>{t("email")}</FieldLabel>
                 <Input
                   type="email"
-                  placeholder="voce@exemplo.com"
+                  placeholder={t("emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
@@ -84,11 +86,11 @@ export default function RegisterPage() {
               </Field>
 
               <Field>
-                <FieldLabel>Senha</FieldLabel>
+                <FieldLabel>{t("password")}</FieldLabel>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Mínimo 8 caracteres"
+                    placeholder={t("passwordPlaceholder")}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="new-password"
@@ -100,6 +102,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     tabIndex={-1}
                   >
@@ -116,38 +119,31 @@ export default function RegisterPage() {
                 </ViewTransition>
               )}
 
-              <Button
-                type="submit"
-                className="w-full cursor-pointer"
-                disabled={loading}
-                size="lg"
-              >
+              <Button type="submit" className="w-full cursor-pointer" disabled={loading} size="lg">
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="size-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
-                    Criando conta…
+                    {t("submitting")}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     <UserPlusIcon className="size-4" />
-                    Criar conta grátis
+                    {t("submit")}
                   </span>
                 )}
               </Button>
 
-              <p className="text-center text-xs text-muted-foreground/60">
-                Ao criar uma conta, você concorda com os termos de uso.
-              </p>
+              <p className="text-center text-xs text-muted-foreground/60">{t("terms")}</p>
             </form>
 
             <p className="mt-4 text-center text-sm text-muted-foreground">
-              Já tem conta?{" "}
+              {t("hasAccount")}{" "}
               <Link
                 href="/login"
                 className="font-medium text-primary hover:underline underline-offset-4"
                 onClick={() => startTransition(() => {})}
               >
-                Entrar
+                {t("login")}
               </Link>
             </p>
           </CardContent>

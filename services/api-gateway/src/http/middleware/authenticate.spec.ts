@@ -114,7 +114,7 @@ describe("authenticate middleware (RS256)", () => {
 
   it("should return 401 for a tampered token", async () => {
     const token = signToken({ sub: "user-abc", email: "alice@example.com" });
-    const tampered = token.slice(0, -5) + "xxxxx";
+    const tampered = `${token.slice(0, -5)}xxxxx`;
     const req = makeRequest(`Bearer ${tampered}`);
     const reply = makeReply();
 

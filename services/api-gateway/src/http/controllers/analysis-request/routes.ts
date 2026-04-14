@@ -380,6 +380,102 @@ export async function analysisRequestHandler(app: FastifyInstance) {
     }
   );
 
+  // GET /:id/translations/:locale — busca tradução cacheada
+  typed.get(
+    "/:id/translations/:locale",
+    {
+      preHandler: [authenticate],
+      schema: {
+        tags: ["analysis"],
+        summary: "Buscar tradução cacheada de uma análise",
+        security: [{ bearerAuth: [] }],
+        params: z.object({
+          id: z.string(),
+          locale: z.string().min(2),
+        }),
+        response: {
+          200: z.object({
+            locale: z.string(),
+            reasoning: z.string().nullable(),
+            positiveFactors: z.array(z.string()).nullable(),
+            riskFactors: z.array(z.string()).nullable(),
+            translatedAt: z.string(),
+          }),
+          401: z.object({ error: z.string() }),
+          404: z.object({ error: z.string() }),
+        },
+      },
+    },
+    async (request, reply) => {
+      const { id, locale } = request.params as { id: string; locale: string };
+
+      const translation = await repository.findTranslation(id, locale);
+      if (!translation) {
+        return reply.status(404).send({ error: "No translation found" });
+      }
+
+      return reply.status(200).send({
+        locale: translation.locale,
+        reasoning: translation.reasoning,
+        positiveFactors: translation.positiveFactors as string[] | null,
+        riskFactors: translation.riskFactors as string[] | null,
+        translatedAt: translation.translatedAt.toISOString(),
+      });
+    }
+  );
+
+  // PUT /:id/translations/:locale — salva/atualiza tradução
+  typed.put(
+    "/:id/translations/:locale",
+    {
+      preHandler: [authenticate],
+      schema: {
+        tags: ["analysis"],
+        summary: "Salvar tradução de uma análise",
+        security: [{ bearerAuth: [] }],
+        params: z.object({
+          id: z.string(),
+          locale: z.string().min(2),
+        }),
+        body: z.object({
+          reasoning: z.string().nullable(),
+          positiveFactors: z.array(z.string()).nullable(),
+          riskFactors: z.array(z.string()).nullable(),
+        }),
+        response: {
+          200: z.object({
+            locale: z.string(),
+            reasoning: z.string().nullable(),
+            positiveFactors: z.array(z.string()).nullable(),
+            riskFactors: z.array(z.string()).nullable(),
+            translatedAt: z.string(),
+          }),
+          401: z.object({ error: z.string() }),
+        },
+      },
+    },
+    async (request, reply) => {
+      const { id, locale } = request.params as { id: string; locale: string };
+      const { reasoning, positiveFactors, riskFactors } = request.body;
+
+      const translation = await repository.upsertTranslation({
+        analysisId: id,
+        locale,
+        reasoning,
+        positiveFactors,
+        riskFactors,
+      });
+
+      return reply.status(200).send({
+        locale: translation.locale,
+        reasoning: translation.reasoning,
+        positiveFactors: translation.positiveFactors as string[] | null,
+        riskFactors: translation.riskFactors as string[] | null,
+        translatedAt: translation.translatedAt.toISOString(),
+      });
+    }
+  );
+
   // GET /p/:publicId — busca análise histórica pelo ID público do usuário
   typed.get(
     "/p/:publicId",

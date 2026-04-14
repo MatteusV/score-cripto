@@ -4,6 +4,7 @@ import { startTransition, useState } from "react"
 import Link from "next/link"
 import { ViewTransition } from "react"
 import { EyeIcon, EyeOffIcon, LogInIcon, ShieldCheckIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useAuth } from "@/contexts/auth-context"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input"
 
 export default function LoginPage() {
   const { login } = useAuth()
+  const t = useTranslations("auth.login")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -26,7 +28,7 @@ export default function LoginPage() {
     try {
       await login(email, password)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha no login")
+      setError(err instanceof Error ? err.message : t("errorFallback"))
     } finally {
       setLoading(false)
     }
@@ -45,21 +47,19 @@ export default function LoginPage() {
               <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/10">
                 <ShieldCheckIcon className="size-5 text-primary" />
               </div>
-              <Badge variant="secondary" className="text-xs">Acesso seguro</Badge>
+              <Badge variant="secondary" className="text-xs">{t("badge")}</Badge>
             </div>
-            <CardTitle className="text-2xl font-bold">Entrar na conta</CardTitle>
-            <CardDescription>
-              Acesse seu dashboard de análises on-chain.
-            </CardDescription>
+            <CardTitle className="text-2xl font-bold">{t("title")}</CardTitle>
+            <CardDescription>{t("description")}</CardDescription>
           </CardHeader>
 
           <CardContent>
             <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
               <Field>
-                <FieldLabel>E-mail</FieldLabel>
+                <FieldLabel>{t("email")}</FieldLabel>
                 <Input
                   type="email"
-                  placeholder="voce@exemplo.com"
+                  placeholder={t("emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
@@ -69,7 +69,7 @@ export default function LoginPage() {
               </Field>
 
               <Field>
-                <FieldLabel>Senha</FieldLabel>
+                <FieldLabel>{t("password")}</FieldLabel>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
@@ -84,6 +84,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     tabIndex={-1}
                   >
@@ -100,34 +101,29 @@ export default function LoginPage() {
                 </ViewTransition>
               )}
 
-              <Button
-                type="submit"
-                className="w-full cursor-pointer"
-                disabled={loading}
-                size="lg"
-              >
+              <Button type="submit" className="w-full cursor-pointer" disabled={loading} size="lg">
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="size-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
-                    Entrando…
+                    {t("submitting")}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     <LogInIcon className="size-4" />
-                    Entrar
+                    {t("submit")}
                   </span>
                 )}
               </Button>
             </form>
 
             <p className="mt-5 text-center text-sm text-muted-foreground">
-              Não tem conta?{" "}
+              {t("noAccount")}{" "}
               <Link
                 href="/register"
                 className="font-medium text-primary hover:underline underline-offset-4"
                 onClick={() => startTransition(() => {})}
               >
-                Criar conta grátis
+                {t("createAccount")}
               </Link>
             </p>
           </CardContent>

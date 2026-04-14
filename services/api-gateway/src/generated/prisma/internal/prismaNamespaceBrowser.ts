@@ -50,6 +50,7 @@ export const AnyNull = runtime.objectEnumValues.instances.AnyNull
 
 export const ModelName = {
   AnalysisRequest: 'AnalysisRequest',
+  AnalysisTranslation: 'AnalysisTranslation',
   UserAnalysisCounter: 'UserAnalysisCounter'
 } as const
 
@@ -90,6 +91,19 @@ export const AnalysisRequestScalarFieldEnum = {
 } as const
 
 export type AnalysisRequestScalarFieldEnum = (typeof AnalysisRequestScalarFieldEnum)[keyof typeof AnalysisRequestScalarFieldEnum]
+
+
+export const AnalysisTranslationScalarFieldEnum = {
+  id: 'id',
+  analysisId: 'analysisId',
+  locale: 'locale',
+  reasoning: 'reasoning',
+  positiveFactors: 'positiveFactors',
+  riskFactors: 'riskFactors',
+  translatedAt: 'translatedAt'
+} as const
+
+export type AnalysisTranslationScalarFieldEnum = (typeof AnalysisTranslationScalarFieldEnum)[keyof typeof AnalysisTranslationScalarFieldEnum]
 
 
 export const UserAnalysisCounterScalarFieldEnum = {

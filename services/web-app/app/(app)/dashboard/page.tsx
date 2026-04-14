@@ -10,6 +10,7 @@ import {
   ShieldCheckIcon,
   ZapIcon,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useUser } from "@/hooks/use-user"
 import { formatDate, useHistory } from "@/hooks/use-history"
 import { ChainChips } from "@/components/chain-chips"
@@ -34,10 +35,10 @@ export default function DashboardPage() {
     analysisRemaining,
     usagePct,
     limitReached,
-    planLabel,
   } = useUser()
   const { summary, data: recentAnalyses, loading: historyLoading } = useHistory({ limit: 3 })
   const router = useRouter()
+  const t = useTranslations("dashboard")
   const [chain, setChain] = useState("ethereum")
   const [address, setAddress] = useState("")
 
@@ -50,8 +51,8 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col">
       <Topbar
-        title="Dashboard"
-        subtitle={`Bem-vindo de volta, ${firstName}`}
+        title={t("title")}
+        subtitle={t("welcome", { name: firstName })}
         showUpgrade={!isPro}
       />
 
@@ -59,14 +60,14 @@ export default function DashboardPage() {
         {/* Search hero */}
         <div className="rounded-2xl border border-border bg-card p-6">
           <p className="mb-4 font-heading text-sm font-bold tracking-wider text-foreground">
-            Analisar nova carteira
+            {t("analyzeCard.title")}
           </p>
           <form onSubmit={handleAnalyze} className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="relative flex-1">
               <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/50" strokeWidth={1.75} />
               <input
                 type="text"
-                placeholder="Cole o endereço da carteira aqui..."
+                placeholder={t("analyzeCard.placeholder")}
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 className="h-11 w-full rounded-xl border border-border bg-muted/40 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/30"
@@ -84,7 +85,7 @@ export default function DashboardPage() {
             />
             <Button type="submit" className="h-11 cursor-pointer shrink-0 gap-2">
               <SearchIcon className="size-4" strokeWidth={2.5} />
-              Analisar
+              {t("analyzeCard.submit")}
             </Button>
           </form>
 
@@ -92,9 +93,9 @@ export default function DashboardPage() {
           {user && (
             <div className="mt-5 border-t border-border pt-4">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{analysisCount} de {analysisLimit} análises este mês</span>
+                <span>{t("analyzeCard.usageMonth", { count: analysisCount, limit: analysisLimit })}</span>
                 <span className={limitReached ? "text-destructive" : "text-primary"}>
-                  {analysisRemaining} restantes
+                  {t("analyzeCard.usageRemaining", { remaining: analysisRemaining })}
                 </span>
               </div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/6">
@@ -109,14 +110,10 @@ export default function DashboardPage() {
 
         {/* Stats grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Análises totais" value={analysisCount} icon={ActivityIcon} />
-          <StatCard label="Restantes"      value={analysisRemaining}             icon={ZapIcon} />
-          <StatCard label="Plano atual"    value={isPro ? "Pro" : "Free"}         icon={ShieldCheckIcon} />
-          <StatCard
-            label="Score médio"
-            value={historyLoading ? "—" : (summary.avgScore > 0 ? summary.avgScore : "—")}
-            icon={BarChart2Icon}
-          />
+          <StatCard label={t("stats.total")}    value={analysisCount}                                                    icon={ActivityIcon} />
+          <StatCard label={t("stats.remaining")} value={analysisRemaining}                                               icon={ZapIcon} />
+          <StatCard label={t("stats.plan")}      value={isPro ? "Pro" : "Free"}                                          icon={ShieldCheckIcon} />
+          <StatCard label={t("stats.avgScore")}  value={historyLoading ? "—" : (summary.avgScore > 0 ? summary.avgScore : "—")} icon={BarChart2Icon} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
@@ -125,10 +122,10 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div className="flex items-center gap-2">
                 <ClockIcon className="size-4 text-primary/70" strokeWidth={1.75} />
-                <span className="font-heading text-sm font-semibold tracking-wider">Análises recentes</span>
+                <span className="font-heading text-sm font-semibold tracking-wider">{t("recentAnalyses.title")}</span>
               </div>
               <Button variant="ghost" size="sm" className="cursor-pointer text-xs" asChild>
-                <a href="/history">Ver todas</a>
+                <a href="/history">{t("recentAnalyses.viewAll")}</a>
               </Button>
             </div>
             <div className="divide-y divide-border">
@@ -145,7 +142,7 @@ export default function DashboardPage() {
                 ))
               ) : recentAnalyses.length === 0 ? (
                 <div className="px-5 py-8 text-center text-sm text-muted-foreground">
-                  Nenhuma análise ainda — comece agora!
+                  {t("recentAnalyses.empty")}
                 </div>
               ) : (
                 recentAnalyses.map((item) => (
@@ -173,30 +170,30 @@ export default function DashboardPage() {
           {/* Quick actions */}
           <div className="flex flex-col gap-3">
             <p className="font-heading text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-              Ações rápidas
+              {t("quickActions.title")}
             </p>
             {[
               {
                 href: "/analyze",
                 icon: SearchIcon,
-                title: "Nova análise",
-                desc: "Consulte score de qualquer endereço",
+                title: t("quickActions.newAnalysis.title"),
+                desc: t("quickActions.newAnalysis.desc"),
                 color: "text-primary",
                 bg: "bg-primary/10",
               },
               {
                 href: "/history",
                 icon: ClockIcon,
-                title: "Ver histórico",
-                desc: "Todas as suas análises anteriores",
+                title: t("quickActions.history.title"),
+                desc: t("quickActions.history.desc"),
                 color: "text-accent",
                 bg: "bg-accent/10",
               },
               {
                 href: "/settings/billing",
                 icon: ZapIcon,
-                title: "Fazer upgrade",
-                desc: "Amplie seus limites com o plano Pro",
+                title: t("quickActions.upgrade.title"),
+                desc: t("quickActions.upgrade.desc"),
                 color: "text-green-400",
                 bg: "bg-green-400/10",
               },

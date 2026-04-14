@@ -9,11 +9,12 @@ import {
   ShieldCheckIcon,
   TrendingUpIcon,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { ChainIcon } from "@/components/chain-icon"
 import { ScoreBadge } from "@/components/score-badge"
 import { SummaryChip } from "@/components/summary-chip"
 import { Topbar } from "@/components/topbar"
-import { formatDate, useHistory, verdict } from "@/hooks/use-history"
+import { formatDate, useHistory } from "@/hooks/use-history"
 
 function truncate(addr: string) {
   if (addr.length <= 20) return addr
@@ -33,9 +34,17 @@ function SkeletonRow() {
 
 export default function HistoryPage() {
   const { summary, data, loading } = useHistory({ limit: 50 })
+  const t = useTranslations("history")
+  const tAnalyze = useTranslations("analyze")
   const [search, setSearch] = useState("")
   const [chainFilter, setChainFilter] = useState("all")
   const [scoreFilter, setScoreFilter] = useState("all")
+
+  function verdictLabel(score: number) {
+    if (score >= 70) return t("verdict.trusted")
+    if (score >= 40) return t("verdict.attention")
+    return t("verdict.risky")
+  }
 
   const filtered = data.filter((row) => {
     const matchSearch =
@@ -53,15 +62,15 @@ export default function HistoryPage() {
 
   return (
     <div className="flex flex-col">
-      <Topbar title="Histórico" subtitle="Todas as suas análises anteriores" />
+      <Topbar title={t("title")} subtitle={t("subtitle")} />
 
       <div className="flex flex-col gap-6 p-6">
-        {/* Summary chips — dados reais do backend */}
+        {/* Summary chips */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <SummaryChip label="Total de análises" value={loading ? "—" : summary.total}    icon={ActivityIcon}    variant="default" />
-          <SummaryChip label="Score médio"        value={loading ? "—" : summary.avgScore} icon={TrendingUpIcon}  variant="primary" />
-          <SummaryChip label="Confiáveis"         value={loading ? "—" : summary.trusted}  icon={ShieldCheckIcon} variant="green" />
-          <SummaryChip label="Alto risco"         value={loading ? "—" : summary.risky}    icon={ShieldAlertIcon} variant="red" />
+          <SummaryChip label={t("summary.total")}    value={loading ? "—" : summary.total}    icon={ActivityIcon}    variant="default" />
+          <SummaryChip label={t("summary.avgScore")} value={loading ? "—" : summary.avgScore} icon={TrendingUpIcon}  variant="primary" />
+          <SummaryChip label={t("summary.trusted")}  value={loading ? "—" : summary.trusted}  icon={ShieldCheckIcon} variant="green" />
+          <SummaryChip label={t("summary.risky")}    value={loading ? "—" : summary.risky}    icon={ShieldAlertIcon} variant="red" />
         </div>
 
         {/* Filters */}
@@ -70,7 +79,7 @@ export default function HistoryPage() {
             <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/50" strokeWidth={1.75} />
             <input
               type="text"
-              placeholder="Buscar por endereço ou rede..."
+              placeholder={t("filters.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="h-9 w-full rounded-xl border border-border bg-muted/30 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/30"
@@ -84,7 +93,7 @@ export default function HistoryPage() {
               onChange={(e) => setChainFilter(e.target.value)}
               className="h-9 rounded-xl border border-border bg-card px-3 text-sm text-foreground focus:border-primary/40 focus:outline-none"
             >
-              <option value="all">Todas as redes</option>
+              <option value="all">{t("filters.allChains")}</option>
               <option value="ethereum">Ethereum</option>
               <option value="bitcoin">Bitcoin</option>
               <option value="polygon">Polygon</option>
@@ -97,10 +106,10 @@ export default function HistoryPage() {
               onChange={(e) => setScoreFilter(e.target.value)}
               className="h-9 rounded-xl border border-border bg-card px-3 text-sm text-foreground focus:border-primary/40 focus:outline-none"
             >
-              <option value="all">Todos os scores</option>
-              <option value="high">Alto (≥70)</option>
-              <option value="mid">Médio (40-69)</option>
-              <option value="low">Baixo (&lt;40)</option>
+              <option value="all">{t("filters.allScores")}</option>
+              <option value="high">{t("filters.high")}</option>
+              <option value="mid">{t("filters.mid")}</option>
+              <option value="low">{t("filters.low")}</option>
             </select>
           </div>
         </div>
@@ -108,10 +117,10 @@ export default function HistoryPage() {
         {/* Table */}
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className="grid grid-cols-[1fr_80px_100px_100px] gap-4 border-b border-border px-5 py-3 text-[10px] font-bold tracking-[0.15em] text-muted-foreground uppercase">
-            <span>Carteira</span>
-            <span>Rede</span>
-            <span>Score</span>
-            <span className="hidden sm:block">Data</span>
+            <span>{t("columns.wallet")}</span>
+            <span>{t("columns.network")}</span>
+            <span>{t("columns.score")}</span>
+            <span className="hidden sm:block">{t("columns.date")}</span>
           </div>
 
           {loading ? (
@@ -120,9 +129,7 @@ export default function HistoryPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="px-5 py-12 text-center text-sm text-muted-foreground">
-              {data.length === 0
-                ? "Nenhuma análise ainda — comece analisando uma carteira!"
-                : "Nenhuma análise encontrada para esses filtros."}
+              {data.length === 0 ? t("empty") : t("noFilter")}
             </div>
           ) : (
             <div className="divide-y divide-border">
@@ -141,7 +148,7 @@ export default function HistoryPage() {
                       {truncate(row.address)}
                     </p>
                     <p className="mt-0.5 text-[10px] text-muted-foreground">
-                      {verdict(row.score)}
+                      {verdictLabel(row.score)}
                     </p>
                   </div>
                   <div>
@@ -161,7 +168,7 @@ export default function HistoryPage() {
 
         {!loading && (
           <p className="text-center text-xs text-muted-foreground/50">
-            Mostrando {filtered.length} de {summary.total} análises
+            {t("showing", { filtered: filtered.length, total: summary.total })}
           </p>
         )}
       </div>

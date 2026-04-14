@@ -391,6 +391,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   AnalysisRequest: 'AnalysisRequest',
+  AnalysisTranslation: 'AnalysisTranslation',
   UserAnalysisCounter: 'UserAnalysisCounter'
 } as const
 
@@ -407,7 +408,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "analysisRequest" | "userAnalysisCounter"
+    modelProps: "analysisRequest" | "analysisTranslation" | "userAnalysisCounter"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -482,6 +483,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AnalysisRequestCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AnalysisRequestCountAggregateOutputType> | number
+        }
+      }
+    }
+    AnalysisTranslation: {
+      payload: Prisma.$AnalysisTranslationPayload<ExtArgs>
+      fields: Prisma.AnalysisTranslationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AnalysisTranslationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AnalysisTranslationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AnalysisTranslationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AnalysisTranslationPayload>
+        }
+        findFirst: {
+          args: Prisma.AnalysisTranslationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AnalysisTranslationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AnalysisTranslationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AnalysisTranslationPayload>
+        }
+        findMany: {
+          args: Prisma.AnalysisTranslationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AnalysisTranslationPayload>[]
+        }
+        create: {
+          args: Prisma.AnalysisTranslationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AnalysisTranslationPayload>
+        }
+        createMany: {
+          args: Prisma.AnalysisTranslationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AnalysisTranslationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AnalysisTranslationPayload>[]
+        }
+        delete: {
+          args: Prisma.AnalysisTranslationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AnalysisTranslationPayload>
+        }
+        update: {
+          args: Prisma.AnalysisTranslationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AnalysisTranslationPayload>
+        }
+        deleteMany: {
+          args: Prisma.AnalysisTranslationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AnalysisTranslationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AnalysisTranslationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AnalysisTranslationPayload>[]
+        }
+        upsert: {
+          args: Prisma.AnalysisTranslationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AnalysisTranslationPayload>
+        }
+        aggregate: {
+          args: Prisma.AnalysisTranslationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAnalysisTranslation>
+        }
+        groupBy: {
+          args: Prisma.AnalysisTranslationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AnalysisTranslationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AnalysisTranslationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AnalysisTranslationCountAggregateOutputType> | number
         }
       }
     }
@@ -619,6 +694,19 @@ export const AnalysisRequestScalarFieldEnum = {
 } as const
 
 export type AnalysisRequestScalarFieldEnum = (typeof AnalysisRequestScalarFieldEnum)[keyof typeof AnalysisRequestScalarFieldEnum]
+
+
+export const AnalysisTranslationScalarFieldEnum = {
+  id: 'id',
+  analysisId: 'analysisId',
+  locale: 'locale',
+  reasoning: 'reasoning',
+  positiveFactors: 'positiveFactors',
+  riskFactors: 'riskFactors',
+  translatedAt: 'translatedAt'
+} as const
+
+export type AnalysisTranslationScalarFieldEnum = (typeof AnalysisTranslationScalarFieldEnum)[keyof typeof AnalysisTranslationScalarFieldEnum]
 
 
 export const UserAnalysisCounterScalarFieldEnum = {
@@ -847,6 +935,7 @@ export interface PrismaClientOptions {
 }
 export type GlobalOmitConfig = {
   analysisRequest?: Prisma.AnalysisRequestOmit
+  analysisTranslation?: Prisma.AnalysisTranslationOmit
   userAnalysisCounter?: Prisma.UserAnalysisCounterOmit
 }
 

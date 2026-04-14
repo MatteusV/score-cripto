@@ -24,7 +24,11 @@ export interface ListAnalysesResult {
 }
 
 export class ListAnalysesUseCase {
-  constructor(private readonly repository: AnalysisRequestRepository) {}
+  private readonly repository: AnalysisRequestRepository;
+
+  constructor(repository: AnalysisRequestRepository) {
+    this.repository = repository;
+  }
 
   async execute(params: {
     userId: string;

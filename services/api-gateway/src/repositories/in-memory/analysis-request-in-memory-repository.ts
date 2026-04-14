@@ -1,10 +1,14 @@
 import { randomUUID } from "node:crypto";
-import type { AnalysisRequest } from "../../generated/prisma/client";
+import type {
+  AnalysisRequest,
+  AnalysisTranslation,
+} from "../../generated/prisma/client";
 import type { AnalysisSummary } from "../../use-cases/analysis-request/list-analyses-use-case";
 import type {
   AnalysisRequestRepository,
   CompleteAnalysisRequestData,
   CreateAnalysisRequestData,
+  UpsertTranslationData,
 } from "../analysis-request-repository";
 
 export class AnalysisRequestInMemoryRepository
@@ -12,6 +16,7 @@ export class AnalysisRequestInMemoryRepository
 {
   items: AnalysisRequest[] = [];
   private readonly counters: Map<string, number> = new Map();
+  private readonly translations: Map<string, AnalysisTranslation> = new Map();
 
   async create(data: CreateAnalysisRequestData): Promise<AnalysisRequest> {
     const item: AnalysisRequest = {
@@ -184,6 +189,31 @@ export class AnalysisRequestInMemoryRepository
     const items = completed.slice(offset, offset + limit);
 
     return { items, total };
+  }
+
+  async findTranslation(
+    analysisId: string,
+    locale: string
+  ): Promise<AnalysisTranslation | null> {
+    return this.translations.get(`${analysisId}:${locale}`) ?? null;
+  }
+
+  async upsertTranslation(
+    data: UpsertTranslationData
+  ): Promise<AnalysisTranslation> {
+    const key = `${data.analysisId}:${data.locale}`;
+    const existing = this.translations.get(key);
+    const translation: AnalysisTranslation = {
+      id: existing?.id ?? randomUUID(),
+      analysisId: data.analysisId,
+      locale: data.locale,
+      reasoning: data.reasoning,
+      positiveFactors: data.positiveFactors,
+      riskFactors: data.riskFactors,
+      translatedAt: new Date(),
+    };
+    this.translations.set(key, translation);
+    return translation;
   }
 
   async summarizeByUserId(

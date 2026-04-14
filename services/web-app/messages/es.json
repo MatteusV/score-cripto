@@ -1,0 +1,227 @@
+{
+  "common": {
+    "back": "Volver",
+    "copyAddress": "Copiar dirección",
+    "loading": "Cargando...",
+    "error": "Error"
+  },
+  "auth": {
+    "login": {
+      "badge": "Acceso seguro",
+      "title": "Iniciar sesión",
+      "description": "Accede a tu panel de análisis on-chain.",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "password": "Contraseña",
+      "showPassword": "Mostrar contraseña",
+      "hidePassword": "Ocultar contraseña",
+      "submit": "Iniciar sesión",
+      "submitting": "Iniciando sesión…",
+      "noAccount": "¿No tienes cuenta?",
+      "createAccount": "Crear cuenta gratis",
+      "errorFallback": "Error al iniciar sesión"
+    },
+    "register": {
+      "badge": "FREE_TIER — 5 análisis/mes",
+      "title": "Crear cuenta",
+      "description": "Empieza a analizar wallets gratis. Sin tarjeta de crédito.",
+      "name": "Nombre",
+      "nameOptional": "(opcional)",
+      "namePlaceholder": "Tu nombre",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Mínimo 8 caracteres",
+      "showPassword": "Mostrar contraseña",
+      "hidePassword": "Ocultar contraseña",
+      "submit": "Crear cuenta gratis",
+      "submitting": "Creando cuenta…",
+      "terms": "Al crear una cuenta, aceptas los términos de servicio.",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "login": "Iniciar sesión",
+      "errorFallback": "Error al registrarse"
+    }
+  },
+  "dashboard": {
+    "title": "Panel",
+    "welcome": "Bienvenido de nuevo, {name}",
+    "analyzeCard": {
+      "title": "Analizar nueva wallet",
+      "placeholder": "Pega la dirección de la wallet aquí...",
+      "submit": "Analizar",
+      "usageMonth": "{count} de {limit} análisis este mes",
+      "usageRemaining": "{remaining} restantes"
+    },
+    "stats": {
+      "total": "Total de análisis",
+      "remaining": "Restantes",
+      "plan": "Plan actual",
+      "avgScore": "Score promedio"
+    },
+    "recentAnalyses": {
+      "title": "Análisis recientes",
+      "viewAll": "Ver todos",
+      "empty": "Sin análisis aún — ¡empieza ahora!"
+    },
+    "quickActions": {
+      "title": "Acciones rápidas",
+      "newAnalysis": {
+        "title": "Nuevo análisis",
+        "desc": "Consulta el score de cualquier dirección"
+      },
+      "history": {
+        "title": "Ver historial",
+        "desc": "Todos tus análisis anteriores"
+      },
+      "upgrade": {
+        "title": "Mejorar plan",
+        "desc": "Amplía tus límites con el plan Pro"
+      }
+    }
+  },
+  "analyze": {
+    "pageTitle": "Análisis de wallet",
+    "pageSubtitle": "Score generado por IA a partir de datos on-chain",
+    "back": "Volver",
+    "recalculate": "Recalcular",
+    "retry": "Intentar de nuevo",
+    "startAnalysis": "Iniciar análisis",
+    "readyToStart": "Listo para iniciar el análisis.",
+    "walletAnalyzed": "Wallet analizada",
+    "noAddress": "Ninguna dirección informada",
+    "status": {
+      "completed": "Completado",
+      "error": "Error",
+      "processing": "Procesando",
+      "history": "Historial",
+      "loading": "Cargando"
+    },
+    "badges": {
+      "cached": "En caché",
+      "analysis": "Análisis #{id}"
+    },
+    "error": {
+      "title": "Análisis fallido",
+      "notFound": "Análisis no encontrado"
+    },
+    "historical": {
+      "loading": "Cargando análisis histórico..."
+    },
+    "reasoning": {
+      "title": "Razonamiento",
+      "description": "Explicación de la IA sobre el score"
+    },
+    "factors": {
+      "title": "Factores del análisis",
+      "description": "Señales positivas y factores de riesgo detectados por el pipeline de IA.",
+      "positive": "Factores positivos",
+      "risk": "Factores de riesgo",
+      "noPositive": "Ningún factor positivo identificado.",
+      "noRisk": "Ningún factor de riesgo identificado."
+    },
+    "meta": {
+      "score": "Score",
+      "confidence": "Confianza",
+      "address": "Dirección"
+    },
+    "checklist": {
+      "title": "Checklist",
+      "onchain": "Recopilación on-chain",
+      "onchainValue": "En progreso",
+      "normalization": "Normalización",
+      "normalizationValue": "Automática",
+      "ai": "IA + razonamiento",
+      "aiValue": "Versionado"
+    },
+    "observation": {
+      "title": "Qué observar",
+      "body": "Un score alto indica confianza, pero verifica factores de riesgo, mixers y concentración excesiva antes de decidir."
+    }
+  },
+  "history": {
+    "title": "Historial",
+    "subtitle": "Todos tus análisis anteriores",
+    "columns": {
+      "wallet": "Wallet",
+      "network": "Red",
+      "score": "Score",
+      "date": "Fecha"
+    },
+    "filters": {
+      "searchPlaceholder": "Buscar por dirección o red...",
+      "allChains": "Todas las redes",
+      "allScores": "Todos los scores",
+      "high": "Alto (≥70)",
+      "mid": "Medio (40-69)",
+      "low": "Bajo (<40)"
+    },
+    "verdict": {
+      "trusted": "Confiable",
+      "attention": "Precaución",
+      "risky": "Riesgo"
+    },
+    "summary": {
+      "total": "Total de análisis",
+      "avgScore": "Score promedio",
+      "trusted": "Confiables",
+      "risky": "Alto riesgo"
+    },
+    "empty": "Sin análisis aún — ¡empieza analizando una wallet!",
+    "noFilter": "No se encontraron análisis para estos filtros.",
+    "showing": "Mostrando {filtered} de {total} análisis"
+  },
+  "billing": {
+    "title": "Planes y Facturación",
+    "subtitle": "Gestiona tu plan y monitorea el uso mensual",
+    "currentPlan": {
+      "free": "Plan Gratuito",
+      "pro": "Plan Pro",
+      "active": "Activo",
+      "cancelAt": "Cancelación el {date}"
+    },
+    "upgrade": "Mejorar a Pro",
+    "upgradingStripe": "Abriendo Stripe…",
+    "manageSubscription": "Gestionar suscripción",
+    "openingPortal": "Abriendo portal…",
+    "usage": {
+      "title": "Uso mensual",
+      "month": "Análisis este mes",
+      "remaining": "{remaining} análisis restante — se reinicia el día 1 del próximo mes"
+    },
+    "plans": {
+      "title": "Planes disponibles",
+      "freeName": "Free",
+      "proName": "Pro",
+      "freeDesc": "Para explorar la plataforma y análisis puntuales.",
+      "proDesc": "Para uso profesional con más análisis y funciones completas.",
+      "period": "/mes",
+      "current": "Plan actual",
+      "subscribe": "Suscribirse a Pro"
+    },
+    "account": "Cuenta"
+  },
+  "walletForm": {
+    "network": "Red",
+    "networkDesc": "Redes EVM soportadas por el pipeline actual.",
+    "networkPlaceholder": "Seleccionar red",
+    "address": "Dirección de la wallet",
+    "addressPlaceholder": "Pega la dirección de la wallet aquí...",
+    "analyze": "Analizar",
+    "errors": {
+      "empty": "Pega una dirección EVM para iniciar el análisis.",
+      "invalid": "Dirección inválida. Usa el formato 0x con 40 caracteres hex."
+    },
+    "limitReached": {
+      "title": "Límite mensual alcanzado",
+      "desc": "Has usado todos los análisis de tu plan este mes.",
+      "upgrade": "Mejorar plan",
+      "upgradingStripe": "Abriendo Stripe…"
+    }
+  },
+  "locale": {
+    "label": "Idioma",
+    "pt-BR": "Português",
+    "en": "English",
+    "es": "Español"
+  }
+}
