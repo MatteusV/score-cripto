@@ -49,3 +49,8 @@ path.join(process.cwd(), "src/generated/prisma/libquery_engine-debian-openssl-1.
  * 
  */
 export type AnalysisRequest = Prisma.AnalysisRequestModel
+/**
+ * Model UserAnalysisCounter
+ * 
+ */
+export type UserAnalysisCounter = Prisma.UserAnalysisCounterModel

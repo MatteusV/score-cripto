@@ -390,7 +390,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
-  AnalysisRequest: 'AnalysisRequest'
+  AnalysisRequest: 'AnalysisRequest',
+  UserAnalysisCounter: 'UserAnalysisCounter'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -406,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "analysisRequest"
+    modelProps: "analysisRequest" | "userAnalysisCounter"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -484,6 +485,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    UserAnalysisCounter: {
+      payload: Prisma.$UserAnalysisCounterPayload<ExtArgs>
+      fields: Prisma.UserAnalysisCounterFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserAnalysisCounterFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserAnalysisCounterPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserAnalysisCounterFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserAnalysisCounterPayload>
+        }
+        findFirst: {
+          args: Prisma.UserAnalysisCounterFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserAnalysisCounterPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserAnalysisCounterFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserAnalysisCounterPayload>
+        }
+        findMany: {
+          args: Prisma.UserAnalysisCounterFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserAnalysisCounterPayload>[]
+        }
+        create: {
+          args: Prisma.UserAnalysisCounterCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserAnalysisCounterPayload>
+        }
+        createMany: {
+          args: Prisma.UserAnalysisCounterCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserAnalysisCounterCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserAnalysisCounterPayload>[]
+        }
+        delete: {
+          args: Prisma.UserAnalysisCounterDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserAnalysisCounterPayload>
+        }
+        update: {
+          args: Prisma.UserAnalysisCounterUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserAnalysisCounterPayload>
+        }
+        deleteMany: {
+          args: Prisma.UserAnalysisCounterDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserAnalysisCounterUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserAnalysisCounterUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserAnalysisCounterPayload>[]
+        }
+        upsert: {
+          args: Prisma.UserAnalysisCounterUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserAnalysisCounterPayload>
+        }
+        aggregate: {
+          args: Prisma.UserAnalysisCounterAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserAnalysisCounter>
+        }
+        groupBy: {
+          args: Prisma.UserAnalysisCounterGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserAnalysisCounterGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserAnalysisCounterCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserAnalysisCounterCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -526,6 +601,7 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const AnalysisRequestScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  publicId: 'publicId',
   chain: 'chain',
   address: 'address',
   status: 'status',
@@ -543,6 +619,14 @@ export const AnalysisRequestScalarFieldEnum = {
 } as const
 
 export type AnalysisRequestScalarFieldEnum = (typeof AnalysisRequestScalarFieldEnum)[keyof typeof AnalysisRequestScalarFieldEnum]
+
+
+export const UserAnalysisCounterScalarFieldEnum = {
+  userId: 'userId',
+  counter: 'counter'
+} as const
+
+export type UserAnalysisCounterScalarFieldEnum = (typeof UserAnalysisCounterScalarFieldEnum)[keyof typeof UserAnalysisCounterScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -607,6 +691,20 @@ export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
  * Reference to a field of type 'AnalysisStatus'
  */
 export type EnumAnalysisStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AnalysisStatus'>
@@ -631,20 +729,6 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-    
-
-
-/**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
 
 
@@ -763,6 +847,7 @@ export interface PrismaClientOptions {
 }
 export type GlobalOmitConfig = {
   analysisRequest?: Prisma.AnalysisRequestOmit
+  userAnalysisCounter?: Prisma.UserAnalysisCounterOmit
 }
 
 /* Types for Logging */

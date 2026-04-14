@@ -10,7 +10,11 @@ async function createCompleted(
   userId: string,
   score: number
 ) {
-  const item = await repo.create({ userId, chain: "ethereum", address: `0x${score}` });
+  const item = await repo.create({
+    userId,
+    chain: "ethereum",
+    address: `0x${score}`,
+  });
   return repo.markCompleted(item.id, {
     score,
     confidence: 0.9,
@@ -42,7 +46,11 @@ describe("ListAnalysesUseCase", () => {
 
   it("should return only COMPLETED analyses for the user", async () => {
     await createCompleted(repo, "user-1", 80);
-    const pending = await repo.create({ userId: "user-1", chain: "ethereum", address: "0xpending" });
+    const pending = await repo.create({
+      userId: "user-1",
+      chain: "ethereum",
+      address: "0xpending",
+    });
     expect(pending.status).toBe("PENDING");
 
     const result = await sut.execute({ userId: "user-1", page: 1, limit: 20 });

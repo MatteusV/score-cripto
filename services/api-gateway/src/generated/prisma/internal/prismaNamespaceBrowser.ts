@@ -49,7 +49,8 @@ export const AnyNull = runtime.objectEnumValues.instances.AnyNull
 
 
 export const ModelName = {
-  AnalysisRequest: 'AnalysisRequest'
+  AnalysisRequest: 'AnalysisRequest',
+  UserAnalysisCounter: 'UserAnalysisCounter'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -71,6 +72,7 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const AnalysisRequestScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  publicId: 'publicId',
   chain: 'chain',
   address: 'address',
   status: 'status',
@@ -88,6 +90,14 @@ export const AnalysisRequestScalarFieldEnum = {
 } as const
 
 export type AnalysisRequestScalarFieldEnum = (typeof AnalysisRequestScalarFieldEnum)[keyof typeof AnalysisRequestScalarFieldEnum]
+
+
+export const UserAnalysisCounterScalarFieldEnum = {
+  userId: 'userId',
+  counter: 'counter'
+} as const
+
+export type UserAnalysisCounterScalarFieldEnum = (typeof UserAnalysisCounterScalarFieldEnum)[keyof typeof UserAnalysisCounterScalarFieldEnum]
 
 
 export const SortOrder = {

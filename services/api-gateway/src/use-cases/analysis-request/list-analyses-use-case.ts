@@ -1,26 +1,26 @@
 import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository";
 
 export interface AnalysisSummary {
-  total: number;
-  avgScore: number;
-  trusted: number;   // score >= 70
   attention: number; // score >= 40 && < 70
-  risky: number;     // score < 40
+  avgScore: number;
+  risky: number; // score < 40
+  total: number;
+  trusted: number; // score >= 70
 }
 
 export interface AnalysisListItem {
-  id: string;
-  chain: string;
   address: string;
-  score: number;
-  requestedAt: Date;
+  chain: string;
   completedAt: Date;
+  id: string;
+  requestedAt: Date;
+  score: number;
 }
 
 export interface ListAnalysesResult {
-  summary: AnalysisSummary;
   data: AnalysisListItem[];
   pagination: { page: number; limit: number; total: number };
+  summary: AnalysisSummary;
 }
 
 export class ListAnalysesUseCase {
@@ -33,7 +33,11 @@ export class ListAnalysesUseCase {
   }): Promise<ListAnalysesResult> {
     const { userId, page, limit } = params;
 
-    const { items: all, total } = await this.repository.listByUserId(userId, page, limit);
+    const { items: all, total } = await this.repository.listByUserId(
+      userId,
+      page,
+      limit
+    );
     const { summary } = await this.repository.summarizeByUserId(userId);
 
     return {

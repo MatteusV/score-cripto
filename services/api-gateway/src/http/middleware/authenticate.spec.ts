@@ -1,6 +1,6 @@
 import { generateKeyPairSync } from "node:crypto";
 import jwt from "jsonwebtoken";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 // Par RSA dedicado para este spec
 const { privateKey, publicKey } = generateKeyPairSync("rsa", {
@@ -82,7 +82,10 @@ describe("authenticate middleware (RS256)", () => {
       publicKeyEncoding: { type: "spki", format: "pem" },
       privateKeyEncoding: { type: "pkcs8", format: "pem" },
     });
-    const token = signToken({ sub: "user-abc", email: "alice@example.com" }, wrongKey);
+    const token = signToken(
+      { sub: "user-abc", email: "alice@example.com" },
+      wrongKey
+    );
     const req = makeRequest(`Bearer ${token}`);
     const reply = makeReply();
 

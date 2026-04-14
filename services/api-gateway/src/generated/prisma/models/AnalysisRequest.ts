@@ -27,11 +27,13 @@ export type AggregateAnalysisRequest = {
 }
 
 export type AnalysisRequestAvgAggregateOutputType = {
+  publicId: number | null
   score: number | null
   confidence: number | null
 }
 
 export type AnalysisRequestSumAggregateOutputType = {
+  publicId: number | null
   score: number | null
   confidence: number | null
 }
@@ -39,6 +41,7 @@ export type AnalysisRequestSumAggregateOutputType = {
 export type AnalysisRequestMinAggregateOutputType = {
   id: string | null
   userId: string | null
+  publicId: number | null
   chain: string | null
   address: string | null
   status: $Enums.AnalysisStatus | null
@@ -56,6 +59,7 @@ export type AnalysisRequestMinAggregateOutputType = {
 export type AnalysisRequestMaxAggregateOutputType = {
   id: string | null
   userId: string | null
+  publicId: number | null
   chain: string | null
   address: string | null
   status: $Enums.AnalysisStatus | null
@@ -73,6 +77,7 @@ export type AnalysisRequestMaxAggregateOutputType = {
 export type AnalysisRequestCountAggregateOutputType = {
   id: number
   userId: number
+  publicId: number
   chain: number
   address: number
   status: number
@@ -92,11 +97,13 @@ export type AnalysisRequestCountAggregateOutputType = {
 
 
 export type AnalysisRequestAvgAggregateInputType = {
+  publicId?: true
   score?: true
   confidence?: true
 }
 
 export type AnalysisRequestSumAggregateInputType = {
+  publicId?: true
   score?: true
   confidence?: true
 }
@@ -104,6 +111,7 @@ export type AnalysisRequestSumAggregateInputType = {
 export type AnalysisRequestMinAggregateInputType = {
   id?: true
   userId?: true
+  publicId?: true
   chain?: true
   address?: true
   status?: true
@@ -121,6 +129,7 @@ export type AnalysisRequestMinAggregateInputType = {
 export type AnalysisRequestMaxAggregateInputType = {
   id?: true
   userId?: true
+  publicId?: true
   chain?: true
   address?: true
   status?: true
@@ -138,6 +147,7 @@ export type AnalysisRequestMaxAggregateInputType = {
 export type AnalysisRequestCountAggregateInputType = {
   id?: true
   userId?: true
+  publicId?: true
   chain?: true
   address?: true
   status?: true
@@ -244,6 +254,7 @@ export type AnalysisRequestGroupByArgs<ExtArgs extends runtime.Types.Extensions.
 export type AnalysisRequestGroupByOutputType = {
   id: string
   userId: string
+  publicId: number | null
   chain: string
   address: string
   status: $Enums.AnalysisStatus
@@ -286,6 +297,7 @@ export type AnalysisRequestWhereInput = {
   NOT?: Prisma.AnalysisRequestWhereInput | Prisma.AnalysisRequestWhereInput[]
   id?: Prisma.StringFilter<"AnalysisRequest"> | string
   userId?: Prisma.StringFilter<"AnalysisRequest"> | string
+  publicId?: Prisma.IntNullableFilter<"AnalysisRequest"> | number | null
   chain?: Prisma.StringFilter<"AnalysisRequest"> | string
   address?: Prisma.StringFilter<"AnalysisRequest"> | string
   status?: Prisma.EnumAnalysisStatusFilter<"AnalysisRequest"> | $Enums.AnalysisStatus
@@ -305,6 +317,7 @@ export type AnalysisRequestWhereInput = {
 export type AnalysisRequestOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  publicId?: Prisma.SortOrderInput | Prisma.SortOrder
   chain?: Prisma.SortOrder
   address?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -323,10 +336,12 @@ export type AnalysisRequestOrderByWithRelationInput = {
 
 export type AnalysisRequestWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  userId_publicId?: Prisma.AnalysisRequestUserIdPublicIdCompoundUniqueInput
   AND?: Prisma.AnalysisRequestWhereInput | Prisma.AnalysisRequestWhereInput[]
   OR?: Prisma.AnalysisRequestWhereInput[]
   NOT?: Prisma.AnalysisRequestWhereInput | Prisma.AnalysisRequestWhereInput[]
   userId?: Prisma.StringFilter<"AnalysisRequest"> | string
+  publicId?: Prisma.IntNullableFilter<"AnalysisRequest"> | number | null
   chain?: Prisma.StringFilter<"AnalysisRequest"> | string
   address?: Prisma.StringFilter<"AnalysisRequest"> | string
   status?: Prisma.EnumAnalysisStatusFilter<"AnalysisRequest"> | $Enums.AnalysisStatus
@@ -341,11 +356,12 @@ export type AnalysisRequestWhereUniqueInput = Prisma.AtLeast<{
   riskFactors?: Prisma.JsonNullableFilter<"AnalysisRequest">
   modelVersion?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
   promptVersion?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
-}, "id">
+}, "id" | "userId_publicId">
 
 export type AnalysisRequestOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  publicId?: Prisma.SortOrderInput | Prisma.SortOrder
   chain?: Prisma.SortOrder
   address?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -373,6 +389,7 @@ export type AnalysisRequestScalarWhereWithAggregatesInput = {
   NOT?: Prisma.AnalysisRequestScalarWhereWithAggregatesInput | Prisma.AnalysisRequestScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"AnalysisRequest"> | string
   userId?: Prisma.StringWithAggregatesFilter<"AnalysisRequest"> | string
+  publicId?: Prisma.IntNullableWithAggregatesFilter<"AnalysisRequest"> | number | null
   chain?: Prisma.StringWithAggregatesFilter<"AnalysisRequest"> | string
   address?: Prisma.StringWithAggregatesFilter<"AnalysisRequest"> | string
   status?: Prisma.EnumAnalysisStatusWithAggregatesFilter<"AnalysisRequest"> | $Enums.AnalysisStatus
@@ -392,6 +409,7 @@ export type AnalysisRequestScalarWhereWithAggregatesInput = {
 export type AnalysisRequestCreateInput = {
   id?: string
   userId: string
+  publicId?: number | null
   chain: string
   address: string
   status?: $Enums.AnalysisStatus
@@ -411,6 +429,7 @@ export type AnalysisRequestCreateInput = {
 export type AnalysisRequestUncheckedCreateInput = {
   id?: string
   userId: string
+  publicId?: number | null
   chain: string
   address: string
   status?: $Enums.AnalysisStatus
@@ -430,6 +449,7 @@ export type AnalysisRequestUncheckedCreateInput = {
 export type AnalysisRequestUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   chain?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAnalysisStatusFieldUpdateOperationsInput | $Enums.AnalysisStatus
@@ -449,6 +469,7 @@ export type AnalysisRequestUpdateInput = {
 export type AnalysisRequestUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   chain?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAnalysisStatusFieldUpdateOperationsInput | $Enums.AnalysisStatus
@@ -468,6 +489,7 @@ export type AnalysisRequestUncheckedUpdateInput = {
 export type AnalysisRequestCreateManyInput = {
   id?: string
   userId: string
+  publicId?: number | null
   chain: string
   address: string
   status?: $Enums.AnalysisStatus
@@ -487,6 +509,7 @@ export type AnalysisRequestCreateManyInput = {
 export type AnalysisRequestUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   chain?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAnalysisStatusFieldUpdateOperationsInput | $Enums.AnalysisStatus
@@ -506,6 +529,7 @@ export type AnalysisRequestUpdateManyMutationInput = {
 export type AnalysisRequestUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   chain?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAnalysisStatusFieldUpdateOperationsInput | $Enums.AnalysisStatus
@@ -522,9 +546,15 @@ export type AnalysisRequestUncheckedUpdateManyInput = {
   promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
+export type AnalysisRequestUserIdPublicIdCompoundUniqueInput = {
+  userId: string
+  publicId: number
+}
+
 export type AnalysisRequestCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  publicId?: Prisma.SortOrder
   chain?: Prisma.SortOrder
   address?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -542,6 +572,7 @@ export type AnalysisRequestCountOrderByAggregateInput = {
 }
 
 export type AnalysisRequestAvgOrderByAggregateInput = {
+  publicId?: Prisma.SortOrder
   score?: Prisma.SortOrder
   confidence?: Prisma.SortOrder
 }
@@ -549,6 +580,7 @@ export type AnalysisRequestAvgOrderByAggregateInput = {
 export type AnalysisRequestMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  publicId?: Prisma.SortOrder
   chain?: Prisma.SortOrder
   address?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -566,6 +598,7 @@ export type AnalysisRequestMaxOrderByAggregateInput = {
 export type AnalysisRequestMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  publicId?: Prisma.SortOrder
   chain?: Prisma.SortOrder
   address?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -581,12 +614,21 @@ export type AnalysisRequestMinOrderByAggregateInput = {
 }
 
 export type AnalysisRequestSumOrderByAggregateInput = {
+  publicId?: Prisma.SortOrder
   score?: Prisma.SortOrder
   confidence?: Prisma.SortOrder
 }
 
 export type StringFieldUpdateOperationsInput = {
   set?: string
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type EnumAnalysisStatusFieldUpdateOperationsInput = {
@@ -605,14 +647,6 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type NullableFloatFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
@@ -626,6 +660,7 @@ export type NullableFloatFieldUpdateOperationsInput = {
 export type AnalysisRequestSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  publicId?: boolean
   chain?: boolean
   address?: boolean
   status?: boolean
@@ -645,6 +680,7 @@ export type AnalysisRequestSelect<ExtArgs extends runtime.Types.Extensions.Inter
 export type AnalysisRequestSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  publicId?: boolean
   chain?: boolean
   address?: boolean
   status?: boolean
@@ -664,6 +700,7 @@ export type AnalysisRequestSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
 export type AnalysisRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  publicId?: boolean
   chain?: boolean
   address?: boolean
   status?: boolean
@@ -683,6 +720,7 @@ export type AnalysisRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
 export type AnalysisRequestSelectScalar = {
   id?: boolean
   userId?: boolean
+  publicId?: boolean
   chain?: boolean
   address?: boolean
   status?: boolean
@@ -699,7 +737,7 @@ export type AnalysisRequestSelectScalar = {
   promptVersion?: boolean
 }
 
-export type AnalysisRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "chain" | "address" | "status" | "requestedAt" | "completedAt" | "failedAt" | "failureReason" | "score" | "confidence" | "reasoning" | "positiveFactors" | "riskFactors" | "modelVersion" | "promptVersion", ExtArgs["result"]["analysisRequest"]>
+export type AnalysisRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "publicId" | "chain" | "address" | "status" | "requestedAt" | "completedAt" | "failedAt" | "failureReason" | "score" | "confidence" | "reasoning" | "positiveFactors" | "riskFactors" | "modelVersion" | "promptVersion", ExtArgs["result"]["analysisRequest"]>
 
 export type $AnalysisRequestPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AnalysisRequest"
@@ -707,6 +745,7 @@ export type $AnalysisRequestPayload<ExtArgs extends runtime.Types.Extensions.Int
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
+    publicId: number | null
     chain: string
     address: string
     status: $Enums.AnalysisStatus
@@ -1146,6 +1185,7 @@ export interface Prisma__AnalysisRequestClient<T, Null = never, ExtArgs extends 
 export interface AnalysisRequestFieldRefs {
   readonly id: Prisma.FieldRef<"AnalysisRequest", 'String'>
   readonly userId: Prisma.FieldRef<"AnalysisRequest", 'String'>
+  readonly publicId: Prisma.FieldRef<"AnalysisRequest", 'Int'>
   readonly chain: Prisma.FieldRef<"AnalysisRequest", 'String'>
   readonly address: Prisma.FieldRef<"AnalysisRequest", 'String'>
   readonly status: Prisma.FieldRef<"AnalysisRequest", 'AnalysisStatus'>

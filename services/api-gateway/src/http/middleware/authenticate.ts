@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 import { config } from "../../config.js";
 
 interface JwtPayload {
-  sub: string;
   email: string;
+  sub: string;
 }
 
 export async function authenticate(
