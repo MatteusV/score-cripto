@@ -16,7 +16,8 @@ import (
 )
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})))
+	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
+	slog.SetDefault(slog.New(handler).With("service", "data-search"))
 
 	cfg := infraConfig.Load()
 

@@ -43,6 +43,9 @@ defmodule DataIndexing.MixProject do
       # JSON
       {:jason, "~> 1.4"},
 
+      # Structured JSON logging
+      {:logger_json, "~> 6.0"},
+
       # HTTP client (for Meilisearch)
       {:req, "~> 0.5"},
 

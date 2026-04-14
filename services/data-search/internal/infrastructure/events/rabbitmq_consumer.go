@@ -151,25 +151,27 @@ func (c *Consumer) Start(ctx context.Context) error {
 			if !ok {
 				return fmt.Errorf("rabbitmq channel closed unexpectedly")
 			}
-			result, err := c.ProcessMessage(ctx, msg.Body)
+			correlationID := extractCorrelationIDFromHeaders(msg.Headers)
+			msgCtx := contextWithCorrelationID(ctx, correlationID)
+			result, err := c.ProcessMessage(msgCtx, msg.Body)
 			switch result {
 			case Processed:
 				msg.Ack(false)
 			case InvalidPayload:
-				slog.Warn("invalid payload, sending to dead letter", "error", err)
+				slog.Warn("invalid payload, sending to dead letter", "correlationId", correlationID, "error", err)
 				msg.Nack(false, false) // no requeue
 			case TransientError:
 				scheduled, rerr := ScheduleRetry(c.channel, msg, c.topology.ConsumeQueue)
 				if rerr != nil {
-					slog.Error("failed to schedule retry, routing to DLQ", "error", rerr)
+					slog.Error("failed to schedule retry, routing to DLQ", "correlationId", correlationID, "error", rerr)
 					msg.Nack(false, false)
 					continue
 				}
 				if scheduled {
-					slog.Info("transient error, message scheduled for retry", "error", err)
+					slog.Info("transient error, message scheduled for retry", "correlationId", correlationID, "error", err)
 					msg.Ack(false) // removido da origem; retry queue agenda redelivery
 				} else {
-					slog.Warn("max retries exhausted, routing to DLQ", "error", err)
+					slog.Warn("max retries exhausted, routing to DLQ", "correlationId", correlationID, "error", err)
 					msg.Nack(false, false)
 				}
 			}
@@ -186,6 +188,7 @@ func (c *Consumer) ProcessMessage(ctx context.Context, body []byte) (MessageResu
 	}
 
 	slog.Info("RECEBIDO: wallet.data.requested",
+		"correlationId", correlationIDFromContext(ctx),
 		"requestId", evt.Data.RequestID,
 		"chain", evt.Data.Chain,
 		"address", evt.Data.Address,

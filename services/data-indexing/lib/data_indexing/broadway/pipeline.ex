@@ -38,6 +38,9 @@ defmodule DataIndexing.Broadway.Pipeline do
 
   @impl true
   def handle_message(_processor, %Message{} = message, _context) do
+    correlation_id = extract_correlation_id(message)
+    Logger.metadata(correlation_id: correlation_id)
+
     case Jason.decode(message.data) do
       {:ok, %{"event" => "wallet.data.cached", "data" => data}} ->
         Logger.info("RECEBIDO: wallet.data.cached")
@@ -181,5 +184,21 @@ defmodule DataIndexing.Broadway.Pipeline do
         Logger.error("failed to declare DLQ topology for #{source_queue}: #{inspect(reason)}")
         {:error, reason}
     end
+  end
+
+  # Extracts x-correlation-id from the AMQP message headers.
+  # Falls back to a random ID when the header is absent (e.g., messages published
+  # by services not yet propagating correlation headers).
+  defp extract_correlation_id(%Message{metadata: metadata}) do
+    headers = Map.get(metadata, :headers, [])
+
+    case Enum.find(headers, fn {name, _type, _val} -> name == "x-correlation-id" end) do
+      {_name, _type, value} -> value
+      nil -> generate_correlation_id()
+    end
+  end
+
+  defp generate_correlation_id do
+    :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
   end
 end

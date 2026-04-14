@@ -70,6 +70,11 @@ func (p *Publisher) PublishWalletCached(ctx context.Context, event domain.Wallet
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
+	headers := amqp.Table{}
+	if correlationID := correlationIDFromContext(ctx); correlationID != "" {
+		headers[CorrelationIDHeader] = correlationID
+	}
+
 	if err := p.channel.PublishWithContext(
 		ctx,
 		p.topology.ExchangeName,
@@ -80,6 +85,7 @@ func (p *Publisher) PublishWalletCached(ctx context.Context, event domain.Wallet
 			ContentType:  "application/json",
 			DeliveryMode: amqp.Persistent,
 			Timestamp:    time.Now().UTC(),
+			Headers:      headers,
 			Body:         body,
 		},
 	); err != nil {
@@ -87,6 +93,7 @@ func (p *Publisher) PublishWalletCached(ctx context.Context, event domain.Wallet
 	}
 
 	slog.Info("EMITINDO: wallet.data.cached",
+		"correlationId", correlationIDFromContext(ctx),
 		"requestId", event.Data.RequestID,
 		"chain", event.Data.WalletContext.Chain,
 		"address", event.Data.WalletContext.Address,
