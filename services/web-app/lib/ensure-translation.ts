@@ -37,7 +37,7 @@ export async function ensureTranslation(
         positiveFactors: string[] | null
         riskFactors: string[] | null
       }
-      logger.info({ analysisId, locale }, "Translation cache hit")
+      logger.info("Translation cache hit", { analysisId, locale })
       return {
         reasoning: cached.reasoning ?? englishFields.reasoning,
         positiveFactors: cached.positiveFactors ?? englishFields.positiveFactors,
@@ -46,7 +46,7 @@ export async function ensureTranslation(
     }
 
     // 2. Cache miss — translate via DeepL
-    logger.info({ analysisId, locale }, "Translation cache miss — calling DeepL")
+    logger.info("Translation cache miss — calling DeepL", { analysisId, locale })
     const translated = await translateAnalysis({
       reasoning: englishFields.reasoning,
       positiveFactors: englishFields.positiveFactors,
@@ -64,12 +64,12 @@ export async function ensureTranslation(
         cache: "no-store",
       }
     ).catch((err: unknown) => {
-      logger.warn({ err, analysisId, locale }, "Failed to persist translation — will retry next request")
+      logger.warn("Failed to persist translation — will retry next request", { err, analysisId, locale })
     })
 
     return translated
   } catch (err) {
-    logger.error({ err, analysisId, locale }, "Translation failed — falling back to English")
+    logger.error("Translation failed — falling back to English", { err, analysisId, locale })
     return null
   }
 }

@@ -10,11 +10,11 @@ export async function PUT(request: Request) {
     const { locale } = body
 
     if (!locale || !VALID_LOCALES.includes(locale)) {
-      logger.warn({ locale }, "Invalid locale requested")
+      logger.warn("Invalid locale requested", { locale })
       return NextResponse.json({ error: "Invalid locale" }, { status: 400 })
     }
 
-    logger.info({ locale }, "Locale preference updated")
+    logger.info("Locale preference updated", { locale })
 
     const res = NextResponse.json({ locale })
     res.cookies.set("locale", locale, {
@@ -25,7 +25,7 @@ export async function PUT(request: Request) {
     })
     return res
   } catch (err) {
-    logger.error({ err }, "Failed to update locale preference")
+    logger.error("Failed to update locale preference", { err })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

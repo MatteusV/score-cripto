@@ -36,7 +36,7 @@ export async function GET(
     }
 
     const { requestId, ...rest } = data as { requestId?: string; [k: string]: unknown }
-    const normalized = { ...rest, processId: requestId ?? rest.processId }
+    const normalized: Record<string, unknown> = { ...rest, processId: requestId ?? rest.processId }
 
     // Apply lazy translation when completed
     if (

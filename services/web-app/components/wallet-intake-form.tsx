@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { ArrowRightIcon, ArrowUpRightIcon, WalletIcon, ZapOffIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,6 +31,7 @@ import { SUPPORTED_CHAINS, normalizeChainInput } from "@/lib/query"
 const evmAddressPattern = /^0x[a-fA-F0-9]{40}$/
 
 export function WalletIntakeForm() {
+  const t = useTranslations("walletForm")
   const router = useRouter()
   const [chain, setChain] = useState("ethereum")
   const [address, setAddress] = useState("")
@@ -38,17 +40,10 @@ export function WalletIntakeForm() {
 
   const errorMessage = useMemo(() => {
     if (!touched) return null
-
-    if (!address.trim()) {
-      return "Cole um endereço EVM para iniciar a análise."
-    }
-
-    if (!evmAddressPattern.test(address.trim())) {
-      return "Endereço inválido. Use formato 0x com 40 caracteres hex."
-    }
-
+    if (!address.trim()) return t("errors.empty")
+    if (!evmAddressPattern.test(address.trim())) return t("errors.invalid")
     return null
-  }, [address, touched])
+  }, [address, touched, t])
 
   const isValid = address.trim() && evmAddressPattern.test(address.trim())
 
@@ -74,10 +69,10 @@ export function WalletIntakeForm() {
     <form onSubmit={(e) => { void handleSubmit(e) }}>
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="chain">Rede</FieldLabel>
+          <FieldLabel htmlFor="chain">{t("network")}</FieldLabel>
           <Select value={chain} onValueChange={setChain}>
             <SelectTrigger id="chain" className="w-full cursor-pointer">
-              <SelectValue placeholder="Selecione a rede" />
+              <SelectValue placeholder={t("networkPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -93,13 +88,11 @@ export function WalletIntakeForm() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <FieldDescription>
-            Redes EVM suportadas pelo pipeline atual.
-          </FieldDescription>
+          <FieldDescription>{t("networkDesc")}</FieldDescription>
         </Field>
 
         <Field data-invalid={Boolean(errorMessage)}>
-          <FieldLabel htmlFor="address">Endereço da carteira</FieldLabel>
+          <FieldLabel htmlFor="address">{t("address")}</FieldLabel>
           <InputGroup className="h-10">
             <InputGroupAddon>
               <WalletIcon className="size-4 text-primary/60" />
@@ -123,14 +116,14 @@ export function WalletIntakeForm() {
           <div className="flex items-start gap-3 rounded-xl border border-destructive/25 bg-destructive/5 px-4 py-3">
             <ZapOffIcon className="mt-0.5 size-4 shrink-0 text-destructive" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-destructive">Limite mensal atingido</p>
+              <p className="text-sm font-medium text-destructive">{t("limitReached.title")}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Você usou todas as análises do seu plano este mês.{" "}
+                {t("limitReached.desc")}{" "}
                 <Link
                   href="/settings/billing"
                   className="font-medium text-primary hover:underline underline-offset-2 inline-flex items-center gap-0.5"
                 >
-                  Fazer upgrade
+                  {t("limitReached.upgrade")}
                   <ArrowUpRightIcon className="size-3" />
                 </Link>
               </p>
@@ -145,7 +138,7 @@ export function WalletIntakeForm() {
           disabled={touched && !isValid}
         >
           <ArrowRightIcon data-icon="inline-end" />
-          Analisar
+          {t("analyze")}
         </Button>
       </FieldGroup>
     </form>

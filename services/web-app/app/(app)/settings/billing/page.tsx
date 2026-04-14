@@ -10,6 +10,7 @@ import {
   SparklesIcon,
   ZapIcon,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useUser } from "@/hooks/use-user"
 import { PlanCard } from "@/components/plan-card"
 import { Topbar } from "@/components/topbar"
@@ -23,6 +24,7 @@ interface Subscription {
 }
 
 function UsageBar({ count, limit }: { count: number; limit: number }) {
+  const t = useTranslations("billing")
   const pct = limit > 0 ? Math.min((count / limit) * 100, 100) : 0
   const color =
     pct >= 90 ? "bg-destructive" : pct >= 70 ? "bg-amber-400" : "bg-primary"
@@ -30,7 +32,7 @@ function UsageBar({ count, limit }: { count: number; limit: number }) {
   return (
     <div className="space-y-2">
       <div className="flex justify-between text-sm">
-        <span className="text-muted-foreground">Análises este mês</span>
+        <span className="text-muted-foreground">{t("usage.month")}</span>
         <span className="font-heading font-semibold tabular-nums text-foreground">
           {count} / {limit}
         </span>
@@ -42,14 +44,14 @@ function UsageBar({ count, limit }: { count: number; limit: number }) {
         />
       </div>
       <p className="text-xs text-muted-foreground">
-        {limit - count} análise{limit - count !== 1 ? "s" : ""} restante
-        {limit - count !== 1 ? "s" : ""} — reseta no dia 1 do próximo mês
+        {t("usage.remaining", { remaining: limit - count })}
       </p>
     </div>
   )
 }
 
 export default function BillingPage() {
+  const t = useTranslations("billing")
   const { user, isPro, analysisCount, analysisLimit } = useUser()
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loadingSub, setLoadingSub] = useState(true)
@@ -87,27 +89,30 @@ export default function BillingPage() {
 
   const plan = user?.plan ?? "FREE_TIER"
 
+  const freeLabels = t.raw("plans.freeFeatures") as string[]
+  const proLabels  = t.raw("plans.proFeatures")  as string[]
+
   const FREE_FEATURES = [
-    { label: "5 análises por mês",          included: true  },
-    { label: "Score completo 0-100",         included: true  },
-    { label: "Fatores positivos e de risco", included: true  },
-    { label: "Redes EVM principais",         included: true  },
-    { label: "Cache prioritário",            included: false },
-    { label: "Histórico de análises",        included: false },
+    { label: freeLabels[0], included: true  },
+    { label: freeLabels[1], included: true  },
+    { label: freeLabels[2], included: true  },
+    { label: freeLabels[3], included: true  },
+    { label: freeLabels[4], included: false },
+    { label: freeLabels[5], included: false },
   ]
 
   const PRO_FEATURES = [
-    { label: "15 análises por mês",          included: true },
-    { label: "Score completo 0-100",         included: true },
-    { label: "Fatores positivos e de risco", included: true },
-    { label: "Todas as redes suportadas",    included: true },
-    { label: "Cache prioritário",            included: true },
-    { label: "Histórico de análises",        included: true },
+    { label: proLabels[0], included: true },
+    { label: proLabels[1], included: true },
+    { label: proLabels[2], included: true },
+    { label: proLabels[3], included: true },
+    { label: proLabels[4], included: true },
+    { label: proLabels[5], included: true },
   ]
 
   return (
     <div className="flex flex-col">
-      <Topbar title="Planos & Billing" subtitle="Gerencie seu plano e acompanhe o uso mensal" />
+      <Topbar title={t("title")} subtitle={t("subtitle")} />
 
       <div className="flex flex-col gap-8 p-6">
         {/* Current plan banner */}
@@ -119,7 +124,7 @@ export default function BillingPage() {
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-heading text-sm font-bold text-foreground">
-                  Plano {isPro ? "Pro" : "Gratuito"}
+                  {isPro ? t("currentPlan.pro") : t("currentPlan.free")}
                 </p>
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
@@ -130,13 +135,14 @@ export default function BillingPage() {
                         : "bg-muted text-muted-foreground"
                   }`}
                 >
-                  {loadingSub ? "..." : subscription?.status === "active" ? "Ativo" : "—"}
+                  {loadingSub ? "..." : subscription?.status === "active" ? t("currentPlan.active") : "—"}
                 </span>
               </div>
               {subscription?.cancelAtPeriodEnd && subscription.currentPeriodEnd && (
                 <p className="mt-1 text-xs text-destructive">
-                  Cancelamento em{" "}
-                  {new Date(subscription.currentPeriodEnd).toLocaleDateString("pt-BR")}
+                  {t("currentPlan.cancelAt", {
+                    date: new Date(subscription.currentPeriodEnd).toLocaleDateString(),
+                  })}
                 </p>
               )}
             </div>
@@ -151,12 +157,12 @@ export default function BillingPage() {
               {redirecting === "checkout" ? (
                 <>
                   <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Abrindo Stripe…
+                  {t("upgradingStripe")}
                 </>
               ) : (
                 <>
                   <ArrowRightIcon className="size-4" />
-                  Fazer upgrade para Pro
+                  {t("upgrade")}
                 </>
               )}
             </Button>
@@ -170,12 +176,12 @@ export default function BillingPage() {
               {redirecting === "portal" ? (
                 <>
                   <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Abrindo portal…
+                  {t("openingPortal")}
                 </>
               ) : (
                 <>
                   <ExternalLinkIcon className="size-4" />
-                  Gerenciar assinatura
+                  {t("manageSubscription")}
                 </>
               )}
             </Button>
@@ -186,7 +192,7 @@ export default function BillingPage() {
         <div className="rounded-2xl border border-border bg-card p-6">
           <div className="mb-5 flex items-center gap-2">
             <ZapIcon className="size-4 text-primary" strokeWidth={1.75} />
-            <span className="font-heading text-sm font-semibold tracking-wider">Uso mensal</span>
+            <span className="font-heading text-sm font-semibold tracking-wider">{t("usage.title")}</span>
           </div>
           {user ? (
             <UsageBar count={analysisCount} limit={analysisLimit} />
@@ -199,28 +205,28 @@ export default function BillingPage() {
         <div>
           <div className="mb-4 flex items-center gap-2">
             <SparklesIcon className="size-4 text-accent" strokeWidth={1.75} />
-            <span className="font-heading text-sm font-semibold tracking-wider">Planos disponíveis</span>
+            <span className="font-heading text-sm font-semibold tracking-wider">{t("plans.title")}</span>
           </div>
           <ViewTransition>
             <div className="grid gap-5 sm:grid-cols-2">
               <PlanCard
-                name="Free"
+                name={t("plans.freeName")}
                 price="R$0"
-                period="/mês"
-                description="Para explorar a plataforma e análises pontuais."
+                period={t("plans.period")}
+                description={t("plans.freeDesc")}
                 features={FREE_FEATURES}
                 current={!isPro}
-                ctaLabel="Plano atual"
+                ctaLabel={t("plans.current")}
               />
               <PlanCard
-                name="Pro"
+                name={t("plans.proName")}
                 price="R$29,90"
-                period="/mês"
-                description="Para uso profissional com mais análises e recursos completos."
+                period={t("plans.period")}
+                description={t("plans.proDesc")}
                 features={PRO_FEATURES}
                 featured
                 current={isPro}
-                ctaLabel="Assinar Pro"
+                ctaLabel={t("plans.subscribe")}
                 onUpgrade={isPro ? undefined : () => void handleCheckout()}
               />
             </div>
@@ -231,7 +237,7 @@ export default function BillingPage() {
         {user && (
           <div className="rounded-2xl border border-border/30 bg-card/20 p-5">
             <p className="font-heading text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
-              Conta
+              {t("account")}
             </p>
             <div className="mt-3 flex items-center justify-between gap-4">
               <div>

@@ -186,7 +186,7 @@
     "usage": {
       "title": "Uso mensal",
       "month": "Análises este mês",
-      "remaining": "{remaining} análise{s} restante{s} — reseta no dia 1 do próximo mês"
+      "remaining": "{remaining, plural, one {# análise restante} other {# análises restantes}} — reseta no dia 1 do próximo mês"
     },
     "plans": {
       "title": "Planos disponíveis",
@@ -196,7 +196,23 @@
       "proDesc": "Para uso profissional com mais análises e recursos completos.",
       "period": "/mês",
       "current": "Plano atual",
-      "subscribe": "Assinar Pro"
+      "subscribe": "Assinar Pro",
+      "freeFeatures": [
+        "5 análises por mês",
+        "Score completo 0-100",
+        "Fatores positivos e de risco",
+        "Redes EVM principais",
+        "Cache prioritário",
+        "Histórico de análises"
+      ],
+      "proFeatures": [
+        "15 análises por mês",
+        "Score completo 0-100",
+        "Fatores positivos e de risco",
+        "Todas as redes suportadas",
+        "Cache prioritário",
+        "Histórico de análises"
+      ]
     },
     "account": "Conta"
   },

@@ -148,7 +148,7 @@ export function ResultShell({ chain, address }: ResultShellProps) {
               <p className="font-heading text-sm font-medium">{t("error.title")}</p>
               <p className="text-sm text-muted-foreground">{error}</p>
             </div>
-            <Button variant="outline" className="cursor-pointer" onClick={submit}>
+            <Button variant="outline" className="cursor-pointer" onClick={() => void submit()}>
               <RefreshCwIcon data-icon="inline-start" />
               {t("retry")}
             </Button>
@@ -160,7 +160,7 @@ export function ResultShell({ chain, address }: ResultShellProps) {
         <Card className="glass-panel animate-fade-up animate-fade-up-delay-2">
           <CardContent className="flex flex-col items-center gap-5 py-12">
             <p className="text-sm text-muted-foreground">{t("readyToStart")}</p>
-            <Button className="cursor-pointer" onClick={submit}>
+            <Button className="cursor-pointer" onClick={() => void submit()}>
               {t("startAnalysis")}
             </Button>
           </CardContent>
