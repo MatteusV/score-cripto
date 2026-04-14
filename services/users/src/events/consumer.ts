@@ -1,6 +1,11 @@
-import amqplib, { type Channel, type ChannelModel } from "amqplib";
+import amqplib, {
+  type Channel,
+  type ChannelModel,
+  type ConsumeMessage,
+} from "amqplib";
 import { config } from "../config.js";
 import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
+import { assertRetryQueueFor, scheduleRetry } from "./retry-topology.js";
 import {
   processUserAnalysisConsumedMessage,
   QUEUE_NAME,
@@ -13,6 +18,15 @@ const EXCHANGE_TYPE = "topic";
 let connection: ChannelModel | null = null;
 let channel: Channel | null = null;
 
+function retryOrDeadLetter(ch: Channel, msg: ConsumeMessage): void {
+  const scheduled = scheduleRetry(ch, msg, QUEUE_NAME);
+  if (scheduled) {
+    ch.ack(msg);
+  } else {
+    ch.nack(msg, false, false);
+  }
+}
+
 export async function startConsumer(): Promise<void> {
   try {
     connection = await amqplib.connect(config.rabbitmqUrl);
@@ -22,6 +36,7 @@ export async function startConsumer(): Promise<void> {
       durable: true,
     });
     await assertDlqForQueue(channel, QUEUE_NAME);
+    await assertRetryQueueFor(channel, QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
     await channel.assertQueue(QUEUE_NAME, {
       durable: true,
       arguments: dlqArgumentsFor(QUEUE_NAME),
@@ -35,16 +50,28 @@ export async function startConsumer(): Promise<void> {
         return;
       }
 
-      const result = await processUserAnalysisConsumedMessage(
-        msg.content.toString()
-      );
+      try {
+        const result = await processUserAnalysisConsumedMessage(
+          msg.content.toString()
+        );
 
-      if (result.outcome === "invalid_payload") {
-        channel?.nack(msg, false, false); // dead-letter
-      } else if (result.outcome === "error") {
-        channel?.nack(msg, false, false); // dead-letter — retry com backoff em score-cripto-51x
-      } else {
-        channel?.ack(msg); // processed ou limit_exceeded
+        if (result.outcome === "invalid_payload") {
+          channel?.nack(msg, false, false); // payload inválido → DLQ direto
+        } else if (result.outcome === "error") {
+          if (channel) {
+            retryOrDeadLetter(channel, msg);
+          }
+        } else {
+          channel?.ack(msg); // processed ou limit_exceeded
+        }
+      } catch (error) {
+        console.error(
+          "[users][Consumer] Failed to process event (transient):",
+          (error as Error).message
+        );
+        if (channel) {
+          retryOrDeadLetter(channel, msg);
+        }
       }
     });
 

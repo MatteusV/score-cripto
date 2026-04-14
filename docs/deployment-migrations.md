@@ -75,6 +75,43 @@ docker compose up -d rabbitmq
 
 ---
 
+## [score-cripto-51x] Retry com Backoff Exponencial nos Consumers
+
+**Versão**: introduzida no commit que fecha `score-cripto-51x`
+**Risco**: Nenhuma ação manual necessária — as retry queues são novas e criadas automaticamente no boot.
+
+### Por que não há migração manual
+
+As filas de origem **não são modificadas** por este deploy. Os novos argumentos de retry estão apenas nas retry queues (`<queue>.retry`), que são declaradas pela primeira vez no boot dos consumers. Não há conflito com declarações anteriores.
+
+### Retry queues criadas automaticamente
+
+| Retry Queue | Origem |
+|---|---|
+| `api-gateway.wallet.score.calculated.retry` | api-gateway |
+| `api-gateway.wallet.score.failed.retry` | api-gateway |
+| `process-data-ia.wallet.data.cached.retry` | process-data-ia |
+| `users.user.analysis.consumed.retry` | users |
+| `data-search.wallet.data.requested.retry` | data-search |
+
+### Verificação pós-deploy
+
+Após reiniciar os serviços, confirme no RabbitMQ Management UI (`http://<host>:15672`):
+- As 5 retry queues acima existem e mostram a badge `DLX` no tab **Features**
+- O `x-dead-letter-exchange` de cada retry queue aponta para `score-cripto.events` (exchange principal)
+- O `x-dead-letter-routing-key` de cada retry queue aponta para a routing key original
+
+### Procedimento em desenvolvimento (local)
+
+Nenhuma ação necessária — as retry queues são criadas automaticamente ao subir os serviços.
+
+```bash
+docker compose up -d
+# as retry queues aparecerão no management UI em http://localhost:15673
+```
+
+---
+
 ## Template para novas migrações
 
 ```markdown

@@ -81,6 +81,12 @@ func NewConsumerWithTopology(amqpURL string, uc WalletProcessor, topology Topolo
 		return nil, fmt.Errorf("dlq declare: %w", err)
 	}
 
+	if err := AssertRetryQueue(ch, topology.ConsumeQueue, topology.ExchangeName, topology.ConsumeKey); err != nil {
+		ch.Close()
+		conn.Close()
+		return nil, fmt.Errorf("retry queue declare: %w", err)
+	}
+
 	// Declare queue with dead-letter arguments.
 	if _, err := ch.QueueDeclare(
 		topology.ConsumeQueue,
@@ -153,8 +159,19 @@ func (c *Consumer) Start(ctx context.Context) error {
 				slog.Warn("invalid payload, sending to dead letter", "error", err)
 				msg.Nack(false, false) // no requeue
 			case TransientError:
-				slog.Warn("transient error, routing to dead-letter queue", "error", err)
-				msg.Nack(false, false) // dead-letter — retry com backoff em score-cripto-51x
+				scheduled, rerr := ScheduleRetry(c.channel, msg, c.topology.ConsumeQueue)
+				if rerr != nil {
+					slog.Error("failed to schedule retry, routing to DLQ", "error", rerr)
+					msg.Nack(false, false)
+					continue
+				}
+				if scheduled {
+					slog.Info("transient error, message scheduled for retry", "error", err)
+					msg.Ack(false) // removido da origem; retry queue agenda redelivery
+				} else {
+					slog.Warn("max retries exhausted, routing to DLQ", "error", err)
+					msg.Nack(false, false)
+				}
 			}
 		}
 	}

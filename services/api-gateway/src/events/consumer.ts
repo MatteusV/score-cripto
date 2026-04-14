@@ -7,6 +7,7 @@ import { prisma } from "../services/database.js";
 import { CompleteAnalysisRequestUseCase } from "../use-cases/analysis-request/complete-analysis-request-use-case.js";
 import { FailAnalysisRequestUseCase } from "../use-cases/analysis-request/fail-analysis-request-use-case.js";
 import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
+import { assertRetryQueueFor, scheduleRetry } from "./retry-topology.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
 const EXCHANGE_TYPE = "topic";
@@ -137,6 +138,20 @@ export async function startConsumer(): Promise<void> {
     await assertDlqForQueue(channel, QUEUE_CALCULATED);
     await assertDlqForQueue(channel, QUEUE_FAILED);
 
+    // Retry queues (TTL + dead-letter de volta para a origem)
+    await assertRetryQueueFor(
+      channel,
+      QUEUE_CALCULATED,
+      EXCHANGE_NAME,
+      "wallet.score.calculated"
+    );
+    await assertRetryQueueFor(
+      channel,
+      QUEUE_FAILED,
+      EXCHANGE_NAME,
+      "wallet.score.failed"
+    );
+
     // Fila: wallet.score.calculated
     await channel.assertQueue(QUEUE_CALCULATED, {
       durable: true,
@@ -165,11 +180,23 @@ export async function startConsumer(): Promise<void> {
         await handleScoreCalculated(msg.content.toString());
         channel?.ack(msg);
       } catch (error) {
+        const e = error as Error;
         console.error(
           "[api-gateway][Consumer] wallet.score.calculated error:",
-          (error as Error).message
+          e.message
         );
-        channel?.nack(msg, false, false); // dead-letter — sem requeue
+        if (e.message === "invalid_payload") {
+          channel?.nack(msg, false, false); // payload inválido → DLQ direto
+          return;
+        }
+        if (channel) {
+          const scheduled = scheduleRetry(channel, msg, QUEUE_CALCULATED);
+          if (scheduled) {
+            channel.ack(msg); // agendado na retry queue com backoff
+          } else {
+            channel.nack(msg, false, false); // max retries esgotadas → DLQ
+          }
+        }
       }
     });
 
@@ -181,11 +208,23 @@ export async function startConsumer(): Promise<void> {
         await handleScoreFailed(msg.content.toString());
         channel?.ack(msg);
       } catch (error) {
+        const e = error as Error;
         console.error(
           "[api-gateway][Consumer] wallet.score.failed error:",
-          (error as Error).message
+          e.message
         );
-        channel?.nack(msg, false, false); // dead-letter — sem requeue
+        if (e.message === "invalid_payload") {
+          channel?.nack(msg, false, false); // payload inválido → DLQ direto
+          return;
+        }
+        if (channel) {
+          const scheduled = scheduleRetry(channel, msg, QUEUE_FAILED);
+          if (scheduled) {
+            channel.ack(msg); // agendado na retry queue com backoff
+          } else {
+            channel.nack(msg, false, false); // max retries esgotadas → DLQ
+          }
+        }
       }
     });
 

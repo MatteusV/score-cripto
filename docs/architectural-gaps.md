@@ -74,28 +74,23 @@ await app.register(rateLimit, {
 
 ### 4. Retry com Backoff Exponencial + Max Tentativas nos Consumers
 
-**Status:** PARTIAL (só requeue imediato, sem limite)
-**Problema:** O retry atual é um `nack` simples que recoloca a mensagem na fila imediatamente e ilimitadamente. Isso não protege contra falhas transientes (ex: OpenAI indisponível por 30s) nem contra mensagens genuinamente defeituosas.
+**Status:** ✅ PARTIAL IMPLEMENTED (Node/Go — data-indexing em follow-up)
+**Solução implementada:**
+- Retry queue por fila de origem (`<queue>.retry`) com `x-dead-letter-exchange` apontando de volta para a origem via TTL nativo do RabbitMQ (zero plugins)
+- `x-retry-count` header incrementado a cada tentativa; jitter ±10% anti-thundering-herd
+- Após `MAX_RETRIES = 3` (delays 1s / 2s / 4s), mensagem vai para DLQ
+- Helpers: `retry-topology.ts` (Node), `retry_topology.go` (Go)
 
-**Solução:** Implementar contador de tentativas via header `x-retry-count`, backoff exponencial com delay crescente, e rota para DLQ após N falhas.
+**Retry queues criadas:**
+- `api-gateway.wallet.score.calculated.retry`
+- `api-gateway.wallet.score.failed.retry`
+- `process-data-ia.wallet.data.cached.retry`
+- `users.user.analysis.consumed.retry`
+- `data-search.wallet.data.requested.retry`
 
-```typescript
-const retryCount = (msg.properties.headers?.['x-retry-count'] ?? 0) as number;
-const MAX_RETRIES = 3;
+**Escopo não coberto:** `data-indexing` (Broadway/Elixir) mantém `:reject_and_requeue_once` — 1 retry imediato antes da DLQ. Implementação com backoff customizado é issue separada.
 
-if (retryCount >= MAX_RETRIES) {
-  // publica na DLQ e ack a mensagem original
-  await publishToDLQ(msg);
-  channel.ack(msg);
-} else {
-  const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
-  setTimeout(() => {
-    channel.nack(msg, false, true);
-  }, delay);
-}
-```
-
-**Serviços afetados:** `api-gateway`, `process-data-ia`, `data-indexing`, `users`
+**Serviços afetados:** `api-gateway`, `process-data-ia`, `users`, `data-search`
 
 ---
 

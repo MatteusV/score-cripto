@@ -4,6 +4,7 @@ import { config } from "../config.js";
 import { WalletContextInputSchema } from "../schemas/score.js";
 import { makeAnalysisWorkflow } from "../use-cases/analysis-workflow/analysis-workflow.js";
 import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
+import { assertRetryQueueFor, scheduleRetry } from "./retry-topology.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
 const EXCHANGE_TYPE = "topic";
@@ -63,6 +64,7 @@ export async function startConsumer(): Promise<void> {
       durable: true,
     });
     await assertDlqForQueue(channel, QUEUE_NAME);
+    await assertRetryQueueFor(channel, QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
     await channel.assertQueue(QUEUE_NAME, {
       durable: true,
       arguments: dlqArgumentsFor(QUEUE_NAME),
@@ -92,8 +94,14 @@ export async function startConsumer(): Promise<void> {
           (error as Error).message
         );
 
-        // Erros transitórios vão para DLQ — retry com backoff será implementado em score-cripto-51x
-        channel?.nack(msg, false, false);
+        if (channel) {
+          const scheduled = scheduleRetry(channel, msg, QUEUE_NAME);
+          if (scheduled) {
+            channel.ack(msg); // agendado na retry queue com backoff exponencial
+          } else {
+            channel.nack(msg, false, false); // max retries esgotadas → DLQ
+          }
+        }
       }
     });
 
