@@ -3,6 +3,7 @@ import { config } from "./config.js";
 import { startConsumer, stopConsumer } from "./events/consumer.js";
 import { connectRabbitMQ, disconnectRabbitMQ } from "./events/publisher.js";
 import { createHttpServer } from "./http/server.js";
+import { logger } from "./logger.js";
 
 let app: Awaited<ReturnType<typeof createHttpServer>>;
 
@@ -14,18 +15,19 @@ async function start(): Promise<void> {
     await startConsumer();
 
     await app.listen({ port: config.port, host: "0.0.0.0" });
-    console.log(`[users] HTTP server listening on port ${config.port}`);
-    console.log(
-      `[users] Swagger UI disponível em http://localhost:${config.port}/docs`
+    logger.info({ port: config.port }, "HTTP server listening");
+    logger.info(
+      { url: `http://localhost:${config.port}/docs` },
+      "Swagger UI available"
     );
   } catch (error) {
-    console.error("[users] Failed to start:", error);
+    logger.error({ err: error }, "Failed to start users service");
     process.exit(1);
   }
 }
 
 async function shutdown(): Promise<void> {
-  console.log("[users] Shutting down...");
+  logger.info("Shutting down users service");
   if (app) {
     await app.close();
   }

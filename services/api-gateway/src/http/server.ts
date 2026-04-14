@@ -1,6 +1,10 @@
 import { fastifyCors } from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
 import ScalarApiReference from "@scalar/fastify-api-reference";
+import {
+  getLoggerOptions,
+  observabilityPlugin,
+} from "@score-cripto/observability-node";
 import fastify from "fastify";
 import {
   jsonSchemaTransform,
@@ -14,8 +18,13 @@ import { registerRateLimit } from "./plugins/rate-limit.js";
 
 export async function createHttpServer() {
   const app = fastify({
-    logger: true,
+    logger: getLoggerOptions({ service: "api-gateway" }),
+    requestIdHeader: "x-request-id",
+    requestIdLogLabel: "correlationId",
+    genReqId: () => crypto.randomUUID(),
   }).withTypeProvider<ZodTypeProvider>();
+
+  await app.register(observabilityPlugin);
 
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);

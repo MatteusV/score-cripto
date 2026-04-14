@@ -127,9 +127,9 @@ export async function analysisRequestHandler(app: FastifyInstance) {
             error: "Usage limit exceeded for this billing period",
           });
         }
-        console.warn(
-          "[api-gateway] Users service unavailable, proceeding with analysis:",
-          (err as Error).message
+        request.log.warn(
+          { err: (err as Error).message },
+          "Users service unavailable, proceeding with analysis"
         );
       }
 
@@ -139,8 +139,9 @@ export async function analysisRequestHandler(app: FastifyInstance) {
         address,
       });
 
-      console.log(
-        `EMITINDO: wallet.data.requested | requestId=${analysisRequest.id} chain=${chain} address=${address}`
+      request.log.info(
+        { requestId: analysisRequest.id, chain },
+        "wallet.data.requested event publishing"
       );
 
       publishWalletDataRequested({

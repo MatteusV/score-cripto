@@ -1,0 +1,10 @@
+{
+  "name": "score-cripto",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter \"./services/*\" run dev",
+    "test": "pnpm --filter \"./packages/*\" --filter \"./services/*\" run test",
+    "check": "pnpm --filter \"./packages/*\" --filter \"./services/*\" run check"
+  }
+}

@@ -4,6 +4,7 @@ import {
   publishScoreFailed,
 } from "../../events/publisher.js";
 import type { ProcessedData } from "../../generated/prisma/client";
+import { logger } from "../../logger.js";
 import { ProcessedDataPrismaRepository } from "../../repositories/prisma/processed-data-prisma-repository.js";
 import type { WalletContextInput } from "../../schemas/score.js";
 import { prisma } from "../../services/database.js";
@@ -97,9 +98,9 @@ export class AnalysisWorkflow {
       scoringResult = await this.scoringFn(walletContext);
     } catch (error) {
       const reason = (error as Error).message;
-      console.error(
-        "[AnalysisWorkflow] AI scoring failed, using heuristic:",
-        reason
+      logger.warn(
+        { err: reason },
+        "[AnalysisWorkflow] AI scoring failed, using heuristic"
       );
 
       const heuristic = scoreWithHeuristic(walletContext);
@@ -136,7 +137,10 @@ export class AnalysisWorkflow {
       processedData = result.processedData;
     } catch (error) {
       const reason = (error as Error).message;
-      console.error("[AnalysisWorkflow] Failed to persist score:", reason);
+      logger.error(
+        { err: reason },
+        "[AnalysisWorkflow] Failed to persist score"
+      );
       this.publishFailed({ requestId, reason });
       throw error;
     }

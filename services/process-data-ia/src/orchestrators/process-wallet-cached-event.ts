@@ -4,6 +4,7 @@ import {
   publishScoreFailed,
 } from "../events/publisher.js";
 import type { ProcessedData } from "../generated/prisma/client";
+import { logger } from "../logger.js";
 import { ProcessedDataPrismaRepository } from "../repositories/prisma/processed-data-prisma-repository.js";
 import type { WalletContextInput } from "../schemas/score.js";
 import { prisma } from "../services/database.js";
@@ -89,9 +90,9 @@ export class ProcessWalletCachedEvent {
       scoringResult = await this.scoringFn(walletContext);
     } catch (error) {
       const reason = (error as Error).message;
-      console.error(
-        "[ProcessWalletCachedEvent] AI scoring failed, using heuristic:",
-        reason
+      logger.warn(
+        { err: reason },
+        "[ProcessWalletCachedEvent] AI scoring failed, using heuristic"
       );
 
       const heuristic = scoreWithHeuristic(walletContext);
@@ -128,9 +129,9 @@ export class ProcessWalletCachedEvent {
       processedData = result.processedData;
     } catch (error) {
       const reason = (error as Error).message;
-      console.error(
-        "[ProcessWalletCachedEvent] Failed to persist score:",
-        reason
+      logger.error(
+        { err: reason },
+        "[ProcessWalletCachedEvent] Failed to persist score"
       );
       this.publishFailed({ requestId, reason });
       throw error;

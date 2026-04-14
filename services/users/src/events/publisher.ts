@@ -1,5 +1,10 @@
+import {
+  getCorrelationId,
+  publishWithCorrelation,
+} from "@score-cripto/observability-node";
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { config } from "../config.js";
+import { logger } from "../logger.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
 const EXCHANGE_TYPE = "topic";
@@ -14,23 +19,20 @@ export async function connectRabbitMQ(): Promise<void> {
     await channel.assertExchange(EXCHANGE_NAME, EXCHANGE_TYPE, {
       durable: true,
     });
-    console.log("[users][RabbitMQ] Publisher connected and exchange asserted");
+    logger.info("RabbitMQ publisher connected and exchange asserted");
 
     connection.on("close", () => {
-      console.log("[users][RabbitMQ] Publisher connection closed");
+      logger.warn("RabbitMQ publisher connection closed");
       connection = null;
       channel = null;
     });
     connection.on("error", (err) => {
-      console.error(
-        "[users][RabbitMQ] Publisher connection error:",
-        err.message
-      );
+      logger.error({ err: err.message }, "RabbitMQ publisher connection error");
     });
   } catch (error) {
-    console.warn(
-      "[users][RabbitMQ] Publisher failed to connect:",
-      (error as Error).message
+    logger.warn(
+      { err: (error as Error).message },
+      "RabbitMQ publisher failed to connect"
     );
   }
 }
@@ -44,7 +46,7 @@ export async function disconnectRabbitMQ(): Promise<void> {
       await connection.close();
     }
   } catch {
-    /* ignore close errors */
+    // ignore disconnect errors
   } finally {
     channel = null;
     connection = null;
@@ -53,33 +55,37 @@ export async function disconnectRabbitMQ(): Promise<void> {
 
 function publishEvent(routingKey: string, payload: unknown): boolean {
   if (!channel) {
-    console.warn(
-      `[users][RabbitMQ] No channel available, skipping: ${routingKey}`
-    );
+    logger.warn({ routingKey }, "No AMQP channel available, skipping event");
     return false;
   }
+
+  const correlationId = getCorrelationId() ?? crypto.randomUUID();
+
   try {
     const message = Buffer.from(JSON.stringify(payload));
-    channel.publish(EXCHANGE_NAME, routingKey, message, {
-      persistent: true,
-      contentType: "application/json",
-      timestamp: Date.now(),
-    });
-    console.log(`[users] EMITINDO: ${routingKey}`);
+    publishWithCorrelation(
+      channel,
+      EXCHANGE_NAME,
+      routingKey,
+      message,
+      {
+        persistent: true,
+        contentType: "application/json",
+        timestamp: Date.now(),
+      },
+      correlationId
+    );
+    logger.info({ routingKey, correlationId }, "Event published");
     return true;
   } catch (error) {
-    console.error(
-      `[users][RabbitMQ] Failed to publish ${routingKey}:`,
-      (error as Error).message
+    logger.error(
+      { routingKey, correlationId, err: (error as Error).message },
+      "Failed to publish event"
     );
     return false;
   }
 }
 
-// TODO: add typed publish functions for user service events
-// e.g., publishUserAnalysisConsumed, publishUserCreated, etc.
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _publishUserEvent<T>(eventType: string, data: T): boolean {
   return publishEvent(`user.${eventType}`, {
     event: `user.${eventType}`,

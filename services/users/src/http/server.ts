@@ -1,6 +1,10 @@
 import { fastifyCors } from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
 import ScalarApiReference from "@scalar/fastify-api-reference";
+import {
+  getLoggerOptions,
+  observabilityPlugin,
+} from "@score-cripto/observability-node";
 import fastify from "fastify";
 import fastifyRawBody from "fastify-raw-body";
 import {
@@ -17,7 +21,10 @@ import { usageHandler } from "./controllers/usage/routes.js";
 
 export async function createHttpServer() {
   const app = fastify({
-    logger: true,
+    logger: getLoggerOptions({ service: "users" }),
+    requestIdHeader: "x-request-id",
+    requestIdLogLabel: "correlationId",
+    genReqId: () => crypto.randomUUID(),
   }).withTypeProvider<ZodTypeProvider>();
 
   app.setValidatorCompiler(validatorCompiler);
@@ -30,6 +37,8 @@ export async function createHttpServer() {
     encoding: "utf8",
     runFirst: true,
   });
+
+  await app.register(observabilityPlugin);
 
   app.register(fastifyCors, {
     origin: true,

@@ -1,9 +1,11 @@
+import { withCorrelation } from "@score-cripto/observability-node";
 import amqplib, {
   type Channel,
   type ChannelModel,
   type ConsumeMessage,
 } from "amqplib";
 import { config } from "../config.js";
+import { logger } from "../logger.js";
 import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
 import { assertRetryQueueFor, scheduleRetry } from "./retry-topology.js";
 import {
@@ -45,51 +47,53 @@ export async function startConsumer(): Promise<void> {
 
     channel.prefetch(1);
 
-    channel.consume(QUEUE_NAME, async (msg) => {
+    channel.consume(QUEUE_NAME, (msg) => {
       if (!msg) {
         return;
       }
+      withCorrelation(msg, async (correlationId) => {
+        try {
+          const result = await processUserAnalysisConsumedMessage(
+            msg.content.toString(),
+            correlationId
+          );
 
-      try {
-        const result = await processUserAnalysisConsumedMessage(
-          msg.content.toString()
-        );
-
-        if (result.outcome === "invalid_payload") {
-          channel?.nack(msg, false, false); // payload inválido → DLQ direto
-        } else if (result.outcome === "error") {
+          if (result.outcome === "invalid_payload") {
+            channel?.nack(msg, false, false);
+          } else if (result.outcome === "error") {
+            if (channel) {
+              retryOrDeadLetter(channel, msg);
+            }
+          } else {
+            channel?.ack(msg);
+          }
+        } catch (error) {
+          logger.error(
+            { correlationId, err: (error as Error).message },
+            "Failed to process event (transient)"
+          );
           if (channel) {
             retryOrDeadLetter(channel, msg);
           }
-        } else {
-          channel?.ack(msg); // processed ou limit_exceeded
         }
-      } catch (error) {
-        console.error(
-          "[users][Consumer] Failed to process event (transient):",
-          (error as Error).message
-        );
-        if (channel) {
-          retryOrDeadLetter(channel, msg);
-        }
-      }
+      });
     });
 
     connection.on("close", () => {
-      console.log("[users][Consumer] Connection closed");
+      logger.warn("RabbitMQ consumer connection closed");
       connection = null;
       channel = null;
     });
 
     connection.on("error", (err) => {
-      console.error("[users][Consumer] Connection error:", err.message);
+      logger.error({ err: err.message }, "RabbitMQ consumer connection error");
     });
 
-    console.log(`[users][Consumer] Listening on queue: ${QUEUE_NAME}`);
+    logger.info({ queue: QUEUE_NAME }, "Consumer started");
   } catch (error) {
-    console.warn(
-      "[users][Consumer] Failed to connect, events will not be consumed:",
-      (error as Error).message
+    logger.warn(
+      { err: (error as Error).message },
+      "RabbitMQ consumer failed to connect"
     );
   }
 }
@@ -103,7 +107,7 @@ export async function stopConsumer(): Promise<void> {
       await connection.close();
     }
   } catch {
-    /* ignore close errors */
+    // ignore disconnect errors
   } finally {
     channel = null;
     connection = null;

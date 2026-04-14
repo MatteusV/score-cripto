@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { logger } from "../logger.js";
 import { UsageLimitExceededError } from "../use-cases/errors/usage-limit-exceeded-error.js";
 import { UserNotFoundError } from "../use-cases/errors/user-not-found-error.js";
 import { makeConsumeUsageUseCase } from "../use-cases/factories/make-consume-usage-use-case.js";
@@ -32,62 +33,57 @@ export interface ProcessMessageResult {
 }
 
 export async function processUserAnalysisConsumedMessage(
-  raw: string
+  raw: string,
+  correlationId?: string
 ): Promise<ProcessMessageResult> {
+  const msgLog = correlationId ? logger.child({ correlationId }) : logger;
+
   let parsed: ReturnType<typeof UserAnalysisConsumedEventSchema.safeParse>;
 
   try {
     parsed = UserAnalysisConsumedEventSchema.safeParse(JSON.parse(raw));
   } catch {
-    console.error("[users][Consumer] Failed to parse message JSON");
+    msgLog.error("Failed to parse message JSON");
     return { outcome: "invalid_payload" };
   }
 
   if (!parsed.success) {
-    console.error(
-      "[users][Consumer] Invalid event payload:",
-      parsed.error.flatten()
+    msgLog.error(
+      { errors: parsed.error.flatten() },
+      "Invalid user.analysis.consumed payload"
     );
     return { outcome: "invalid_payload" };
   }
 
   const { userId, analysisId, status } = parsed.data.data;
 
-  // Só contabiliza análises completadas com sucesso
   if (status !== "completed") {
-    console.log(
-      `[users][Consumer] Skipping non-completed analysis ${analysisId} (status=${status})`
+    msgLog.info(
+      { analysisId, status },
+      "Skipping non-completed analysis event"
     );
     return { outcome: "processed" };
   }
 
-  console.log(
-    `[users][Consumer] Processing user.analysis.consumed | userId=${userId} analysisId=${analysisId}`
-  );
+  msgLog.info({ userId, analysisId }, "user.analysis.consumed received");
 
   try {
     const useCase = makeConsumeUsageUseCase();
     await useCase.execute({ userId });
-    console.log(`[users][Consumer] Usage consumed for userId=${userId}`);
+    msgLog.info({ userId }, "Usage consumed");
     return { outcome: "processed" };
   } catch (err) {
     if (err instanceof UsageLimitExceededError) {
-      // Limite já atingido — consumir silenciosamente (análise já foi feita)
-      console.warn(
-        `[users][Consumer] Usage limit already exceeded for userId=${userId}, acking anyway`
-      );
+      msgLog.warn({ userId }, "Usage limit already exceeded, acking anyway");
       return { outcome: "limit_exceeded" };
     }
     if (err instanceof UserNotFoundError) {
-      // Usuário não existe — evento órfão, acknowledge silencioso
-      console.warn(
-        `[users][Consumer] User not found for userId=${userId}, skipping orphan event`
-      );
+      msgLog.warn({ userId }, "User not found, skipping orphan event");
       return { outcome: "user_not_found" };
     }
-    console.error(
-      "[users][Consumer] Transient error processing event:",
-      (err as Error).message
+    msgLog.error(
+      { userId, err: (err as Error).message },
+      "Transient error processing event"
     );
     return { outcome: "error" };
   }

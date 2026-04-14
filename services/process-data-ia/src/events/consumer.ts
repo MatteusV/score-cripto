@@ -1,6 +1,8 @@
+import { withCorrelation } from "@score-cripto/observability-node";
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { z } from "zod";
 import { config } from "../config.js";
+import { logger } from "../logger.js";
 import { WalletContextInputSchema } from "../schemas/score.js";
 import { makeAnalysisWorkflow } from "../use-cases/analysis-workflow/analysis-workflow.js";
 import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
@@ -28,27 +30,32 @@ export interface ProcessMessageResult {
 }
 
 export async function processWalletDataCachedMessage(
-  raw: string
+  raw: string,
+  correlationId?: string
 ): Promise<ProcessMessageResult> {
+  const msgLog = correlationId ? logger.child({ correlationId }) : logger;
+
   const parsed = WalletDataCachedEventSchema.safeParse(JSON.parse(raw));
 
   if (!parsed.success) {
-    console.error("[Consumer] Invalid event payload:", parsed.error.flatten());
+    msgLog.error(
+      { errors: parsed.error.flatten() },
+      "Invalid wallet.data.cached payload"
+    );
     return { outcome: "invalid_payload" };
   }
 
   const { requestId, userId, walletContext } = parsed.data.data;
 
-  console.log(
-    `RECEBIDO: wallet.data.cached | requestId=${requestId} chain=${walletContext.chain} address=${walletContext.address}`
+  msgLog.info(
+    { requestId, chain: walletContext.chain },
+    "wallet.data.cached received"
   );
 
   const orchestrator = makeAnalysisWorkflow();
   await orchestrator.execute({ requestId, walletContext, userId });
 
-  console.log(
-    `[Consumer] Processed wallet.data.cached for ${walletContext.chain}:${walletContext.address}`
-  );
+  msgLog.info({ requestId }, "wallet.data.cached processed");
   return { outcome: "processed" };
 }
 
@@ -73,53 +80,54 @@ export async function startConsumer(): Promise<void> {
 
     channel.prefetch(1);
 
-    channel.consume(QUEUE_NAME, async (msg) => {
+    channel.consume(QUEUE_NAME, (msg) => {
       if (!msg) {
         return;
       }
+      withCorrelation(msg, async (correlationId) => {
+        try {
+          const result = await processWalletDataCachedMessage(
+            msg.content.toString(),
+            correlationId
+          );
 
-      try {
-        const result = await processWalletDataCachedMessage(
-          msg.content.toString()
-        );
-
-        if (result.outcome === "invalid_payload") {
-          channel?.nack(msg, false, false); // dead-letter
-        } else {
-          channel?.ack(msg);
-        }
-      } catch (error) {
-        console.error(
-          "[Consumer] Failed to process event (transient):",
-          (error as Error).message
-        );
-
-        if (channel) {
-          const scheduled = scheduleRetry(channel, msg, QUEUE_NAME);
-          if (scheduled) {
-            channel.ack(msg); // agendado na retry queue com backoff exponencial
+          if (result.outcome === "invalid_payload") {
+            channel?.nack(msg, false, false);
           } else {
-            channel.nack(msg, false, false); // max retries esgotadas → DLQ
+            channel?.ack(msg);
+          }
+        } catch (error) {
+          logger.error(
+            { correlationId, err: (error as Error).message },
+            "Failed to process event (transient)"
+          );
+          if (channel) {
+            const scheduled = scheduleRetry(channel, msg, QUEUE_NAME);
+            if (scheduled) {
+              channel.ack(msg);
+            } else {
+              channel.nack(msg, false, false);
+            }
           }
         }
-      }
+      });
     });
 
     connection.on("close", () => {
-      console.log("[Consumer] Connection closed");
+      logger.warn("RabbitMQ consumer connection closed");
       connection = null;
       channel = null;
     });
 
     connection.on("error", (err) => {
-      console.error("[Consumer] Connection error:", err.message);
+      logger.error({ err: err.message }, "RabbitMQ consumer connection error");
     });
 
-    console.log(`[Consumer] Listening on queue: ${QUEUE_NAME}`);
+    logger.info({ queue: QUEUE_NAME }, "Consumer started");
   } catch (error) {
-    console.warn(
-      "[Consumer] Failed to connect, events will not be consumed:",
-      (error as Error).message
+    logger.warn(
+      { err: (error as Error).message },
+      "RabbitMQ consumer failed to connect"
     );
   }
 }
@@ -133,7 +141,7 @@ export async function stopConsumer(): Promise<void> {
       await connection.close();
     }
   } catch {
-    // ignore close errors
+    // ignore disconnect errors
   } finally {
     channel = null;
     connection = null;
