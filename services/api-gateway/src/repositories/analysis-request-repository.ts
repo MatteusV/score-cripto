@@ -1,8 +1,8 @@
 import type {
-  AnalysisRequest,
-  AnalysisTranslation,
-} from "../generated/prisma/browser";
-import type { AnalysisSummary } from "../use-cases/analysis-request/list-analyses-use-case";
+  AnalysisRequestDTO,
+  AnalysisSummary,
+  AnalysisTranslationDTO,
+} from "../domain/analysis-request";
 
 export interface CreateAnalysisRequestData {
   address: string;
@@ -29,42 +29,42 @@ export interface UpsertTranslationData {
 }
 
 export interface AnalysisRequestRepository {
-  create: (data: CreateAnalysisRequestData) => Promise<AnalysisRequest>;
+  create: (data: CreateAnalysisRequestData) => Promise<AnalysisRequestDTO>;
   createWithPublicId: (
     data: CreateAnalysisRequestData
-  ) => Promise<AnalysisRequest>;
+  ) => Promise<AnalysisRequestDTO>;
   findActive: (
     userId: string,
     chain: string,
     address: string
-  ) => Promise<AnalysisRequest | null>;
-  findById: (id: string) => Promise<AnalysisRequest | null>;
+  ) => Promise<AnalysisRequestDTO | null>;
+  findById: (id: string) => Promise<AnalysisRequestDTO | null>;
   findByUserChainAddress: (
     userId: string,
     chain: string,
     address: string
-  ) => Promise<AnalysisRequest | null>;
+  ) => Promise<AnalysisRequestDTO | null>;
   findByUserIdAndPublicId: (
     userId: string,
     publicId: number
-  ) => Promise<AnalysisRequest | null>;
+  ) => Promise<AnalysisRequestDTO | null>;
   findTranslation: (
     analysisId: string,
     locale: string
-  ) => Promise<AnalysisTranslation | null>;
+  ) => Promise<AnalysisTranslationDTO | null>;
   listByUserId: (
     userId: string,
     page: number,
     limit: number
-  ) => Promise<{ items: AnalysisRequest[]; total: number }>;
+  ) => Promise<{ items: AnalysisRequestDTO[]; total: number }>;
   markCompleted: (
     id: string,
     result: CompleteAnalysisRequestData
-  ) => Promise<AnalysisRequest>;
-  markFailed: (id: string, reason: string) => Promise<AnalysisRequest>;
+  ) => Promise<AnalysisRequestDTO>;
+  markFailed: (id: string, reason: string) => Promise<AnalysisRequestDTO>;
   markStaleAsFailed: (olderThan: Date, reason: string) => Promise<number>;
   summarizeByUserId: (userId: string) => Promise<{ summary: AnalysisSummary }>;
   upsertTranslation: (
     data: UpsertTranslationData
-  ) => Promise<AnalysisTranslation>;
+  ) => Promise<AnalysisTranslationDTO>;
 }

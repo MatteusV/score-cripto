@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type {
-  AnalysisRequest,
-  AnalysisTranslation,
-} from "../../generated/prisma/client";
-import type { AnalysisSummary } from "../../use-cases/analysis-request/list-analyses-use-case";
+  AnalysisRequestDTO,
+  AnalysisSummary,
+  AnalysisTranslationDTO,
+} from "../../domain/analysis-request";
 import type {
   AnalysisRequestRepository,
   CompleteAnalysisRequestData,
@@ -14,12 +14,13 @@ import type {
 export class AnalysisRequestInMemoryRepository
   implements AnalysisRequestRepository
 {
-  items: AnalysisRequest[] = [];
+  items: AnalysisRequestDTO[] = [];
   private readonly counters: Map<string, number> = new Map();
-  private readonly translations: Map<string, AnalysisTranslation> = new Map();
+  private readonly translations: Map<string, AnalysisTranslationDTO> =
+    new Map();
 
-  async create(data: CreateAnalysisRequestData): Promise<AnalysisRequest> {
-    const item: AnalysisRequest = {
+  async create(data: CreateAnalysisRequestData): Promise<AnalysisRequestDTO> {
+    const item: AnalysisRequestDTO = {
       id: randomUUID(),
       userId: data.userId,
       publicId: null,
@@ -46,12 +47,12 @@ export class AnalysisRequestInMemoryRepository
 
   async createWithPublicId(
     data: CreateAnalysisRequestData
-  ): Promise<AnalysisRequest> {
+  ): Promise<AnalysisRequestDTO> {
     const current = this.counters.get(data.userId) ?? 0;
     const next = current + 1;
     this.counters.set(data.userId, next);
 
-    const item: AnalysisRequest = {
+    const item: AnalysisRequestDTO = {
       id: randomUUID(),
       userId: data.userId,
       publicId: next,
@@ -80,7 +81,7 @@ export class AnalysisRequestInMemoryRepository
     userId: string,
     chain: string,
     address: string
-  ): Promise<AnalysisRequest | null> {
+  ): Promise<AnalysisRequestDTO | null> {
     const result = this.items
       .filter(
         (item) =>
@@ -97,7 +98,7 @@ export class AnalysisRequestInMemoryRepository
   async findByUserIdAndPublicId(
     userId: string,
     publicId: number
-  ): Promise<AnalysisRequest | null> {
+  ): Promise<AnalysisRequestDTO | null> {
     const result = this.items.find(
       (item) => item.userId === userId && item.publicId === publicId
     );
@@ -109,7 +110,7 @@ export class AnalysisRequestInMemoryRepository
     userId: string,
     chain: string,
     address: string
-  ): Promise<AnalysisRequest | null> {
+  ): Promise<AnalysisRequestDTO | null> {
     const result = this.items
       .filter(
         (item) =>
@@ -124,7 +125,7 @@ export class AnalysisRequestInMemoryRepository
     return result ?? null;
   }
 
-  async findById(id: string): Promise<AnalysisRequest | null> {
+  async findById(id: string): Promise<AnalysisRequestDTO | null> {
     const result = this.items.find((item) => item.id === id);
 
     return result ?? null;
@@ -133,11 +134,11 @@ export class AnalysisRequestInMemoryRepository
   async markCompleted(
     id: string,
     result: CompleteAnalysisRequestData
-  ): Promise<AnalysisRequest> {
+  ): Promise<AnalysisRequestDTO> {
     const index = this.items.findIndex((item) => item.id === id);
     const item = this.items[index];
 
-    const updated: AnalysisRequest = {
+    const updated: AnalysisRequestDTO = {
       ...item,
       status: "COMPLETED",
       completedAt: new Date(),
@@ -155,11 +156,11 @@ export class AnalysisRequestInMemoryRepository
     return updated;
   }
 
-  async markFailed(id: string, reason: string): Promise<AnalysisRequest> {
+  async markFailed(id: string, reason: string): Promise<AnalysisRequestDTO> {
     const index = this.items.findIndex((item) => item.id === id);
     const item = this.items[index];
 
-    const updated: AnalysisRequest = {
+    const updated: AnalysisRequestDTO = {
       ...item,
       status: "FAILED",
       failedAt: new Date(),
@@ -188,7 +189,7 @@ export class AnalysisRequestInMemoryRepository
     userId: string,
     page: number,
     limit: number
-  ): Promise<{ items: AnalysisRequest[]; total: number }> {
+  ): Promise<{ items: AnalysisRequestDTO[]; total: number }> {
     const completed = this.items
       .filter((item) => item.userId === userId && item.status === "COMPLETED")
       .sort((a, b) => {
@@ -207,16 +208,16 @@ export class AnalysisRequestInMemoryRepository
   async findTranslation(
     analysisId: string,
     locale: string
-  ): Promise<AnalysisTranslation | null> {
+  ): Promise<AnalysisTranslationDTO | null> {
     return this.translations.get(`${analysisId}:${locale}`) ?? null;
   }
 
   async upsertTranslation(
     data: UpsertTranslationData
-  ): Promise<AnalysisTranslation> {
+  ): Promise<AnalysisTranslationDTO> {
     const key = `${data.analysisId}:${data.locale}`;
     const existing = this.translations.get(key);
-    const translation: AnalysisTranslation = {
+    const translation: AnalysisTranslationDTO = {
       id: existing?.id ?? randomUUID(),
       analysisId: data.analysisId,
       locale: data.locale,

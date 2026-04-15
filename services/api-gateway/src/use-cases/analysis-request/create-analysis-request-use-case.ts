@@ -1,4 +1,4 @@
-import type { AnalysisRequest } from "../../generated/prisma/client";
+import type { AnalysisRequestDTO } from "../../domain/analysis-request";
 import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository";
 
 interface CreateAnalysisRequestUseCaseRequest {
@@ -8,7 +8,7 @@ interface CreateAnalysisRequestUseCaseRequest {
 }
 
 interface CreateAnalysisRequestUseCaseResponse {
-  analysisRequest: AnalysisRequest;
+  analysisRequest: AnalysisRequestDTO;
 }
 
 export class CreateAnalysisRequestUseCase {

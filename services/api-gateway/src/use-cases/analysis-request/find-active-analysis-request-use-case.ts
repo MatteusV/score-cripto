@@ -1,4 +1,4 @@
-import type { AnalysisRequest } from "../../generated/prisma/client";
+import type { AnalysisRequestDTO } from "../../domain/analysis-request";
 import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository";
 
 interface FindActiveAnalysisRequestUseCaseRequest {
@@ -18,7 +18,7 @@ export class FindActiveAnalysisRequestUseCase {
     userId,
     chain,
     address,
-  }: FindActiveAnalysisRequestUseCaseRequest): Promise<AnalysisRequest | null> {
+  }: FindActiveAnalysisRequestUseCaseRequest): Promise<AnalysisRequestDTO | null> {
     return await this.repository.findActive(userId, chain, address);
   }
 }

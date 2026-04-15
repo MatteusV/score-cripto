@@ -1,4 +1,4 @@
-import type { AnalysisRequest } from "../../generated/prisma/client";
+import type { AnalysisRequestDTO } from "../../domain/analysis-request";
 import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository";
 
 const DEFAULT_VALIDITY_HOURS = 24;
@@ -10,8 +10,8 @@ interface FindCachedAnalysisUseCaseRequest {
 }
 
 type FindCachedAnalysisUseCaseResponse =
-  | { kind: "completed"; analysisRequest: AnalysisRequest }
-  | { kind: "pending"; analysisRequest: AnalysisRequest }
+  | { kind: "completed"; analysisRequest: AnalysisRequestDTO }
+  | { kind: "pending"; analysisRequest: AnalysisRequestDTO }
   | { kind: "miss" };
 
 export class FindCachedAnalysisUseCase {

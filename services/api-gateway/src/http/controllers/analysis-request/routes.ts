@@ -1,8 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
+import type { AnalysisRequestDTO } from "../../../domain/analysis-request";
 import { publishWalletDataRequested } from "../../../events/publisher";
-import type { AnalysisRequest } from "../../../generated/prisma/client";
 import { analysisRequestsCounter } from "../../../observability/metrics";
 import { AnalysisRequestPrismaRepository } from "../../../repositories/prisma/analysis-request-prisma-repository";
 import { prisma } from "../../../services/database";
@@ -271,7 +271,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params;
 
-      let analysisRequest: AnalysisRequest;
+      let analysisRequest: AnalysisRequestDTO;
       try {
         ({ analysisRequest } = await getUseCase.execute({ id }));
       } catch (err) {
@@ -519,7 +519,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
       const { publicId } = request.params as { publicId: number };
       const userId = request.user.id;
 
-      let analysisRequest: AnalysisRequest;
+      let analysisRequest: AnalysisRequestDTO;
       try {
         ({ analysisRequest } = await getByPublicIdUseCase.execute({
           userId,

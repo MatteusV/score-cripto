@@ -1,9 +1,9 @@
 import type {
-  AnalysisRequest,
-  AnalysisTranslation,
-  PrismaClient,
-} from "../../generated/prisma/client";
-import type { AnalysisSummary } from "../../use-cases/analysis-request/list-analyses-use-case";
+  AnalysisRequestDTO,
+  AnalysisSummary,
+  AnalysisTranslationDTO,
+} from "../../domain/analysis-request";
+import type { PrismaClient } from "../../generated/prisma/client";
 import type {
   AnalysisRequestRepository,
   CompleteAnalysisRequestData,
@@ -20,7 +20,7 @@ export class AnalysisRequestPrismaRepository
     this.prisma = prismaClient;
   }
 
-  async create(data: CreateAnalysisRequestData): Promise<AnalysisRequest> {
+  async create(data: CreateAnalysisRequestData): Promise<AnalysisRequestDTO> {
     return await this.prisma.analysisRequest.create({
       data: {
         userId: data.userId,
@@ -33,7 +33,7 @@ export class AnalysisRequestPrismaRepository
 
   async createWithPublicId(
     data: CreateAnalysisRequestData
-  ): Promise<AnalysisRequest> {
+  ): Promise<AnalysisRequestDTO> {
     return await this.prisma.$transaction(async (tx) => {
       const counter = await tx.userAnalysisCounter.upsert({
         where: { userId: data.userId },
@@ -57,7 +57,7 @@ export class AnalysisRequestPrismaRepository
     userId: string,
     chain: string,
     address: string
-  ): Promise<AnalysisRequest | null> {
+  ): Promise<AnalysisRequestDTO | null> {
     const result = await this.prisma.analysisRequest.findFirst({
       where: { userId, chain, address },
       orderBy: { requestedAt: "desc" },
@@ -69,7 +69,7 @@ export class AnalysisRequestPrismaRepository
   async findByUserIdAndPublicId(
     userId: string,
     publicId: number
-  ): Promise<AnalysisRequest | null> {
+  ): Promise<AnalysisRequestDTO | null> {
     const result = await this.prisma.analysisRequest.findUnique({
       where: { userId_publicId: { userId, publicId } },
     });
@@ -81,7 +81,7 @@ export class AnalysisRequestPrismaRepository
     userId: string,
     chain: string,
     address: string
-  ): Promise<AnalysisRequest | null> {
+  ): Promise<AnalysisRequestDTO | null> {
     const result = await this.prisma.analysisRequest.findFirst({
       where: {
         userId,
@@ -95,7 +95,7 @@ export class AnalysisRequestPrismaRepository
     return result ?? null;
   }
 
-  async findById(id: string): Promise<AnalysisRequest | null> {
+  async findById(id: string): Promise<AnalysisRequestDTO | null> {
     const result = await this.prisma.analysisRequest.findUnique({
       where: { id },
     });
@@ -106,7 +106,7 @@ export class AnalysisRequestPrismaRepository
   async markCompleted(
     id: string,
     result: CompleteAnalysisRequestData
-  ): Promise<AnalysisRequest> {
+  ): Promise<AnalysisRequestDTO> {
     return await this.prisma.analysisRequest.update({
       where: { id },
       data: {
@@ -123,7 +123,7 @@ export class AnalysisRequestPrismaRepository
     });
   }
 
-  async markFailed(id: string, reason: string): Promise<AnalysisRequest> {
+  async markFailed(id: string, reason: string): Promise<AnalysisRequestDTO> {
     return await this.prisma.analysisRequest.update({
       where: { id },
       data: {
@@ -191,7 +191,7 @@ export class AnalysisRequestPrismaRepository
   async findTranslation(
     analysisId: string,
     locale: string
-  ): Promise<AnalysisTranslation | null> {
+  ): Promise<AnalysisTranslationDTO | null> {
     return this.prisma.analysisTranslation.findUnique({
       where: { analysisId_locale: { analysisId, locale } },
     });
@@ -199,7 +199,7 @@ export class AnalysisRequestPrismaRepository
 
   async upsertTranslation(
     data: UpsertTranslationData
-  ): Promise<AnalysisTranslation> {
+  ): Promise<AnalysisTranslationDTO> {
     return this.prisma.analysisTranslation.upsert({
       where: {
         analysisId_locale: { analysisId: data.analysisId, locale: data.locale },

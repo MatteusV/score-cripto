@@ -1,21 +1,9 @@
 import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository";
 
-export interface AnalysisSummary {
-  attention: number; // score >= 40 && < 70
-  avgScore: number;
-  risky: number; // score < 40
-  total: number;
-  trusted: number; // score >= 70
-}
-
-export interface AnalysisListItem {
-  address: string;
-  chain: string;
-  completedAt: Date;
-  id: string;
-  requestedAt: Date;
-  score: number;
-}
+export type {
+  AnalysisListItem,
+  AnalysisSummary,
+} from "../../domain/analysis-request";
 
 export interface ListAnalysesResult {
   data: AnalysisListItem[];
