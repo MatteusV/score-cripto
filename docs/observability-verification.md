@@ -193,3 +193,118 @@ docker exec score-cripto-rabbitmq cat /etc/rabbitmq/enabled_plugins
 docker exec score-cripto-grafana ls /etc/grafana/provisioning/dashboards/
 # Deve listar: dashboards.yaml, service-health.json, amqp-pipeline.json, ai-cost-usage.json, wallet-analysis-flow.json
 ```
+
+---
+
+# Observability Verification Guide — Logs → Loki
+
+## Arquitetura de Logs
+
+O collector lê os arquivos JSON do Docker log driver (`/var/lib/docker/containers/*/*-json.log`), parseia o wrapper externo do Docker e depois o JSON interno de cada serviço (pino, slog, logger_json), e envia para o Loki via OTLP nativo (Loki 3.x endpoint `/otlp/v1/logs`).
+
+**Serviços → stdout JSON → Docker log files → filelog receiver → OTel Collector → Loki**
+
+O campo `service` do log interno é promovido a resource attribute `service.name`, que o Loki usa como stream label.
+
+## Checklist de Verificação
+
+### 1. Stack observability em pé
+
+```bash
+docker compose --profile observability ps
+# otel-collector, loki, tempo, prometheus, grafana — todos "running"
+```
+
+Se o collector já estava rodando antes desta mudança, reiniciar para recarregar o config:
+
+```bash
+docker compose --profile observability restart otel-collector
+```
+
+### 2. Logs chegando ao Loki
+
+Aguardar ~30s após subir os serviços de aplicação (api-gateway, process-data-ia, data-search, etc.) e verificar:
+
+```bash
+# Conferir streams disponíveis no Loki
+curl -s 'http://localhost:3100/loki/api/v1/labels' | jq '.data'
+# esperado: ["service_name", ...]
+
+# Conferir logs do api-gateway
+curl -s 'http://localhost:3100/loki/api/v1/query_range?query={service_name="api-gateway"}&limit=5' \
+  | jq '.data.result | length'
+# esperado: > 0
+```
+
+### 3. Grafana → Explore → Loki
+
+1. Abrir `http://localhost:3030` → Explore → datasource **Loki**
+2. Query: `{service_name=~".+"} | json | line_format "[{{.service_name}}] {{.body}}"`
+3. Deve exibir linhas de log recentes de todos os serviços ativos
+
+### 4. Correlação Trace → Logs (Tempo ↔ Loki)
+
+1. Grafana → Explore → datasource **Tempo** → buscar qualquer trace recente
+2. Expandir um span → botão **"Logs for this span"**
+3. Deve abrir Loki com query filtrando pelo `traceId` do span
+4. Conferir que logs com o mesmo `trace_id` aparecem — o derived field regex `"trace_id":"([a-f0-9]{32})"` no datasource Loki realiza o match
+
+### 5. Dashboard Logs Overview
+
+1. Grafana → Dashboards → **Logs Overview**
+2. Confirmar que os 3 painéis de timeseries têm dados (Log Rate, Errors, Distribuição por Level)
+3. O painel **Logs Recentes** deve exibir linhas com timestamp
+
+## Checklist rápido
+
+| Verificação | Esperado |
+|---|---|
+| `curl .../loki/api/v1/labels` | `service_name` presente na lista |
+| Query `{service_name="api-gateway"}` no Loki | Retorna linhas |
+| Explore Tempo → "Logs for this span" | Abre Loki com logs correlacionados |
+| Dashboard "Logs Overview" | Sem painéis com "No data" após 2min de tráfego |
+| `docker exec score-cripto-otel-collector cat /var/lib/docker/containers` (via volume) | Volume montado — não erro de permissão |
+
+## Troubleshooting
+
+### Loki não recebe logs ("No data" em todos os painéis)
+
+```bash
+# Verificar se o pipeline de logs está no collector
+curl -s http://localhost:13133 | jq .
+# Deve responder healthy
+
+# Verificar logs do collector para erros do filelog receiver
+docker logs score-cripto-otel-collector 2>&1 | grep -i "error\|filelog\|loki" | tail -20
+```
+
+Causas comuns:
+- O volume `/var/lib/docker/containers` não existe ou não tem permissão → verificar que `user: root` está no docker-compose
+- Os serviços de aplicação não foram iniciados com `--profile observability` (precisam estar na mesma network que o collector)
+
+### `service_name` não aparece como label no Loki
+
+O operador `move` do filelog extrai `attributes.service` → `resource["service.name"]`. Se o serviço não emite campo `service` no JSON de log, o label não será criado. Verificar o log bruto:
+
+```bash
+docker logs score-cripto-api-gateway 2>&1 | tail -5
+# Deve conter campo "service":"api-gateway" em cada linha JSON
+```
+
+### Derived fields (trace_id) não funcionam no Loki
+
+O datasource Loki tem `derivedFields` com regex `"trace_id":"([a-f0-9]{32})"`. Verificar se o log contém esse campo:
+
+```bash
+docker logs score-cripto-api-gateway 2>&1 | grep trace_id | tail -3
+```
+
+Se `trace_id` não aparecer nos logs, verificar que `@opentelemetry/instrumentation-pino` está ativo na inicialização do serviço Node (variável `NODE_OPTIONS=--require @opentelemetry/auto-instrumentations-node/register`).
+
+### Dashboard "Logs Overview" não aparece no Grafana
+
+```bash
+docker exec score-cripto-grafana ls /etc/grafana/provisioning/dashboards/
+# Deve listar: dashboards.yaml, service-health.json, amqp-pipeline.json,
+#              ai-cost-usage.json, wallet-analysis-flow.json, logs-overview.json
+```

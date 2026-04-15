@@ -6,6 +6,46 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 
+  filelog:
+    include:
+      - /var/lib/docker/containers/*/*-json.log
+    include_file_path: true
+    include_file_name: false
+    start_at: beginning
+    operators:
+      # 1. Parse Docker JSON wrapper → extracts attributes.log, attributes.time, attributes.stream
+      - type: json_parser
+        id: parse_docker_wrapper
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%dT%H:%M:%S.%fZ'
+      # 2. Hoist the app log line to body for structured parsing
+      - type: move
+        from: attributes.log
+        to: body
+      # 3. Try to parse inner JSON (pino / slog / logger_json output)
+      #    on_error: send — non-JSON lines still reach Loki as raw body
+      - type: json_parser
+        id: parse_app_log
+        on_error: send
+      # 4. Promote service field to resource attribute (drives Loki stream label)
+      - type: move
+        from: attributes["service"]
+        to: resource["service.name"]
+        if: 'attributes["service"] != nil'
+      # 5. Map pino numeric levels AND string levels (Go slog / Elixir) to OTel severity
+      - type: severity_parser
+        parse_from: attributes["level"]
+        if: 'attributes["level"] != nil'
+        on_error: send
+        mapping:
+          trace: 10
+          debug: 20
+          info: 30
+          warn: 40
+          error: 50
+          fatal: 60
+
 processors:
   batch:
     timeout: 1s
@@ -16,10 +56,17 @@ exporters:
     endpoint: http://tempo:4317
     tls:
       insecure: true
+
   prometheus:
     endpoint: 0.0.0.0:8889
     resource_to_telemetry_conversion:
       enabled: true
+
+  # Loki 3.x — OTLP native ingest endpoint (otlphttp exporter appends /v1/logs)
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
 
 extensions:
   health_check:
@@ -36,3 +83,9 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [prometheus]
+    logs:
+      # otlp: future-proof for when services emit OTLP logs directly
+      # filelog: reads Docker container JSON logs from host
+      receivers: [otlp, filelog]
+      processors: [batch]
+      exporters: [otlphttp/loki]

@@ -389,8 +389,10 @@ services:
     restart: unless-stopped
     profiles: [observability]
     command: ["--config=/etc/otel/config.yaml"]
+    user: root
     volumes:
       - ./infra/observability/otel-collector.yaml:/etc/otel/config.yaml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
     ports:
       - "4317:4317"
       - "4318:4318"

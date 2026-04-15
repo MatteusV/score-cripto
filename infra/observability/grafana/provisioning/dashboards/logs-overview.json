@@ -1,0 +1,158 @@
+{
+  "title": "Logs Overview",
+  "uid": "score-cripto-logs-overview",
+  "version": 1,
+  "schemaVersion": 39,
+  "timezone": "browser",
+  "refresh": "30s",
+  "tags": ["score-cripto", "logs"],
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "label": "Service",
+        "type": "query",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "definition": "label_values(service_name)",
+        "query": "label_values(service_name)",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".+",
+        "current": { "selected": true, "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Log Rate por Serviço (logs/s)",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (service_name) (rate({service_name=~\"$service\"}[1m]))",
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "logs/s", "custom": { "lineWidth": 2 } }
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Errors por Serviço (level=error)",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (service_name) (rate({service_name=~\"$service\", detected_level=\"error\"}[5m]))",
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "logs/s",
+          "custom": { "lineWidth": 2 },
+          "color": { "fixedColor": "red", "mode": "fixed" }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "piechart",
+      "title": "Distribuição por Level",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "x": 0, "y": 8, "w": 8, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (detected_level) (count_over_time({service_name=~\"$service\"}[15m]))",
+          "legendFormat": "{{detected_level}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short" }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Total de Erros (últimos 15 min)",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "x": 8, "y": 8, "w": 8, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service_name=~\"$service\", detected_level=\"error\"}[15m]))",
+          "legendFormat": "errors"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "mappings": []
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Serviços Ativos",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "x": 16, "y": 8, "w": 8, "h": 8 },
+      "targets": [
+        {
+          "expr": "count(count by (service_name) (rate({service_name=~\"$service\"}[5m])))",
+          "legendFormat": "services"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "green", "value": 3 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" }
+    },
+    {
+      "id": 6,
+      "type": "logs",
+      "title": "Logs Recentes",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 12 },
+      "targets": [
+        {
+          "expr": "{service_name=~\"$service\"} | json | line_format \"[{{.service_name}}] {{.detected_level}} — {{.body}}\"",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      }
+    }
+  ]
+}
