@@ -3,6 +3,8 @@ auth_enabled: false
 server:
   http_listen_port: 3100
   grpc_listen_port: 9096
+  grpc_server_max_recv_msg_size: 33554432
+  grpc_server_max_send_msg_size: 33554432
 
 common:
   path_prefix: /loki
@@ -26,5 +28,6 @@ schema_config:
         period: 24h
 
 limits_config:
-  ingestion_rate_mb: 4
-  ingestion_burst_size_mb: 6
+  ingestion_rate_mb: 32
+  ingestion_burst_size_mb: 64
+  reject_old_samples: false
