@@ -99,6 +99,10 @@ services:
       RATE_LIMIT_MAX_AUTH: ${RATE_LIMIT_MAX_AUTH:-60}
       RATE_LIMIT_MAX_ANON: ${RATE_LIMIT_MAX_ANON:-30}
       RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-60000}
+      OTEL_SERVICE_NAME: api-gateway
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      NODE_OPTIONS: "--require @opentelemetry/auto-instrumentations-node/register"
     volumes:
       - ./services/api-gateway:/app
       - api_gateway_node_modules:/app/node_modules
@@ -131,6 +135,10 @@ services:
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
       SCORE_VALIDITY_HOURS: ${SCORE_VALIDITY_HOURS:-24}
       CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-1}
+      OTEL_SERVICE_NAME: process-data-ia
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      NODE_OPTIONS: "--require @opentelemetry/auto-instrumentations-node/register"
     volumes:
       - ./services/process-data-ia:/app
       - process_data_ia_node_modules:/app/node_modules
@@ -160,6 +168,8 @@ services:
       REDIS_URL: redis://data-search-redis:6379
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
       CACHE_TTL_MINUTES: ${CACHE_TTL_MINUTES:-20}
+      OTEL_SERVICE_NAME: data-search
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
     volumes:
       - ./services/data-search:/app
       - data_search_go_pkg_cache:/go/pkg/mod
@@ -247,6 +257,8 @@ services:
       CACHE_TTL_MINUTES: ${DATA_INDEXING_CACHE_TTL_MINUTES:-30}
       BROADWAY_BATCH_SIZE: ${DATA_INDEXING_BROADWAY_BATCH_SIZE:-10}
       BROADWAY_BATCH_TIMEOUT_MS: ${DATA_INDEXING_BROADWAY_BATCH_TIMEOUT_MS:-1000}
+      OTEL_SERVICE_NAME: data-indexing
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
     volumes:
       - ./services/data-indexing:/app
       - data_indexing_deps:/app/deps
@@ -307,6 +319,10 @@ services:
       DATABASE_URL: postgresql://${USERS_POSTGRES_USER:-score_cripto}:${USERS_POSTGRES_PASSWORD:-score_cripto}@users-postgres:5432/${USERS_POSTGRES_DB:-score_cripto_users}?schema=public
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672
       CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-1}
+      OTEL_SERVICE_NAME: users
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      NODE_OPTIONS: "--require @opentelemetry/auto-instrumentations-node/register"
     volumes:
       - ./services/users:/app
       - users_node_modules:/app/node_modules
@@ -356,6 +372,81 @@ services:
         "corepack enable && pnpm install --frozen-lockfile && pnpm dev --hostname 0.0.0.0 --port 3000",
       ]
 
+  # ─── Observability stack (profile: observability) ───────────────────────────
+  # Start with: docker compose --profile observability up -d
+  # Grafana: http://localhost:3030  (admin/admin)
+  # Tempo:   http://localhost:3200
+  # Loki:    http://localhost:3100
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    container_name: score-cripto-otel-collector
+    restart: unless-stopped
+    profiles: [observability]
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      - ./infra/observability/otel-collector.yaml:/etc/otel/config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "13133:13133"
+
+  tempo:
+    image: grafana/tempo:2.7.2
+    container_name: score-cripto-tempo
+    restart: unless-stopped
+    profiles: [observability]
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./infra/observability/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo_data:/var/tempo
+    ports:
+      - "3200:3200"
+
+  loki:
+    image: grafana/loki:3.5.0
+    container_name: score-cripto-loki
+    restart: unless-stopped
+    profiles: [observability]
+    command: ["-config.file=/etc/loki/loki.yaml"]
+    volumes:
+      - ./infra/observability/loki.yaml:/etc/loki/loki.yaml:ro
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+
+  prometheus:
+    image: prom/prometheus:v3.4.0
+    container_name: score-cripto-prometheus
+    restart: unless-stopped
+    profiles: [observability]
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+      - "--storage.tsdb.retention.time=7d"
+    volumes:
+      - ./infra/observability/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.6.1
+    container_name: score-cripto-grafana
+    restart: unless-stopped
+    profiles: [observability]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./infra/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_HOST_PORT:-3030}:3000"
+    depends_on:
+      - tempo
+      - loki
+      - prometheus
+
 volumes:
   redis_insight_data:
   api_gateway_postgres_data:
@@ -379,3 +470,7 @@ volumes:
   users_node_modules:
   users_pnpm_store:
   users_generated_prisma:
+  grafana_data:
+  prometheus_data:
+  tempo_data:
+  loki_data:

@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@score-cripto/observability-node": "workspace:*",
+    "@opentelemetry/auto-instrumentations-node": "^0.56.0",
     "@ai-sdk/gateway": "^3.0.0",
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^6.19.2",

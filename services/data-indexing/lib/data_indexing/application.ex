@@ -5,6 +5,9 @@ defmodule DataIndexing.Application do
 
   @impl true
   def start(_type, _args) do
+    # Setup OpenTelemetry instrumentation for Cowboy HTTP server
+    :opentelemetry_cowboy.setup()
+
     children =
       [
         DataIndexing.Telemetry,

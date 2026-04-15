@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/score-cripto/data-search/internal/domain"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 // EtherscanProvider implements BlockchainProviderPort for Ethereum-compatible chains.
@@ -45,7 +46,8 @@ func NewEtherscanProvider(apiKey string, baseURLOverride string) *EtherscanProvi
 		apiKey:          apiKey,
 		baseURLOverride: strings.TrimRight(baseURLOverride, "/"),
 		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
+			Timeout:   30 * time.Second,
 		},
 		minInterval: 210 * time.Millisecond, // ~4.7 req/s, safe margin under 5/s
 	}

@@ -7,6 +7,9 @@ defmodule DataIndexing.Meilisearch.Client do
   """
 
   @behaviour DataIndexing.Meilisearch.ClientBehaviour
+
+  require OpenTelemetry.Tracer
+
   alias DataIndexing.Telemetry
 
   @impl true
@@ -114,7 +117,9 @@ defmodule DataIndexing.Meilisearch.Client do
   end
 
   defp request(operation, fun) do
-    Telemetry.meilisearch_request(operation, fun)
+    OpenTelemetry.Tracer.with_span :"meilisearch.#{operation}", %{kind: :client} do
+      Telemetry.meilisearch_request(operation, fun)
+    end
   end
 
   defp handle_response({:ok, %Req.Response{status: status, body: body}})

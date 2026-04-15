@@ -11,6 +11,7 @@ defmodule DataIndexing.Broadway.Pipeline do
   use Broadway
 
   require Logger
+  require OpenTelemetry.Tracer
 
   alias Broadway.Message
   alias DataIndexing.{Config, Documents.Transformer, Meilisearch, Telemetry}
@@ -39,29 +40,38 @@ defmodule DataIndexing.Broadway.Pipeline do
   @impl true
   def handle_message(_processor, %Message{} = message, _context) do
     correlation_id = extract_correlation_id(message)
+    otel_ctx = extract_trace_context(message)
+    token = :otel_ctx.attach(otel_ctx)
+
     Logger.metadata(correlation_id: correlation_id)
 
-    case Jason.decode(message.data) do
-      {:ok, %{"event" => "wallet.data.cached", "data" => data}} ->
-        Logger.info("RECEBIDO: wallet.data.cached")
-        handle_wallet_cached(message, data)
+    result =
+      OpenTelemetry.Tracer.with_span :"wallet.event.consume", %{kind: :consumer} do
+        case Jason.decode(message.data) do
+          {:ok, %{"event" => "wallet.data.cached", "data" => data}} ->
+            Logger.info("RECEBIDO: wallet.data.cached")
+            handle_wallet_cached(message, data)
 
-      {:ok, %{"event" => "wallet.score.calculated", "data" => data}} ->
-        Logger.info("RECEBIDO: wallet.score.calculated")
-        handle_score_calculated(message, data)
+          {:ok, %{"event" => "wallet.score.calculated", "data" => data}} ->
+            Logger.info("RECEBIDO: wallet.score.calculated")
+            handle_score_calculated(message, data)
 
-      {:ok, %{"event" => event_type}} ->
-        message
-        |> tag_event(event_type)
-        |> Message.configure_ack(on_failure: :reject)
-        |> Message.failed(:unknown_event)
+          {:ok, %{"event" => event_type}} ->
+            message
+            |> tag_event(event_type)
+            |> Message.configure_ack(on_failure: :reject)
+            |> Message.failed(:unknown_event)
 
-      {:error, reason} ->
-        message
-        |> tag_event("invalid_json")
-        |> Message.configure_ack(on_failure: :reject)
-        |> Message.failed(reason)
-    end
+          {:error, reason} ->
+            message
+            |> tag_event("invalid_json")
+            |> Message.configure_ack(on_failure: :reject)
+            |> Message.failed(reason)
+        end
+      end
+
+    :otel_ctx.detach(token)
+    result
   end
 
   @impl true
@@ -200,5 +210,18 @@ defmodule DataIndexing.Broadway.Pipeline do
 
   defp generate_correlation_id do
     :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
+  end
+
+  # Extracts W3C TraceContext (traceparent / tracestate) from AMQP headers
+  # and returns an OTel context that can be attached to the current process.
+  defp extract_trace_context(%Message{metadata: metadata}) do
+    headers = Map.get(metadata, :headers, [])
+
+    carrier =
+      Enum.map(headers, fn {name, _type, value} ->
+        {to_string(name), to_string(value)}
+      end)
+
+    :otel_propagator_text_map.extract(carrier)
   end
 end

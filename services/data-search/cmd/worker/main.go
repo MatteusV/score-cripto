@@ -13,11 +13,19 @@ import (
 	infraConfig "github.com/score-cripto/data-search/internal/infrastructure/config"
 	infraEvents "github.com/score-cripto/data-search/internal/infrastructure/events"
 	infraProvider "github.com/score-cripto/data-search/internal/infrastructure/provider"
+	"github.com/score-cripto/data-search/internal/infrastructure/telemetry"
 )
 
 func main() {
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
-	slog.SetDefault(slog.New(handler).With("service", "data-search"))
+	slog.SetDefault(slog.New(telemetry.NewTraceHandler(handler)).With("service", "data-search"))
+
+	shutdownTracer, err := telemetry.Init(context.Background(), "data-search")
+	if err != nil {
+		slog.Warn("failed to init tracer provider, continuing without tracing", "error", err)
+	} else {
+		defer shutdownTracer(context.Background()) //nolint:errcheck
+	}
 
 	cfg := infraConfig.Load()
 

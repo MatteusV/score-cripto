@@ -1,3 +1,4 @@
+import { getCorrelationId } from "@score-cripto/observability-node";
 import { config } from "../config.js";
 
 export interface CheckUsageResult {
@@ -22,9 +23,13 @@ export async function checkUsage(userId: string): Promise<CheckUsageResult> {
 
   let response: Response;
   try {
+    const correlationId = getCorrelationId();
     response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(correlationId ? { "x-request-id": correlationId } : {}),
+      },
       body: JSON.stringify({ userId }),
     });
   } catch (err) {

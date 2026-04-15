@@ -8,6 +8,9 @@ import (
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/score-cripto/data-search/internal/domain"
 )
 
@@ -62,6 +65,12 @@ func NewPublisherWithTopology(amqpURL string, topology Topology) (*Publisher, er
 
 // PublishWalletCached publishes a wallet.data.cached event.
 func (p *Publisher) PublishWalletCached(ctx context.Context, event domain.WalletDataCachedEvent) error {
+	// Start producer span — links this publish to the upstream consumer trace
+	ctx, span := otel.Tracer("data-search").Start(ctx, "wallet.data.cached publish",
+		trace.WithSpanKind(trace.SpanKindProducer),
+	)
+	defer span.End()
+
 	body, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("marshal event: %w", err)
@@ -74,6 +83,8 @@ func (p *Publisher) PublishWalletCached(ctx context.Context, event domain.Wallet
 	if correlationID := correlationIDFromContext(ctx); correlationID != "" {
 		headers[CorrelationIDHeader] = correlationID
 	}
+	// Inject W3C traceparent into AMQP headers for downstream consumers (data-indexing, etc.)
+	otel.GetTextMapPropagator().Inject(ctx, AMQPHeaderCarrier(headers))
 
 	if err := p.channel.PublishWithContext(
 		ctx,
@@ -92,7 +103,7 @@ func (p *Publisher) PublishWalletCached(ctx context.Context, event domain.Wallet
 		return fmt.Errorf("publish event: %w", err)
 	}
 
-	slog.Info("EMITINDO: wallet.data.cached",
+	slog.InfoContext(ctx, "EMITINDO: wallet.data.cached",
 		"correlationId", correlationIDFromContext(ctx),
 		"requestId", event.Data.RequestID,
 		"chain", event.Data.WalletContext.Chain,

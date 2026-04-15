@@ -6,6 +6,9 @@ import (
 	"log/slog"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/score-cripto/data-search/internal/application/usecase"
 	"github.com/score-cripto/data-search/internal/domain"
 )
@@ -152,26 +155,32 @@ func (c *Consumer) Start(ctx context.Context) error {
 				return fmt.Errorf("rabbitmq channel closed unexpectedly")
 			}
 			correlationID := extractCorrelationIDFromHeaders(msg.Headers)
-			msgCtx := contextWithCorrelationID(ctx, correlationID)
+			// Extract W3C TraceContext from AMQP headers, establishing trace link to upstream publisher
+			parentCtx := otel.GetTextMapPropagator().Extract(ctx, AMQPHeaderCarrier(msg.Headers))
+			spanCtx, span := otel.Tracer("data-search").Start(parentCtx, "wallet.data.requested consume",
+				trace.WithSpanKind(trace.SpanKindConsumer),
+			)
+			msgCtx := contextWithCorrelationID(spanCtx, correlationID)
 			result, err := c.ProcessMessage(msgCtx, msg.Body)
+			span.End()
 			switch result {
 			case Processed:
 				msg.Ack(false)
 			case InvalidPayload:
-				slog.Warn("invalid payload, sending to dead letter", "correlationId", correlationID, "error", err)
+				slog.WarnContext(msgCtx, "invalid payload, sending to dead letter", "correlationId", correlationID, "error", err)
 				msg.Nack(false, false) // no requeue
 			case TransientError:
 				scheduled, rerr := ScheduleRetry(c.channel, msg, c.topology.ConsumeQueue)
 				if rerr != nil {
-					slog.Error("failed to schedule retry, routing to DLQ", "correlationId", correlationID, "error", rerr)
+					slog.ErrorContext(msgCtx, "failed to schedule retry, routing to DLQ", "correlationId", correlationID, "error", rerr)
 					msg.Nack(false, false)
 					continue
 				}
 				if scheduled {
-					slog.Info("transient error, message scheduled for retry", "correlationId", correlationID, "error", err)
+					slog.InfoContext(msgCtx, "transient error, message scheduled for retry", "correlationId", correlationID, "error", err)
 					msg.Ack(false) // removido da origem; retry queue agenda redelivery
 				} else {
-					slog.Warn("max retries exhausted, routing to DLQ", "correlationId", correlationID, "error", err)
+					slog.WarnContext(msgCtx, "max retries exhausted, routing to DLQ", "correlationId", correlationID, "error", err)
 					msg.Nack(false, false)
 				}
 			}
@@ -187,7 +196,7 @@ func (c *Consumer) ProcessMessage(ctx context.Context, body []byte) (MessageResu
 		return InvalidPayload, fmt.Errorf("parse event: %w", err)
 	}
 
-	slog.Info("RECEBIDO: wallet.data.requested",
+	slog.InfoContext(ctx, "RECEBIDO: wallet.data.requested",
 		"correlationId", correlationIDFromContext(ctx),
 		"requestId", evt.Data.RequestID,
 		"chain", evt.Data.Chain,

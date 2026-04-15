@@ -58,6 +58,13 @@ defmodule DataIndexing.MixProject do
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.1"},
 
+      # OpenTelemetry distributed tracing
+      {:opentelemetry, "~> 1.5"},
+      {:opentelemetry_api, "~> 1.4"},
+      {:opentelemetry_exporter, "~> 1.8"},
+      {:opentelemetry_cowboy, "~> 0.3"},
+      {:opentelemetry_semantic_conventions, "~> 0.2"},
+
       # Dev & Test
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
