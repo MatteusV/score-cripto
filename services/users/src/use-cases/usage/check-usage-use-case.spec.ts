@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { DefaultPlanPolicy } from "../../domain/plan-policy";
 import { SubscriptionInMemoryRepository } from "../../repositories/in-memory/subscription-in-memory-repository";
 import { UsageInMemoryRepository } from "../../repositories/in-memory/usage-in-memory-repository";
 import { CheckUsageUseCase } from "./check-usage-use-case";
@@ -28,7 +29,7 @@ describe("CheckUsageUseCase", () => {
   beforeEach(() => {
     usageRepo = new UsageInMemoryRepository();
     subscriptionRepo = new SubscriptionInMemoryRepository();
-    sut = new CheckUsageUseCase(usageRepo, subscriptionRepo);
+    sut = new CheckUsageUseCase(usageRepo, subscriptionRepo, new DefaultPlanPolicy());
   });
 
   it("usuário FREE_TIER dentro do limite → allowed=true, remaining correto", async () => {

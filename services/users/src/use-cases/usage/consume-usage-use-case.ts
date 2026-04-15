@@ -1,7 +1,7 @@
+import type { PlanPolicy } from "../../domain/plan-policy";
 import type { SubscriptionRepository } from "../../repositories/subscription-repository";
 import type { UsageRepository } from "../../repositories/usage-repository";
 import type { UserRepository } from "../../repositories/user-repository";
-import { getLimitForPlan } from "../../services/plan-service";
 import { UsageLimitExceededError } from "../errors/usage-limit-exceeded-error";
 import { UserNotFoundError } from "../errors/user-not-found-error";
 
@@ -18,15 +18,18 @@ export class ConsumeUsageUseCase {
   private readonly usageRepository: UsageRepository;
   private readonly subscriptionRepository: SubscriptionRepository;
   private readonly userRepository: UserRepository;
+  private readonly planPolicy: PlanPolicy;
 
   constructor(
     usageRepository: UsageRepository,
     subscriptionRepository: SubscriptionRepository,
-    userRepository: UserRepository
+    userRepository: UserRepository,
+    planPolicy: PlanPolicy
   ) {
     this.usageRepository = usageRepository;
     this.subscriptionRepository = subscriptionRepository;
     this.userRepository = userRepository;
+    this.planPolicy = planPolicy;
   }
 
   async execute({
@@ -39,7 +42,7 @@ export class ConsumeUsageUseCase {
 
     const subscription = await this.subscriptionRepository.findByUserId(userId);
     const plan = subscription?.plan ?? "FREE_TIER";
-    const limit = getLimitForPlan(plan);
+    const limit = this.planPolicy.getLimitForPlan(plan);
 
     const now = new Date();
     const periodYear = now.getFullYear();

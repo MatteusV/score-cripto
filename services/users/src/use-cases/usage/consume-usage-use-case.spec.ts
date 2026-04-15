@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { DefaultPlanPolicy } from "../../domain/plan-policy";
 import { SubscriptionInMemoryRepository } from "../../repositories/in-memory/subscription-in-memory-repository";
 import { UsageInMemoryRepository } from "../../repositories/in-memory/usage-in-memory-repository";
 import { UserInMemoryRepository } from "../../repositories/in-memory/user-in-memory-repository";
@@ -42,7 +43,7 @@ describe("ConsumeUsageUseCase", () => {
     usageRepo = new UsageInMemoryRepository();
     subscriptionRepo = new SubscriptionInMemoryRepository();
     userRepo = new UserInMemoryRepository();
-    sut = new ConsumeUsageUseCase(usageRepo, subscriptionRepo, userRepo);
+    sut = new ConsumeUsageUseCase(usageRepo, subscriptionRepo, userRepo, new DefaultPlanPolicy());
   });
 
   it("incrementa analysisCount e retorna remaining correto", async () => {

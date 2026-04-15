@@ -1,6 +1,6 @@
+import type { PlanPolicy } from "../../domain/plan-policy";
 import type { SubscriptionRepository } from "../../repositories/subscription-repository";
 import type { UsageRepository } from "../../repositories/usage-repository";
-import { getLimitForPlan } from "../../services/plan-service";
 
 interface CheckUsageRequest {
   userId: string;
@@ -16,19 +16,22 @@ interface CheckUsageResponse {
 export class CheckUsageUseCase {
   private readonly usageRepository: UsageRepository;
   private readonly subscriptionRepository: SubscriptionRepository;
+  private readonly planPolicy: PlanPolicy;
 
   constructor(
     usageRepository: UsageRepository,
-    subscriptionRepository: SubscriptionRepository
+    subscriptionRepository: SubscriptionRepository,
+    planPolicy: PlanPolicy
   ) {
     this.usageRepository = usageRepository;
     this.subscriptionRepository = subscriptionRepository;
+    this.planPolicy = planPolicy;
   }
 
   async execute({ userId }: CheckUsageRequest): Promise<CheckUsageResponse> {
     const subscription = await this.subscriptionRepository.findByUserId(userId);
     const plan = subscription?.plan ?? "FREE_TIER";
-    const limit = getLimitForPlan(plan);
+    const limit = this.planPolicy.getLimitForPlan(plan);
 
     const now = new Date();
     const periodYear = now.getFullYear();

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
+import { DefaultPlanPolicy } from "../../../domain/plan-policy";
 import { SubscriptionPrismaRepository } from "../../../repositories/prisma/subscription-prisma-repository";
 import { UsagePrismaRepository } from "../../../repositories/prisma/usage-prisma-repository";
 import { UserPrismaRepository } from "../../../repositories/prisma/user-prisma-repository";
@@ -13,9 +14,10 @@ import { ConsumeUsageUseCase } from "../../../use-cases/usage/consume-usage-use-
 const userRepo = new UserPrismaRepository(prisma);
 const usageRepo = new UsagePrismaRepository(prisma);
 const subscriptionRepo = new SubscriptionPrismaRepository(prisma);
+const planPolicy = new DefaultPlanPolicy();
 
-const checkUseCase = new CheckUsageUseCase(usageRepo, subscriptionRepo);
-const consumeUseCase = new ConsumeUsageUseCase(usageRepo, subscriptionRepo);
+const checkUseCase = new CheckUsageUseCase(usageRepo, subscriptionRepo, planPolicy);
+const consumeUseCase = new ConsumeUsageUseCase(usageRepo, subscriptionRepo, userRepo, planPolicy);
 
 const UsageResponseSchema = z.object({
   allowed: z.boolean(),

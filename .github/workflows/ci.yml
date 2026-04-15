@@ -1,0 +1,271 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: "10"
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Detecta quais serviços foram alterados
+  # ──────────────────────────────────────────────
+  changes:
+    name: Detectar mudanças
+    runs-on: ubuntu-latest
+    outputs:
+      api-gateway: ${{ steps.filter.outputs.api-gateway }}
+      process-data-ia: ${{ steps.filter.outputs.process-data-ia }}
+      users: ${{ steps.filter.outputs.users }}
+      web-app: ${{ steps.filter.outputs.web-app }}
+      data-search: ${{ steps.filter.outputs.data-search }}
+      data-indexing: ${{ steps.filter.outputs.data-indexing }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api-gateway:
+              - 'services/api-gateway/**'
+              - 'packages/**'
+            process-data-ia:
+              - 'services/process-data-ia/**'
+              - 'packages/**'
+            users:
+              - 'services/users/**'
+              - 'packages/**'
+            web-app:
+              - 'services/web-app/**'
+            data-search:
+              - 'services/data-search/**'
+            data-indexing:
+              - 'services/data-indexing/**'
+
+  # ──────────────────────────────────────────────
+  # api-gateway (Node.js / TypeScript)
+  # ──────────────────────────────────────────────
+  api-gateway:
+    name: "api-gateway · lint + test"
+    needs: changes
+    if: needs.changes.outputs.api-gateway == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Instalar dependências (workspace)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter @score-cripto/api-gateway run check
+
+      - name: Testes
+        run: pnpm --filter @score-cripto/api-gateway run test
+
+  # ──────────────────────────────────────────────
+  # process-data-ia (Node.js / TypeScript)
+  # ──────────────────────────────────────────────
+  process-data-ia:
+    name: "process-data-ia · lint + test"
+    needs: changes
+    if: needs.changes.outputs.process-data-ia == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Instalar dependências (workspace)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter @score-cripto/process-data-ia run check
+
+      - name: Testes
+        run: pnpm --filter @score-cripto/process-data-ia run test
+
+  # ──────────────────────────────────────────────
+  # users (Node.js / TypeScript)
+  # ──────────────────────────────────────────────
+  users:
+    name: "users · lint + test"
+    needs: changes
+    if: needs.changes.outputs.users == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Instalar dependências (workspace)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter @score-cripto/users run check
+
+      - name: Testes
+        run: pnpm --filter @score-cripto/users run test
+
+  # ──────────────────────────────────────────────
+  # web-app (Next.js)
+  # ──────────────────────────────────────────────
+  web-app:
+    name: "web-app · lint + test + typecheck"
+    needs: changes
+    if: needs.changes.outputs.web-app == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: services/web-app/pnpm-lock.yaml
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+        working-directory: services/web-app
+
+      - name: Lint
+        run: pnpm lint
+        working-directory: services/web-app
+
+      - name: Typecheck
+        run: pnpm typecheck
+        working-directory: services/web-app
+
+      - name: Testes
+        run: pnpm test
+        working-directory: services/web-app
+
+  # ──────────────────────────────────────────────
+  # data-search (Go)
+  # ──────────────────────────────────────────────
+  data-search:
+    name: "data-search · vet + test"
+    needs: changes
+    if: needs.changes.outputs.data-search == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+          cache-dependency-path: services/data-search/go.sum
+
+      - name: go vet (lint)
+        run: go vet ./...
+        working-directory: services/data-search
+
+      - name: Testes unitários
+        run: go test ./...
+        working-directory: services/data-search
+
+  # ──────────────────────────────────────────────
+  # data-indexing (Elixir)
+  # ──────────────────────────────────────────────
+  data-indexing:
+    name: "data-indexing · credo + test"
+    needs: changes
+    if: needs.changes.outputs.data-indexing == 'true'
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.19"
+          otp-version: "27"
+
+      - uses: actions/cache@v4
+        id: cache-mix
+        with:
+          path: |
+            services/data-indexing/deps
+            services/data-indexing/_build
+          key: data-indexing-${{ runner.os }}-${{ hashFiles('services/data-indexing/mix.lock') }}
+          restore-keys: |
+            data-indexing-${{ runner.os }}-
+
+      - name: Instalar dependências Mix
+        if: steps.cache-mix.outputs.cache-hit != 'true'
+        run: mix deps.get
+        working-directory: services/data-indexing
+
+      - name: Compilar (warnings como erros)
+        run: mix compile --warnings-as-errors
+        working-directory: services/data-indexing
+
+      - name: Lint (Credo)
+        run: mix credo --strict
+        working-directory: services/data-indexing
+
+      - name: Testes
+        run: mix test
+        working-directory: services/data-indexing
+
+  # ──────────────────────────────────────────────
+  # Status final — permite usar como branch protection
+  # ──────────────────────────────────────────────
+  ci-ok:
+    name: CI passou
+    needs:
+      - api-gateway
+      - process-data-ia
+      - users
+      - web-app
+      - data-search
+      - data-indexing
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verificar resultados
+        run: |
+          results='${{ toJSON(needs) }}'
+          failures=$(echo "$results" | grep -c '"result": "failure"' || true)
+          if [ "$failures" -gt 0 ]; then
+            echo "❌ Um ou mais jobs falharam."
+            exit 1
+          fi
+          echo "✅ Todos os jobs passaram (ou foram ignorados por falta de mudanças)."

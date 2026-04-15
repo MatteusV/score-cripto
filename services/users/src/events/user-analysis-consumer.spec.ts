@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DefaultPlanPolicy } from "../domain/plan-policy";
 import { SubscriptionInMemoryRepository } from "../repositories/in-memory/subscription-in-memory-repository";
 import { UsageInMemoryRepository } from "../repositories/in-memory/usage-in-memory-repository";
 import { UserInMemoryRepository } from "../repositories/in-memory/user-in-memory-repository";
@@ -38,7 +39,8 @@ describe("processUserAnalysisConsumedMessage", () => {
     consumeUseCase = new ConsumeUsageUseCase(
       usageRepo,
       subscriptionRepo,
-      userRepo
+      userRepo,
+      new DefaultPlanPolicy()
     );
     vi.clearAllMocks();
   });
