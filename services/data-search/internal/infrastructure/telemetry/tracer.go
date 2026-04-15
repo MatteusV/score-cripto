@@ -12,16 +12,16 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
-// Init configures the global OTel TracerProvider with an OTLP HTTP exporter.
+// Init configures the global OTel TracerProvider with an OTLP HTTP exporter and
+// returns the shared OTel resource so it can be reused by InitMetrics.
 // The endpoint is controlled via OTEL_EXPORTER_OTLP_ENDPOINT (default: localhost:4318).
-// Returns a shutdown function that must be deferred by the caller.
-func Init(ctx context.Context, serviceName string) (func(context.Context) error, error) {
+func Init(ctx context.Context, serviceName string) (shutdown func(context.Context) error, res *resource.Resource, err error) {
 	exporter, err := otlptracehttp.New(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("otlp trace exporter: %w", err)
+		return nil, nil, fmt.Errorf("otlp trace exporter: %w", err)
 	}
 
-	res, err := resource.New(ctx,
+	res, err = resource.New(ctx,
 		resource.WithAttributes(
 			attribute.String("service.name", serviceName),
 		),
@@ -48,5 +48,5 @@ func Init(ctx context.Context, serviceName string) (func(context.Context) error,
 		propagation.Baggage{},
 	))
 
-	return tp.Shutdown, nil
+	return tp.Shutdown, res, nil
 }

@@ -20,11 +20,18 @@ func main() {
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
 	slog.SetDefault(slog.New(telemetry.NewTraceHandler(handler)).With("service", "data-search"))
 
-	shutdownTracer, err := telemetry.Init(context.Background(), "data-search")
+	shutdownTracer, otelRes, err := telemetry.Init(context.Background(), "data-search")
 	if err != nil {
 		slog.Warn("failed to init tracer provider, continuing without tracing", "error", err)
 	} else {
 		defer shutdownTracer(context.Background()) //nolint:errcheck
+	}
+
+	shutdownMetrics, err := telemetry.InitMetrics(context.Background(), otelRes)
+	if err != nil {
+		slog.Warn("failed to init metrics provider, continuing without metrics", "error", err)
+	} else {
+		defer shutdownMetrics(context.Background()) //nolint:errcheck
 	}
 
 	cfg := infraConfig.Load()

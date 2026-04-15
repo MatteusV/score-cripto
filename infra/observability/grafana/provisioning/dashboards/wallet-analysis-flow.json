@@ -1,0 +1,110 @@
+{
+  "title": "Wallet Analysis Flow",
+  "uid": "score-cripto-wallet-flow",
+  "version": 1,
+  "schemaVersion": 39,
+  "timezone": "browser",
+  "refresh": "30s",
+  "tags": ["score-cripto", "analysis", "cache"],
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Analysis Requests/min by Chain & Status",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (chain, status) (rate(analysis_requests_total[5m])) * 60",
+          "legendFormat": "{{chain}} / {{status}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 2,
+      "type": "gauge",
+      "title": "Cache Hit Ratio",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 0, "y": 8, "w": 8, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(cache_hits_total[5m])) / (sum(rate(cache_hits_total[5m])) + sum(rate(cache_misses_total[5m])))",
+          "legendFormat": "hit ratio"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.3 },
+              { "color": "green", "value": 0.5 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Cache Hits vs Misses (rate/min)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 8, "y": 8, "w": 16, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (chain) (rate(cache_hits_total[5m])) * 60",
+          "legendFormat": "hits {{chain}}"
+        },
+        {
+          "expr": "sum by (chain) (rate(cache_misses_total[5m])) * 60",
+          "legendFormat": "misses {{chain}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Analysis Errors by Chain",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (chain) (rate(analysis_requests_total{status=\"error\"}[5m])) * 60",
+          "legendFormat": "errors {{chain}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "piechart",
+      "title": "Analysis Status Distribution (last 1h)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (status) (increase(analysis_requests_total[1h]))",
+          "legendFormat": "{{status}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    }
+  ]
+}

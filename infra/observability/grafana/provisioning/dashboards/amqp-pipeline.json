@@ -1,0 +1,108 @@
+{
+  "title": "AMQP Pipeline",
+  "uid": "score-cripto-amqp",
+  "version": 1,
+  "schemaVersion": 39,
+  "timezone": "browser",
+  "refresh": "30s",
+  "tags": ["score-cripto", "rabbitmq"],
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "DLQ Messages (Dead Letter Queue depth)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (queue) (rabbitmq_queue_messages{queue=~\".*\\\\.dlq\"})",
+          "legendFormat": "{{queue}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      },
+      "alert": {
+        "conditions": [
+          {
+            "evaluator": { "params": [1], "type": "gt" },
+            "operator": { "type": "and" },
+            "query": { "params": ["A", "5m", "now"] },
+            "reducer": { "params": [], "type": "avg" },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "name": "DLQ messages alert",
+        "noDataState": "no_data"
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Queue Depth (ready messages)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "rabbitmq_queue_messages_ready",
+          "legendFormat": "{{queue}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Message Delivery Rate",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "rate(rabbitmq_channel_messages_delivered_ack_total[5m])",
+          "legendFormat": "delivered {{queue}}"
+        },
+        {
+          "expr": "rate(rabbitmq_channel_messages_published_total[5m])",
+          "legendFormat": "published {{exchange}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "msgps" } }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Total DLQ Messages Now",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 0, "y": 16, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "expr": "sum(rabbitmq_queue_messages{queue=~\".*\\\\.dlq\"})",
+          "legendFormat": "DLQ total"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

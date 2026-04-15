@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@score-cripto/observability-node": "workspace:*",
+    "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/auto-instrumentations-node": "^0.56.0",
     "@fastify/cors": "^11.2.0",
     "@fastify/rate-limit": "^10.3.0",

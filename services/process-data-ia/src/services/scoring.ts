@@ -1,4 +1,5 @@
 import { gateway, generateText, Output } from "ai";
+import { recordAiUsage } from "../observability/metrics.js";
 import { z } from "zod";
 import type { ScoreOutput, WalletContextInput } from "../schemas/score.js";
 
@@ -88,6 +89,8 @@ export async function scoreWithAI(
   const outputTokens = result.usage?.outputTokens ?? 0;
   // gpt-5.4-mini pricing: cost tracked automatically in Vercel AI Gateway dashboard
   const cost = inputTokens * 0.000_000_15 + outputTokens * 0.000_000_6;
+
+  recordAiUsage(MODEL_SLUG, inputTokens, outputTokens);
 
   return {
     output: result.output,

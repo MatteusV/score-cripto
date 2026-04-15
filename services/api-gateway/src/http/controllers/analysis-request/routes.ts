@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { analysisRequestsCounter } from "../../../observability/metrics";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
 import { publishWalletDataRequested } from "../../../events/publisher";
@@ -113,6 +114,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
       });
 
       if (existing) {
+        analysisRequestsCounter.add(1, { chain, status: "cached" });
         return reply.status(200).send({
           requestId: existing.id,
           status: existing.status.toLowerCase() as "pending" | "processing",
@@ -123,6 +125,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
         await checkUsage(userId);
       } catch (err) {
         if (err instanceof UsersServiceError && err.statusCode === 429) {
+          analysisRequestsCounter.add(1, { chain, status: "error" });
           return reply.status(429).send({
             error: "Usage limit exceeded for this billing period",
           });
@@ -151,6 +154,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
         address,
       });
 
+      analysisRequestsCounter.add(1, { chain, status: "created" });
       return reply.status(202).send({
         requestId: analysisRequest.id,
         publicId: analysisRequest.publicId as number,

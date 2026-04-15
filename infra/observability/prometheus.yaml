@@ -7,6 +7,19 @@ scrape_configs:
     static_configs:
       - targets: ["otel-collector:8888"]
 
+  - job_name: otel-collector-apps
+    static_configs:
+      - targets: ["otel-collector:8889"]
+
   - job_name: tempo
     static_configs:
       - targets: ["tempo:3200"]
+
+  - job_name: rabbitmq
+    static_configs:
+      - targets: ["rabbitmq:15692"]
+    metric_relabel_configs:
+      - source_labels: [queue]
+        regex: '(.*)\.dlq'
+        target_label: exchange
+        replacement: "score-cripto.events.dlx"

@@ -7,7 +7,11 @@ import (
 	"log/slog"
 	"strings"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+
 	"github.com/score-cripto/data-search/internal/domain"
+	"github.com/score-cripto/data-search/internal/infrastructure/telemetry"
 )
 
 // ErrUnsupportedChain is returned when no provider supports the requested chain.
@@ -82,6 +86,7 @@ func (uc *ProcessWalletDataRequested) Execute(ctx context.Context, input Process
 		slog.WarnContext(ctx, "cache read error, proceeding to fetch", "error", err)
 	}
 	if cached != nil {
+		telemetry.CacheHits.Add(ctx, 1, metric.WithAttributes(attribute.String("chain", chain)))
 		if uc.publisher != nil {
 			event := domain.NewWalletDataCachedEvent(input.RequestID, input.UserID, cached)
 			if err := uc.publisher.PublishWalletCached(ctx, event); err != nil {
@@ -91,6 +96,7 @@ func (uc *ProcessWalletDataRequested) Execute(ctx context.Context, input Process
 		slog.InfoContext(ctx, "returning cached result", "chain", chain, "address", address)
 		return ProcessWalletDataRequestedOutput{WalletContext: cached, CacheHit: true}, nil
 	}
+	telemetry.CacheMisses.Add(ctx, 1, metric.WithAttributes(attribute.String("chain", chain)))
 
 	// 2. Verify chain is supported.
 	prov, ok := uc.providers[chain]
