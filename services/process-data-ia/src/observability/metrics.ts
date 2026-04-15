@@ -1,4 +1,5 @@
 import { metrics } from "@opentelemetry/api";
+import { MODEL_PRICES } from "../ai-pricing.js";
 
 const meter = metrics.getMeter("process-data-ia", "1.0.0");
 
@@ -11,11 +12,7 @@ const aiCostUsdCounter = meter.createCounter("ai.cost_usd", {
   description: "Custo acumulado em USD de chamadas de IA. Labels: model",
 });
 
-// Preços em USD por 1 token (não por 1M)
-const MODEL_PRICES: Record<string, { input: number; output: number }> = {
-  "mistral/ministral-3b": { input: 0.000_000_04, output: 0.000_000_04 },
-  "gpt-4o-mini": { input: 0.000_000_15, output: 0.000_000_6 },
-};
+// Preços em USD por 1 token (não por 1M) — ver src/ai-pricing.ts para atualizar
 
 export function recordAiUsage(
   model: string,
