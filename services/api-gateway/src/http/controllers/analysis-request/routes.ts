@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
 import type { AnalysisRequestDTO } from "../../../domain/analysis-request";
+import { analysisEventBus } from "../../../events/analysis-event-bus";
 import { publishWalletDataRequested } from "../../../events/publisher";
 import { analysisRequestsCounter } from "../../../observability/metrics";
 import { AnalysisRequestPrismaRepository } from "../../../repositories/prisma/analysis-request-prisma-repository";
@@ -16,6 +17,8 @@ import { GetAnalysisRequestUseCase } from "../../../use-cases/analysis-request/g
 import { ListAnalysesUseCase } from "../../../use-cases/analysis-request/list-analyses-use-case";
 import { AnalysisRequestNotFoundError } from "../../../use-cases/errors/analysis-request-not-found-error";
 import { authenticate } from "../../middleware/authenticate";
+
+const SSE_TIMEOUT_MS = 5 * 60 * 1_000; // 5 minutos
 
 const repository = new AnalysisRequestPrismaRepository(prisma);
 const translationRepository = new AnalysisTranslationPrismaRepository(prisma);
@@ -314,6 +317,89 @@ export async function analysisRequestHandler(app: FastifyInstance) {
           modelVersion: analysisRequest.modelVersion as string,
           promptVersion: analysisRequest.promptVersion as string,
         },
+      });
+    }
+  );
+
+  // GET /:id/stream — SSE: aguarda completion e envia evento único
+  app.get(
+    "/:id/stream",
+    { preHandler: [authenticate] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+
+      // Verifica se análise existe e já terminou
+      let analysis: AnalysisRequestDTO | null = null;
+      try {
+        ({ analysisRequest: analysis } = await getUseCase.execute({ id }));
+      } catch (err) {
+        if (err instanceof AnalysisRequestNotFoundError) {
+          return reply.status(404).send({ error: "Analysis request not found" });
+        }
+        throw err;
+      }
+
+      reply.raw.setHeader("Content-Type", "text/event-stream");
+      reply.raw.setHeader("Cache-Control", "no-cache");
+      reply.raw.setHeader("Connection", "keep-alive");
+      reply.raw.setHeader("X-Accel-Buffering", "no");
+      reply.raw.flushHeaders();
+
+      const sendEvent = (event: string, data: unknown) => {
+        reply.raw.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+      };
+
+      // Status imediato
+      const currentStatus = analysis.status.toLowerCase();
+      sendEvent("status", { status: currentStatus });
+
+      // Se já terminou, envia resultado e fecha
+      if (analysis.status === "COMPLETED") {
+        sendEvent("result", {
+          status: "completed",
+          result: {
+            score: analysis.score,
+            confidence: analysis.confidence,
+            reasoning: analysis.reasoning,
+            positiveFactors: analysis.positiveFactors,
+            riskFactors: analysis.riskFactors,
+            modelVersion: analysis.modelVersion,
+            promptVersion: analysis.promptVersion,
+          },
+        });
+        reply.raw.end();
+        return;
+      }
+
+      if (analysis.status === "FAILED") {
+        sendEvent("result", { status: "failed", error: "Analysis failed" });
+        reply.raw.end();
+        return;
+      }
+
+      // Aguarda evento do bus in-process
+      return new Promise<void>((resolve) => {
+        const cleanup = (closeStream = true) => {
+          clearTimeout(timer);
+          analysisEventBus.off(id, onDone);
+          if (closeStream) reply.raw.end();
+          resolve();
+        };
+
+        const onDone = (event: { status: "completed" | "failed"; result?: unknown; error?: string }) => {
+          sendEvent("result", event);
+          cleanup();
+        };
+
+        const timer = setTimeout(() => {
+          sendEvent("timeout", { message: "SSE timeout — use polling fallback" });
+          cleanup();
+        }, SSE_TIMEOUT_MS);
+
+        analysisEventBus.once(id, onDone);
+
+        // Cleanup quando cliente desconectar
+        request.raw.on("close", () => cleanup(false));
       });
     }
   );

@@ -10,6 +10,7 @@ import { prisma } from "../services/database.js";
 import { CompleteAnalysisRequestUseCase } from "../use-cases/analysis-request/complete-analysis-request-use-case.js";
 import { FailAnalysisRequestUseCase } from "../use-cases/analysis-request/fail-analysis-request-use-case.js";
 import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
+import { analysisEventBus } from "./analysis-event-bus.js";
 import { assertRetryQueueFor, scheduleRetry } from "./retry-topology.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
@@ -97,6 +98,20 @@ export async function handleScoreCalculated(
     chain,
     address,
   });
+
+  // Notifica conexões SSE aguardando este resultado
+  analysisEventBus.emit(requestId, {
+    status: "completed",
+    result: {
+      score,
+      confidence,
+      reasoning,
+      positiveFactors,
+      riskFactors,
+      modelVersion,
+      promptVersion,
+    },
+  });
 }
 
 export async function handleScoreFailed(
@@ -129,6 +144,9 @@ export async function handleScoreFailed(
     chain: analysisRequest.chain,
     address: analysisRequest.address,
   });
+
+  // Notifica conexões SSE aguardando este resultado
+  analysisEventBus.emit(requestId, { status: "failed", error: reason });
 }
 
 let connection: ChannelModel | null = null;

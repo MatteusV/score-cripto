@@ -13,7 +13,7 @@ import {
 export type WalletScorePhase =
   | "idle"
   | "submitting"
-  | "polling"
+  | "polling"    // aguardando resultado (SSE ou HTTP polling)
   | "completed"
   | "error"
 
@@ -28,6 +28,7 @@ export interface WalletScoreState {
 
 const POLL_INTERVAL_MS = 2_500
 const MAX_POLL_ATTEMPTS = 60
+const SSE_SUPPORTED = typeof EventSource !== "undefined"
 
 const initialState: WalletScoreState = {
   phase: "idle",
@@ -141,6 +142,80 @@ export function useWalletScore(chain: string, address: string) {
   }, [chain, address, clearTimer])
 
   function poll(processId: string, controller: AbortController) {
+    // Tenta SSE primeiro; cai de volta em polling HTTP se não suportado ou falhar
+    if (SSE_SUPPORTED) {
+      connectSSE(processId, controller)
+    } else {
+      pollHTTP(processId, controller)
+    }
+  }
+
+  function connectSSE(processId: string, controller: AbortController) {
+    if (controller.signal.aborted) return
+
+    const es = new EventSource(`/api/analyze/${processId}/stream`)
+
+    const cleanup = () => {
+      es.close()
+    }
+
+    controller.signal.addEventListener("abort", cleanup, { once: true })
+
+    es.addEventListener("status", (e: MessageEvent) => {
+      if (controller.signal.aborted) return
+      try {
+        const data = JSON.parse(e.data) as { status: AnalysisStatus }
+        setState((prev) => ({ ...prev, backendStatus: data.status }))
+      } catch { /* ignora parse error de status intermediário */ }
+    })
+
+    es.addEventListener("result", (e: MessageEvent) => {
+      if (controller.signal.aborted) return
+      try {
+        const data = JSON.parse(e.data) as {
+          status: "completed" | "failed"
+          result?: ScoreResult
+          error?: string
+        }
+
+        cleanup()
+
+        if (data.status === "completed" && data.result) {
+          setState((prev) => ({
+            ...prev,
+            phase: "completed",
+            result: data.result!,
+            backendStatus: "completed",
+          }))
+        } else {
+          setState((prev) => ({
+            ...prev,
+            phase: "error",
+            backendStatus: "failed",
+            error: data.error ?? "Erro no processamento da análise.",
+          }))
+        }
+      } catch { /* ignora parse error */ }
+    })
+
+    es.addEventListener("timeout", () => {
+      // SSE expirou no servidor — cai para polling HTTP
+      cleanup()
+      if (!controller.signal.aborted) {
+        pollHTTP(processId, controller)
+      }
+    })
+
+    es.onerror = () => {
+      // Conexão SSE falhou — fallback para polling HTTP
+      cleanup()
+      if (!controller.signal.aborted) {
+        pollHTTP(processId, controller)
+      }
+    }
+  }
+
+  function pollHTTP(processId: string, controller: AbortController) {
     async function tick() {
       if (controller.signal.aborted) return
 
@@ -148,7 +223,7 @@ export function useWalletScore(chain: string, address: string) {
         setState((prev) => ({
           ...prev,
           phase: "error",
-          error: "Timeout: análise nao completou a tempo.",
+          error: "Timeout: análise não completou a tempo.",
         }))
         return
       }
