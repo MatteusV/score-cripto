@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "db:generate": "prisma generate",
     "check": "ultracite check",
-    "fix": "ultracite fix"
+    "fix": "ultracite fix",
+    "dlq:monitor": "tsx scripts/dlq-monitor.ts",
+    "dlq:reprocess": "tsx scripts/dlq-reprocess.ts"
   },
   "dependencies": {
     "@score-cripto/observability-node": "workspace:*",
