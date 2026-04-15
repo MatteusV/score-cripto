@@ -2,13 +2,11 @@ import { randomUUID } from "node:crypto";
 import type {
   AnalysisRequestDTO,
   AnalysisSummary,
-  AnalysisTranslationDTO,
 } from "../../domain/analysis-request";
 import type {
   AnalysisRequestRepository,
   CompleteAnalysisRequestData,
   CreateAnalysisRequestData,
-  UpsertTranslationData,
 } from "../analysis-request-repository";
 
 export class AnalysisRequestInMemoryRepository
@@ -16,8 +14,6 @@ export class AnalysisRequestInMemoryRepository
 {
   items: AnalysisRequestDTO[] = [];
   private readonly counters: Map<string, number> = new Map();
-  private readonly translations: Map<string, AnalysisTranslationDTO> =
-    new Map();
 
   async create(data: CreateAnalysisRequestData): Promise<AnalysisRequestDTO> {
     const item: AnalysisRequestDTO = {
@@ -203,31 +199,6 @@ export class AnalysisRequestInMemoryRepository
     const items = completed.slice(offset, offset + limit);
 
     return { items, total };
-  }
-
-  async findTranslation(
-    analysisId: string,
-    locale: string
-  ): Promise<AnalysisTranslationDTO | null> {
-    return this.translations.get(`${analysisId}:${locale}`) ?? null;
-  }
-
-  async upsertTranslation(
-    data: UpsertTranslationData
-  ): Promise<AnalysisTranslationDTO> {
-    const key = `${data.analysisId}:${data.locale}`;
-    const existing = this.translations.get(key);
-    const translation: AnalysisTranslationDTO = {
-      id: existing?.id ?? randomUUID(),
-      analysisId: data.analysisId,
-      locale: data.locale,
-      reasoning: data.reasoning,
-      positiveFactors: data.positiveFactors,
-      riskFactors: data.riskFactors,
-      translatedAt: new Date(),
-    };
-    this.translations.set(key, translation);
-    return translation;
   }
 
   async summarizeByUserId(

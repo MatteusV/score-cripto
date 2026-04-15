@@ -1,7 +1,6 @@
 import type {
   AnalysisRequestDTO,
   AnalysisSummary,
-  AnalysisTranslationDTO,
 } from "../domain/analysis-request";
 
 export interface CreateAnalysisRequestData {
@@ -18,14 +17,6 @@ export interface CompleteAnalysisRequestData {
   reasoning: string;
   riskFactors: string[];
   score: number;
-}
-
-export interface UpsertTranslationData {
-  analysisId: string;
-  locale: string;
-  positiveFactors: string[] | null;
-  reasoning: string | null;
-  riskFactors: string[] | null;
 }
 
 export interface AnalysisRequestRepository {
@@ -48,10 +39,6 @@ export interface AnalysisRequestRepository {
     userId: string,
     publicId: number
   ) => Promise<AnalysisRequestDTO | null>;
-  findTranslation: (
-    analysisId: string,
-    locale: string
-  ) => Promise<AnalysisTranslationDTO | null>;
   listByUserId: (
     userId: string,
     page: number,
@@ -64,7 +51,4 @@ export interface AnalysisRequestRepository {
   markFailed: (id: string, reason: string) => Promise<AnalysisRequestDTO>;
   markStaleAsFailed: (olderThan: Date, reason: string) => Promise<number>;
   summarizeByUserId: (userId: string) => Promise<{ summary: AnalysisSummary }>;
-  upsertTranslation: (
-    data: UpsertTranslationData
-  ) => Promise<AnalysisTranslationDTO>;
 }
