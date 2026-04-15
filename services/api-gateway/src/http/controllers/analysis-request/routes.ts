@@ -5,6 +5,7 @@ import type { AnalysisRequestDTO } from "../../../domain/analysis-request";
 import { publishWalletDataRequested } from "../../../events/publisher";
 import { analysisRequestsCounter } from "../../../observability/metrics";
 import { AnalysisRequestPrismaRepository } from "../../../repositories/prisma/analysis-request-prisma-repository";
+import { AnalysisTranslationPrismaRepository } from "../../../repositories/prisma/analysis-translation-prisma-repository";
 import { prisma } from "../../../services/database";
 import { checkUsage, UsersServiceError } from "../../../services/users-service";
 import { CreateAnalysisRequestUseCase } from "../../../use-cases/analysis-request/create-analysis-request-use-case";
@@ -17,6 +18,7 @@ import { AnalysisRequestNotFoundError } from "../../../use-cases/errors/analysis
 import { authenticate } from "../../middleware/authenticate";
 
 const repository = new AnalysisRequestPrismaRepository(prisma);
+const translationRepository = new AnalysisTranslationPrismaRepository(prisma);
 const createUseCase = new CreateAnalysisRequestUseCase(repository);
 const findActiveUseCase = new FindActiveAnalysisRequestUseCase(repository);
 const findCachedUseCase = new FindCachedAnalysisUseCase(repository);
@@ -420,7 +422,10 @@ export async function analysisRequestHandler(app: FastifyInstance) {
     async (request, reply) => {
       const { id, locale } = request.params as { id: string; locale: string };
 
-      const translation = await repository.findTranslation(id, locale);
+      const translation = await translationRepository.findTranslation(
+        id,
+        locale
+      );
       if (!translation) {
         return reply.status(404).send({ error: "No translation found" });
       }
@@ -469,7 +474,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
       const { id, locale } = request.params as { id: string; locale: string };
       const { reasoning, positiveFactors, riskFactors } = request.body;
 
-      const translation = await repository.upsertTranslation({
+      const translation = await translationRepository.upsertTranslation({
         analysisId: id,
         locale,
         reasoning,
