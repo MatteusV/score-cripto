@@ -3,7 +3,7 @@ defmodule DataIndexing.Broadway.PipelineTest do
 
   import Mox
 
-  alias DataIndexing.Broadway.Pipeline
+  alias DataIndexing.Broadway.{MockRetryPublisher, Pipeline}
   alias DataIndexing.Meilisearch.MockClient
 
   setup :set_mox_global
@@ -15,6 +15,7 @@ defmodule DataIndexing.Broadway.PipelineTest do
        name: Pipeline,
        producer_module: Broadway.DummyProducer,
        meilisearch_client: MockClient,
+       retry_publisher: MockRetryPublisher,
        index_name: "wallets_test",
        batch_size: 10,
        batch_timeout: 50}
@@ -136,9 +137,13 @@ defmodule DataIndexing.Broadway.PipelineTest do
     assert failed == []
   end
 
-  test "meilisearch failure causes the batch to fail", %{pipeline: pipeline} do
+  test "meilisearch failure agenda retry e ack o original", %{pipeline: pipeline} do
     expect(MockClient, :update_documents, fn "wallets_test", [_document] ->
       {:error, :timeout}
+    end)
+
+    expect(MockRetryPublisher, :schedule_retry, fn _payload, _routing_key, _headers, 0 ->
+      :ok
     end)
 
     event = %{
@@ -153,6 +158,38 @@ defmodule DataIndexing.Broadway.PipelineTest do
     }
 
     ref = Broadway.test_message(pipeline, Jason.encode!(event))
+
+    assert_receive {:ack, ^ref, successful, failed}, 1_000
+    # Mensagem vai para failed bucket mas é acked (retry assumiu)
+    assert successful == []
+    assert length(failed) == 1
+  end
+
+  test "meilisearch failure com max retries esgotados vai para DLQ", %{pipeline: pipeline} do
+    expect(MockClient, :update_documents, fn "wallets_test", [_document] ->
+      {:error, :timeout}
+    end)
+
+    expect(MockRetryPublisher, :schedule_retry, fn _payload, _routing_key, _headers, 3 ->
+      {:error, :max_retries_exceeded}
+    end)
+
+    event = %{
+      "event" => "wallet.score.calculated",
+      "data" => %{
+        "requestId" => "req-1",
+        "chain" => "ethereum",
+        "address" => "0xabc",
+        "score" => 88,
+        "confidence" => 0.91
+      }
+    }
+
+    # Simula mensagem com x-retry-count: 3 (já na 3ª tentativa)
+    ref =
+      Broadway.test_message(pipeline, Jason.encode!(event),
+        metadata: %{headers: [{"x-retry-count", :long, 3}]}
+      )
 
     assert_receive {:ack, ^ref, successful, failed}, 1_000
     assert successful == []

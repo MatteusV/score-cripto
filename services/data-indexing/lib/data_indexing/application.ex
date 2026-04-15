@@ -13,10 +13,10 @@ defmodule DataIndexing.Application do
         DataIndexing.Telemetry,
         DataIndexing.Cache.WalletContext,
         DataIndexing.IndexManager,
-        maybe_endpoint_child(),
-        maybe_consumer_child()
+        maybe_endpoint_child()
       ]
       |> Enum.reject(&is_nil/1)
+      |> Kernel.++(consumer_children())
 
     opts = [strategy: :one_for_one, name: DataIndexing.Supervisor]
     Supervisor.start_link(children, opts)
@@ -26,9 +26,16 @@ defmodule DataIndexing.Application do
     if Config.endpoint_enabled?(), do: {Router, [port: Config.port()]}, else: nil
   end
 
-  defp maybe_consumer_child do
-    if Config.consumer_enabled?(),
-      do: {DataIndexing.Broadway.Pipeline, name: DataIndexing.Broadway.Pipeline},
-      else: nil
+  # RetryPublisher deve subir ANTES do Pipeline para que o canal AMQP
+  # esteja pronto quando o Broadway começar a processar mensagens.
+  defp consumer_children do
+    if Config.consumer_enabled?() do
+      [
+        DataIndexing.Broadway.RetryPublisher,
+        {DataIndexing.Broadway.Pipeline, name: DataIndexing.Broadway.Pipeline}
+      ]
+    else
+      []
+    end
   end
 end

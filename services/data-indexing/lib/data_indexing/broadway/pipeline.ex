@@ -14,7 +14,7 @@ defmodule DataIndexing.Broadway.Pipeline do
   require OpenTelemetry.Tracer
 
   alias Broadway.Message
-  alias DataIndexing.{Config, Documents.Transformer, Meilisearch, Telemetry}
+  alias DataIndexing.{Broadway.RetryPublisher, Config, Documents.Transformer, Meilisearch, Telemetry}
 
   def start_link(opts \\ []) do
     name = Keyword.get(opts, :name, __MODULE__)
@@ -23,7 +23,8 @@ defmodule DataIndexing.Broadway.Pipeline do
       name: name,
       context: %{
         meilisearch_client: Keyword.get(opts, :meilisearch_client, Meilisearch.client()),
-        index_name: Keyword.get(opts, :index_name, Config.meilisearch_index())
+        index_name: Keyword.get(opts, :index_name, Config.meilisearch_index()),
+        retry_publisher: Keyword.get(opts, :retry_publisher, RetryPublisher)
       },
       producer: producer_options(opts),
       processors: [default: [concurrency: Keyword.get(opts, :processor_concurrency, 2)]],
@@ -86,28 +87,55 @@ defmodule DataIndexing.Broadway.Pipeline do
       {:error, reason} ->
         Enum.map(messages, fn message ->
           message
-          |> Message.configure_ack(on_failure: :reject_and_requeue_once)
+          |> Message.configure_ack(on_failure: :reject)
           |> Message.failed({:meilisearch_unavailable, reason})
         end)
     end
   end
 
   @impl true
-  def handle_failed(messages, _context) do
-    Enum.each(messages, fn message ->
-      Telemetry.broadway_failed(message.metadata[:event_type] || "unknown", message.status)
-    end)
+  def handle_failed(messages, context) do
+    Enum.map(messages, fn message ->
+      event_type = message.metadata[:event_type] || "unknown"
+      retry_count = get_retry_count(message)
+      raw_payload = message.metadata[:raw_payload]
 
-    messages
+      cond do
+        # Mensagens com raw_payload são falhas de Meilisearch — elegíveis para retry
+        is_binary(raw_payload) ->
+          routing_key = message.metadata[:routing_key] || "#"
+          amqp_headers = message.metadata[:headers] || []
+
+          case context.retry_publisher.schedule_retry(raw_payload, routing_key, amqp_headers, retry_count) do
+            :ok ->
+              Telemetry.broadway_retried(event_type, retry_count + 1)
+              # ACK o original: não vai para DLQ, retry queue assume
+              Message.configure_ack(message, on_failure: :ack)
+
+            {:error, _} ->
+              Telemetry.broadway_failed(event_type, message.status)
+              # Esgotou retries ou falha ao publicar → DLQ via reject
+              message
+          end
+
+        # Payload inválido / evento desconhecido: vai direto para DLQ
+        true ->
+          Telemetry.broadway_failed(event_type, message.status)
+          message
+      end
+    end)
   end
 
   defp handle_wallet_cached(message, data) do
+    raw_payload = message.data
+
     case Transformer.from_data_cached_event(data) do
       {:ok, document} ->
         Telemetry.broadway_processed("wallet.data.cached", :indexed)
 
         message
         |> tag_event("wallet.data.cached")
+        |> Map.update!(:metadata, &Map.put(&1, :raw_payload, raw_payload))
         |> Map.put(:data, %{document: document})
         |> Message.put_batcher(:index)
 
@@ -120,12 +148,15 @@ defmodule DataIndexing.Broadway.Pipeline do
   end
 
   defp handle_score_calculated(message, score_data) do
+    raw_payload = message.data
+
     case Transformer.from_score_event(score_data) do
       {:ok, document} ->
         Telemetry.broadway_processed("wallet.score.calculated", :indexed)
 
         message
         |> tag_event("wallet.score.calculated")
+        |> Map.update!(:metadata, &Map.put(&1, :raw_payload, raw_payload))
         |> Map.put(:data, %{document: document})
         |> Message.put_batcher(:index)
 
@@ -134,6 +165,15 @@ defmodule DataIndexing.Broadway.Pipeline do
         |> tag_event("wallet.score.calculated")
         |> Message.configure_ack(on_failure: :reject)
         |> Message.failed(reason)
+    end
+  end
+
+  defp get_retry_count(%Message{metadata: metadata}) do
+    headers = Map.get(metadata, :headers, [])
+
+    case Enum.find(headers, fn {name, _type, _val} -> name == "x-retry-count" end) do
+      {_name, _type, value} when is_integer(value) -> value
+      _ -> 0
     end
   end
 
@@ -160,7 +200,7 @@ defmodule DataIndexing.Broadway.Pipeline do
               durable: true,
               arguments: DataIndexing.Broadway.DlqTopology.queue_arguments(Keyword.get(opts, :queue, Config.rabbitmq_queue()))
             ],
-            on_failure: :reject_and_requeue_once,
+            on_failure: :reject,
             qos: [prefetch_count: 10]
           },
           concurrency: 1

@@ -52,6 +52,13 @@ defmodule DataIndexing.Telemetry do
     })
   end
 
+  def broadway_retried(event_type, retry_count) do
+    execute([:broadway, :message, :retried], %{count: 1}, %{
+      event_type: event_type,
+      retry_count: retry_count
+    })
+  end
+
   def meilisearch_request(operation, fun) when is_function(fun, 0) do
     measure([:meilisearch, :request], %{operation: operation}, fun)
   end
