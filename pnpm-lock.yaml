@@ -50,6 +50,9 @@ importers:
       '@fastify/swagger':
         specifier: ^9.5.1
         version: 9.7.0
+      '@opentelemetry/api':
+        specifier: ^1.9.0
+        version: 1.9.0
       '@opentelemetry/auto-instrumentations-node':
         specifier: ^0.56.0
         version: 0.56.1(@opentelemetry/api@1.9.0)
@@ -71,6 +74,9 @@ importers:
       amqplib:
         specifier: ^0.10.5
         version: 0.10.9
+      cockatiel:
+        specifier: ^3.2.1
+        version: 3.2.1
       fastify:
         specifier: ^5.3.3
         version: 5.8.5
@@ -123,6 +129,9 @@ importers:
       '@ai-sdk/gateway':
         specifier: ^3.0.0
         version: 3.0.97(zod@3.25.76)
+      '@opentelemetry/api':
+        specifier: ^1.9.0
+        version: 1.9.0
       '@opentelemetry/auto-instrumentations-node':
         specifier: ^0.56.0
         version: 0.56.1(@opentelemetry/api@1.9.0)
@@ -3611,6 +3620,10 @@ packages:
     peerDependencies:
       react: ^18 || ^19 || ^19.0.0-rc
       react-dom: ^18 || ^19 || ^19.0.0-rc
+
+  cockatiel@3.2.1:
+    resolution: {integrity: sha512-gfrHV6ZPkquExvMh9IOkKsBzNDk6sDuZ6DdBGUBkvFnTCqCxzpuq48RySgP0AnaqQkw2zynOFj9yly6T1Q2G5Q==}
+    engines: {node: '>=16'}
 
   code-block-writer@13.0.3:
     resolution: {integrity: sha512-Oofo0pq3IKnsFtuHqSF7TqBfr71aeyZDVJ0HpmqB7FBM2qEigL0iPONSCZSO9pE9dZTAxANe5XHG9Uy0YMv8cg==}
@@ -9721,6 +9734,8 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - '@types/react-dom'
+
+  cockatiel@3.2.1: {}
 
   code-block-writer@13.0.3: {}
 

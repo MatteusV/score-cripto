@@ -192,6 +192,89 @@ describe("api-gateway HTTP server (Fastify)", () => {
       await app.close();
     });
 
+    it("deve retornar 202 com fail-open quando users service está indisponível (503)", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      mockFindFirst.mockResolvedValue(null);
+      const { UsersServiceError } = await import(
+        "../services/users-service.js"
+      );
+      mockCheckUsage.mockRejectedValue(
+        new UsersServiceError("users service circuit open", 503)
+      );
+      mockCounterUpsert.mockResolvedValue({
+        userId: "user-test-1",
+        counter: 1,
+      });
+      mockCreate.mockResolvedValue({
+        id: "req-failopen",
+        publicId: 2,
+        status: "PENDING",
+        chain: "ethereum",
+        address: "0xabc",
+        userId: "user-test-1",
+        requestedAt: new Date(),
+      });
+
+      const res = await app.inject({
+        method: "POST",
+        url: "/analysis",
+        headers: { authorization: `Bearer ${signToken()}` },
+        payload: { chain: "ethereum", address: "0xabc" },
+      });
+
+      // Fail-open: análise criada normalmente mesmo com users indisponível
+      expect(res.statusCode).toBe(202);
+      expect(res.json()).toMatchObject({
+        requestId: "req-failopen",
+        status: "pending",
+      });
+      expect(mockCreate).toHaveBeenCalledOnce();
+      expect(mockPublish).toHaveBeenCalledOnce();
+
+      await app.close();
+    });
+
+    it("deve retornar 202 com fail-open quando users service retorna timeout (504)", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      mockFindFirst.mockResolvedValue(null);
+      const { UsersServiceError } = await import(
+        "../services/users-service.js"
+      );
+      mockCheckUsage.mockRejectedValue(
+        new UsersServiceError("users service timeout", 504)
+      );
+      mockCounterUpsert.mockResolvedValue({
+        userId: "user-test-1",
+        counter: 1,
+      });
+      mockCreate.mockResolvedValue({
+        id: "req-timeout",
+        publicId: 3,
+        status: "PENDING",
+        chain: "bitcoin",
+        address: "bc1q",
+        userId: "user-test-1",
+        requestedAt: new Date(),
+      });
+
+      const res = await app.inject({
+        method: "POST",
+        url: "/analysis",
+        headers: { authorization: `Bearer ${signToken()}` },
+        payload: { chain: "bitcoin", address: "bc1q" },
+      });
+
+      expect(res.statusCode).toBe(202);
+      expect(mockCreate).toHaveBeenCalledOnce();
+      expect(mockPublish).toHaveBeenCalledOnce();
+
+      await app.close();
+    });
+
     it("deve retornar 400 quando body é inválido", async () => {
       const { createHttpServer } = await import("./server.js");
       const app = await createHttpServer();

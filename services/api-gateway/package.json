@@ -25,6 +25,7 @@
     "@scalar/fastify-api-reference": "^1.51.0",
     "@types/jsonwebtoken": "^9.0.10",
     "amqplib": "^0.10.5",
+    "cockatiel": "^3.2.1",
     "fastify": "^5.3.3",
     "fastify-type-provider-zod": "^6.1.0",
     "jsonwebtoken": "^9.0.3",

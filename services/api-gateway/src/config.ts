@@ -9,6 +9,15 @@ const envSchema = z.object({
   RATE_LIMIT_MAX_AUTH: z.coerce.number().int().positive().default(60),
   RATE_LIMIT_MAX_ANON: z.coerce.number().int().positive().default(30),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  USERS_SERVICE_TIMEOUT_MS: z.coerce.number().int().positive().default(1000),
+  USERS_SERVICE_RETRY_ATTEMPTS: z.coerce.number().int().min(0).default(1),
+  USERS_SERVICE_RETRY_BACKOFF_MS: z.coerce.number().int().min(0).default(200),
+  USERS_SERVICE_BREAKER_THRESHOLD: z.coerce.number().min(0).max(1).default(0.5),
+  USERS_SERVICE_BREAKER_HALF_OPEN_AFTER_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(30_000),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -30,4 +39,10 @@ export const config = {
   rateLimitMaxAuth: parsed.data.RATE_LIMIT_MAX_AUTH,
   rateLimitMaxAnon: parsed.data.RATE_LIMIT_MAX_ANON,
   rateLimitWindowMs: parsed.data.RATE_LIMIT_WINDOW_MS,
+  usersServiceTimeoutMs: parsed.data.USERS_SERVICE_TIMEOUT_MS,
+  usersServiceRetryAttempts: parsed.data.USERS_SERVICE_RETRY_ATTEMPTS,
+  usersServiceRetryBackoffMs: parsed.data.USERS_SERVICE_RETRY_BACKOFF_MS,
+  usersServiceBreakerThreshold: parsed.data.USERS_SERVICE_BREAKER_THRESHOLD,
+  usersServiceBreakerHalfOpenAfterMs:
+    parsed.data.USERS_SERVICE_BREAKER_HALF_OPEN_AFTER_MS,
 } as const;

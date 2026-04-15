@@ -1,9 +1,9 @@
 import type { FastifyInstance } from "fastify";
-import { analysisRequestsCounter } from "../../../observability/metrics";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
 import { publishWalletDataRequested } from "../../../events/publisher";
 import type { AnalysisRequest } from "../../../generated/prisma/client";
+import { analysisRequestsCounter } from "../../../observability/metrics";
 import { AnalysisRequestPrismaRepository } from "../../../repositories/prisma/analysis-request-prisma-repository";
 import { prisma } from "../../../services/database";
 import { checkUsage, UsersServiceError } from "../../../services/users-service";
@@ -130,9 +130,15 @@ export async function analysisRequestHandler(app: FastifyInstance) {
             error: "Usage limit exceeded for this billing period",
           });
         }
-        request.log.warn(
-          { err: (err as Error).message },
-          "Users service unavailable, proceeding with analysis"
+        const statusCode =
+          err instanceof UsersServiceError ? err.statusCode : 503;
+        const logFn =
+          statusCode === 503 || statusCode === 504
+            ? request.log.error.bind(request.log)
+            : request.log.warn.bind(request.log);
+        logFn(
+          { err: (err as Error).message, statusCode },
+          "users service fail-open: proceeding with analysis despite check failure"
         );
       }
 

@@ -25,6 +25,11 @@ pnpm fix                  # Auto-fix de lint
 | `RATE_LIMIT_MAX_AUTH` | `60` | Máximo de req/janela por usuário autenticado |
 | `RATE_LIMIT_MAX_ANON` | `30` | Máximo de req/janela por IP anônimo |
 | `RATE_LIMIT_WINDOW_MS` | `60000` | Janela de rate limit em ms (padrão: 1 minuto) |
+| `USERS_SERVICE_TIMEOUT_MS` | `1000` | Timeout da chamada HTTP ao users service em ms |
+| `USERS_SERVICE_RETRY_ATTEMPTS` | `1` | Número de retries após erro retentável (ex: rede, 5xx) |
+| `USERS_SERVICE_RETRY_BACKOFF_MS` | `200` | Backoff fixo entre retries em ms |
+| `USERS_SERVICE_BREAKER_THRESHOLD` | `0.5` | Fração de falhas (0–1) que abre o circuit breaker na janela |
+| `USERS_SERVICE_BREAKER_HALF_OPEN_AFTER_MS` | `30000` | Tempo em ms até o breaker testar recuperação (half-open) |
 
 ## Responsabilidades
 
