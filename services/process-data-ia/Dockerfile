@@ -20,4 +20,7 @@ COPY .env.example ./
 
 EXPOSE 3002
 
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD node -e "require('http').get('http://127.0.0.1:3002/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+
 CMD ["sh", "-c", "npx prisma db push --skip-generate && node dist/index.js"]

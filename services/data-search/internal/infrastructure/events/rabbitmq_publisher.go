@@ -112,6 +112,11 @@ func (p *Publisher) PublishWalletCached(ctx context.Context, event domain.Wallet
 	return nil
 }
 
+// IsHealthy retorna true se a conexão AMQP do publisher está ativa.
+func (p *Publisher) IsHealthy() bool {
+	return p.conn != nil && !p.conn.IsClosed()
+}
+
 // Close gracefully shuts down the publisher.
 func (p *Publisher) Close() error {
 	if p.channel != nil {

@@ -14,6 +14,7 @@ type Config struct {
 	EtherscanAPIKey  string
 	EtherscanBaseURL string
 	CacheTTLMinutes  int
+	HTTPPort         string
 }
 
 // Load reads configuration from environment variables, with sensible defaults.
@@ -34,6 +35,7 @@ func Load() *Config {
 		EtherscanAPIKey:  os.Getenv("ETHERSCAN_API_KEY"),
 		EtherscanBaseURL: os.Getenv("ETHERSCAN_BASE_URL"),
 		CacheTTLMinutes:  ttl,
+		HTTPPort:         getEnv("HTTP_PORT", "8080"),
 	}
 }
 

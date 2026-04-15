@@ -2,16 +2,20 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/score-cripto/data-search/internal/application/usecase"
 	infraCache "github.com/score-cripto/data-search/internal/infrastructure/cache"
 	infraConfig "github.com/score-cripto/data-search/internal/infrastructure/config"
 	infraEvents "github.com/score-cripto/data-search/internal/infrastructure/events"
+	infraHTTP "github.com/score-cripto/data-search/internal/infrastructure/http"
 	infraProvider "github.com/score-cripto/data-search/internal/infrastructure/provider"
 	"github.com/score-cripto/data-search/internal/infrastructure/telemetry"
 )
@@ -83,6 +87,21 @@ func main() {
 	}
 	defer consumer.Close()
 
+	// HTTP health server.
+	mux := http.NewServeMux()
+	mux.Handle("/health", infraHTTP.NewHealthHandler(redisCache, pub, consumer))
+	httpSrv := &http.Server{
+		Addr:              ":" + cfg.HTTPPort,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	go func() {
+		slog.Info("health server listening", "port", cfg.HTTPPort)
+		if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("health server error", "error", err)
+		}
+	}()
+
 	// Graceful shutdown.
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
@@ -91,6 +110,9 @@ func main() {
 		<-sig
 		slog.Info("received shutdown signal")
 		cancel()
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer shutdownCancel()
+		_ = httpSrv.Shutdown(shutdownCtx)
 	}()
 
 	slog.Info("data-search worker starting")

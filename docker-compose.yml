@@ -143,10 +143,19 @@ services:
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
       OTEL_METRICS_EXPORTER: otlp
       NODE_OPTIONS: "--require @opentelemetry/auto-instrumentations-node/register"
+      HEALTH_PORT: 3002
     volumes:
       - ./services/process-data-ia:/app
       - process_data_ia_node_modules:/app/node_modules
       - process_data_ia_pnpm_store:/pnpm/store
+    ports:
+      - "${PROCESS_DATA_IA_HOST_PORT:-3002}:3002"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3002/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     command:
       [
         "sh",
@@ -174,12 +183,19 @@ services:
       CACHE_TTL_MINUTES: ${CACHE_TTL_MINUTES:-20}
       OTEL_SERVICE_NAME: data-search
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
+      HTTP_PORT: 8080
     volumes:
       - ./services/data-search:/app
       - data_search_go_pkg_cache:/go/pkg/mod
       - data_search_go_build_cache:/root/.cache/go-build
     ports:
       - "${DATA_SEARCH_HOST_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     command:
       [
         "sh",

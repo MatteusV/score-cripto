@@ -218,6 +218,11 @@ func (c *Consumer) ProcessMessage(ctx context.Context, body []byte) (MessageResu
 	return Processed, nil
 }
 
+// IsHealthy retorna true se a conexão AMQP do consumer está ativa.
+func (c *Consumer) IsHealthy() bool {
+	return c.conn != nil && !c.conn.IsClosed()
+}
+
 // Close gracefully shuts down the consumer.
 func (c *Consumer) Close() error {
 	if c.channel != nil {

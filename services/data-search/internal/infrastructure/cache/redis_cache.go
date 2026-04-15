@@ -44,6 +44,11 @@ func New(redisURL string, ttlMinutes int) (*RedisCache, error) {
 	}, nil
 }
 
+// Ping verifica a conectividade com o Redis, útil para health checks.
+func (c *RedisCache) Ping(ctx context.Context) error {
+	return c.client.Ping(ctx).Err()
+}
+
 // cacheKey builds a cache key for the given chain and address.
 func cacheKey(chain, address string) string {
 	return fmt.Sprintf("wallet:%s:%s", strings.ToLower(chain), strings.ToLower(address))

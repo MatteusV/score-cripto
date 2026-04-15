@@ -116,12 +116,10 @@ Pipeline sugerido por serviço:
 
 ### 6. Health Checks nos Workers
 
-**Status:** PARTIAL (só `api-gateway` e `users` têm `/health`)
-**Problema:** `process-data-ia` (Node.js worker) e `data-search` (Go worker) não expõem endpoint de health check. Orquestradores como Docker Swarm, Kubernetes ou ECS não conseguem detectar se esses serviços estão vivos.
-
-**Solução:**
-- `process-data-ia`: expor porta HTTP mínima (ex: `:3002/health`) que verifica conexão com RabbitMQ e PostgreSQL
-- `data-search`: adicionar `GET /health` no servidor Go que verifica conexão com Redis e RabbitMQ
+**Status:** ✅ RESOLVIDO
+**Solução implementada:**
+- `process-data-ia`: `GET :3002/health` via `node:http` nativo — verifica RabbitMQ (`channel.checkExchange`) e PostgreSQL (`prisma.$queryRaw SELECT 1`). Retorna `200` se todos up, `503` com `checks` detalhado se algum down. Dockerfile e docker-compose com `healthcheck:` configurados.
+- `data-search`: `GET :8080/health` via `net/http` stdlib — verifica Redis (`Ping`) e conexões AMQP de publisher e consumer (`IsClosed`). Mesma semântica 200/503. Dockerfile e docker-compose com `healthcheck:` configurados.
 
 **Serviços afetados:** `process-data-ia`, `data-search`
 

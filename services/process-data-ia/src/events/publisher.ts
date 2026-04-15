@@ -71,6 +71,18 @@ function publishEvent(routingKey: string, payload: unknown): boolean {
   }
 }
 
+export async function checkRabbitMQHealth(): Promise<boolean> {
+  if (!channel) {
+    return false;
+  }
+  try {
+    await channel.checkExchange(EXCHANGE_NAME);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function disconnectRabbitMQ(): Promise<void> {
   try {
     if (channel) {
