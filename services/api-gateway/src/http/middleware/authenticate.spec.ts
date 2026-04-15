@@ -51,9 +51,10 @@ describe("authenticate middleware (RS256)", () => {
 
     await authenticate(req, reply);
 
-    expect((req as { user: { id: string; email: string } }).user).toEqual({
+    expect((req as { user: { id: string; email: string; role: string } }).user).toEqual({
       id: "user-abc",
       email: "alice@example.com",
+      role: "USER",
     });
   });
 

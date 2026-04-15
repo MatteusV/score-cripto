@@ -201,6 +201,26 @@ export class AnalysisRequestInMemoryRepository
     return { items, total };
   }
 
+  async listAll(
+    page: number,
+    limit: number,
+    filters?: { status?: string; userId?: string }
+  ): Promise<{ items: AnalysisRequestDTO[]; total: number }> {
+    const filtered = this.items
+      .filter((item) => {
+        if (filters?.status && item.status !== filters.status) return false;
+        if (filters?.userId && item.userId !== filters.userId) return false;
+        return true;
+      })
+      .sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime());
+
+    const total = filtered.length;
+    const offset = (page - 1) * limit;
+    const items = filtered.slice(offset, offset + limit);
+
+    return { items, total };
+  }
+
   async summarizeByUserId(
     userId: string
   ): Promise<{ summary: AnalysisSummary }> {

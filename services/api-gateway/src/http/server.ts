@@ -13,6 +13,7 @@ import {
   type ZodTypeProvider,
 } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
+import { adminHandler } from "./controllers/admin/routes.js";
 import { analysisRequestHandler } from "./controllers/analysis-request/routes.js";
 import { registerRateLimit } from "./plugins/rate-limit.js";
 
@@ -51,6 +52,7 @@ export async function createHttpServer() {
           name: "analysis",
           description: "Análise de confiabilidade de carteiras",
         },
+        { name: "admin", description: "Operações administrativas (role=ADMIN)" },
         { name: "system", description: "Status e saúde do serviço" },
       ],
     },
@@ -68,6 +70,7 @@ export async function createHttpServer() {
   });
 
   await app.register(analysisRequestHandler, { prefix: "/analysis" });
+  await app.register(adminHandler, { prefix: "/admin" });
 
   // GET /health
   app.withTypeProvider<ZodTypeProvider>().get(

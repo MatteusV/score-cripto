@@ -186,6 +186,28 @@ export class AnalysisRequestPrismaRepository
     return { items, total };
   }
 
+  async listAll(
+    page: number,
+    limit: number,
+    filters?: { status?: string; userId?: string }
+  ): Promise<{ items: AnalysisRequestDTO[]; total: number }> {
+    const where: Record<string, unknown> = {};
+    if (filters?.status) where.status = filters.status;
+    if (filters?.userId) where.userId = filters.userId;
+
+    const [rows, total] = await Promise.all([
+      this.prisma.analysisRequest.findMany({
+        where,
+        orderBy: { requestedAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.analysisRequest.count({ where }),
+    ]);
+
+    return { items: rows as unknown as AnalysisRequestDTO[], total };
+  }
+
   async summarizeByUserId(
     userId: string
   ): Promise<{ summary: AnalysisSummary }> {

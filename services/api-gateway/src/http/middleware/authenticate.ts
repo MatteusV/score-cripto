@@ -5,6 +5,7 @@ import { config } from "../../config.js";
 interface JwtPayload {
   email: string;
   sub: string;
+  role?: string;
 }
 
 export async function authenticate(
@@ -24,7 +25,11 @@ export async function authenticate(
     const payload = jwt.verify(token, config.jwtPublicKey, {
       algorithms: ["RS256"],
     }) as JwtPayload;
-    request.user = { id: payload.sub, email: payload.email };
+    request.user = {
+      id: payload.sub,
+      email: payload.email,
+      role: payload.role ?? "USER",
+    };
   } catch {
     reply.status(401).send({ error: "Invalid or expired token" });
   }
@@ -32,6 +37,6 @@ export async function authenticate(
 
 declare module "fastify" {
   interface FastifyRequest {
-    user: { id: string; email: string };
+    user: { id: string; email: string; role: string };
   }
 }
