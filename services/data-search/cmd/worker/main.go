@@ -57,18 +57,36 @@ func main() {
 	defer pub.Close()
 
 	// Blockchain providers.
-	var defaultProvider usecase.BlockchainProviderPort
+	var evmProvider usecase.BlockchainProviderPort
 	if cfg.EtherscanAPIKey == "" {
 		slog.Warn("ETHERSCAN_API_KEY not set — using mock provider (dev only, synthetic data)")
-		defaultProvider = infraProvider.NewMockProvider()
+		evmProvider = infraProvider.NewMockProvider()
 	} else {
-		defaultProvider = infraProvider.NewEtherscanProvider(cfg.EtherscanAPIKey, cfg.EtherscanBaseURL)
+		evmProvider = infraProvider.NewEtherscanProvider(cfg.EtherscanAPIKey, cfg.EtherscanBaseURL)
 	}
 
-	// Wire providers map.
+	// Wire providers map: start with EVM chains.
 	providers := make(map[string]usecase.BlockchainProviderPort)
-	for _, chain := range defaultProvider.SupportedChains() {
-		providers[strings.ToLower(chain)] = defaultProvider
+	for _, chain := range evmProvider.SupportedChains() {
+		providers[strings.ToLower(chain)] = evmProvider
+	}
+
+	// Bitcoin via Blockstream (no API key required).
+	btcProvider := infraProvider.NewBlockstreamProvider(cfg.BlockstreamBaseURL)
+	for _, chain := range btcProvider.SupportedChains() {
+		providers[strings.ToLower(chain)] = btcProvider
+	}
+	slog.Info("blockstream bitcoin provider registered")
+
+	// Solana via Helius (optional — disabled if HELIUS_API_KEY is not set).
+	if cfg.HeliusAPIKey != "" {
+		solProvider := infraProvider.NewHeliusProvider(cfg.HeliusAPIKey)
+		for _, chain := range solProvider.SupportedChains() {
+			providers[strings.ToLower(chain)] = solProvider
+		}
+		slog.Info("helius solana provider registered")
+	} else {
+		slog.Warn("HELIUS_API_KEY not set — solana chain is unavailable")
 	}
 
 	// Wire use case.

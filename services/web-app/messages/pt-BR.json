@@ -239,5 +239,41 @@
     "pt-BR": "Português",
     "en": "English",
     "es": "Español"
+  },
+  "explore": {
+    "title": "Explorar carteiras",
+    "subtitle": "Pesquise carteiras indexadas com score e dados on-chain",
+    "searchPlaceholder": "Buscar por endereço ou termo...",
+    "filters": {
+      "allChains": "Todas as redes",
+      "minScore": "Score mín.",
+      "maxScore": "Score máx.",
+      "sortByScore": "Ordenar: Score",
+      "sortByDate": "Ordenar: Data",
+      "desc": "Maior primeiro",
+      "asc": "Menor primeiro"
+    },
+    "columns": {
+      "wallet": "Carteira",
+      "chain": "Rede",
+      "score": "Score",
+      "riskFlags": "Flags",
+      "indexedAt": "Indexado"
+    },
+    "stats": {
+      "results": "{total} resultados",
+      "processingTime": "{ms}ms"
+    },
+    "empty": "Nenhuma carteira encontrada. Tente ajustar os filtros.",
+    "emptyInitial": "Use os filtros acima para buscar carteiras indexadas.",
+    "error": "Falha ao buscar carteiras. O serviço pode estar indisponível.",
+    "loading": "Buscando...",
+    "noRiskFlags": "Nenhuma",
+    "pagination": {
+      "prev": "Anterior",
+      "next": "Próxima",
+      "page": "Página {page} de {total}"
+    },
+    "nav": "Explorar"
   }
 }

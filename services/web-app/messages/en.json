@@ -239,5 +239,41 @@
     "pt-BR": "Português",
     "en": "English",
     "es": "Español"
+  },
+  "explore": {
+    "title": "Explore wallets",
+    "subtitle": "Search indexed wallets with AI scores and on-chain data",
+    "searchPlaceholder": "Search by address or term...",
+    "filters": {
+      "allChains": "All networks",
+      "minScore": "Min score",
+      "maxScore": "Max score",
+      "sortByScore": "Sort: Score",
+      "sortByDate": "Sort: Date",
+      "desc": "Highest first",
+      "asc": "Lowest first"
+    },
+    "columns": {
+      "wallet": "Wallet",
+      "chain": "Network",
+      "score": "Score",
+      "riskFlags": "Flags",
+      "indexedAt": "Indexed"
+    },
+    "stats": {
+      "results": "{total} results",
+      "processingTime": "{ms}ms"
+    },
+    "empty": "No wallets found. Try adjusting the filters.",
+    "emptyInitial": "Use the filters above to search indexed wallets.",
+    "error": "Failed to fetch wallets. The service may be unavailable.",
+    "loading": "Searching...",
+    "noRiskFlags": "None",
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {total}"
+    },
+    "nav": "Explore"
   }
 }

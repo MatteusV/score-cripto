@@ -239,5 +239,41 @@
     "pt-BR": "Português",
     "en": "English",
     "es": "Español"
+  },
+  "explore": {
+    "title": "Explorar carteras",
+    "subtitle": "Busca carteras indexadas con puntuación y datos on-chain",
+    "searchPlaceholder": "Buscar por dirección o término...",
+    "filters": {
+      "allChains": "Todas las redes",
+      "minScore": "Puntuación mín.",
+      "maxScore": "Puntuación máx.",
+      "sortByScore": "Ordenar: Puntuación",
+      "sortByDate": "Ordenar: Fecha",
+      "desc": "Mayor primero",
+      "asc": "Menor primero"
+    },
+    "columns": {
+      "wallet": "Cartera",
+      "chain": "Red",
+      "score": "Puntuación",
+      "riskFlags": "Flags",
+      "indexedAt": "Indexado"
+    },
+    "stats": {
+      "results": "{total} resultados",
+      "processingTime": "{ms}ms"
+    },
+    "empty": "No se encontraron carteras. Intenta ajustar los filtros.",
+    "emptyInitial": "Usa los filtros de arriba para buscar carteras indexadas.",
+    "error": "Error al buscar carteras. El servicio puede estar no disponible.",
+    "loading": "Buscando...",
+    "noRiskFlags": "Ninguna",
+    "pagination": {
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "page": "Página {page} de {total}"
+    },
+    "nav": "Explorar"
   }
 }

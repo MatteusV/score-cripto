@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const PROTECTED = ["/settings", "/analyze", "/dashboard", "/history"]
+const PROTECTED = ["/settings", "/analyze", "/dashboard", "/history", "/search"]
 const AUTH_ONLY = ["/login", "/register"]
 
 export function proxy(request: NextRequest) {

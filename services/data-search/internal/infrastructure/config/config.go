@@ -9,12 +9,14 @@ import (
 
 // Config holds all service configuration loaded from environment variables.
 type Config struct {
-	RedisURL         string
-	RabbitMQURL      string
-	EtherscanAPIKey  string
-	EtherscanBaseURL string
-	CacheTTLMinutes  int
-	HTTPPort         string
+	RedisURL           string
+	RabbitMQURL        string
+	EtherscanAPIKey    string
+	EtherscanBaseURL   string
+	BlockstreamBaseURL string
+	HeliusAPIKey       string
+	CacheTTLMinutes    int
+	HTTPPort           string
 }
 
 // Load reads configuration from environment variables, with sensible defaults.
@@ -30,12 +32,14 @@ func Load() *Config {
 	}
 
 	return &Config{
-		RedisURL:         getEnv("REDIS_URL", "redis://localhost:6379"),
-		RabbitMQURL:      getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672"),
-		EtherscanAPIKey:  os.Getenv("ETHERSCAN_API_KEY"),
-		EtherscanBaseURL: os.Getenv("ETHERSCAN_BASE_URL"),
-		CacheTTLMinutes:  ttl,
-		HTTPPort:         getEnv("HTTP_PORT", "8080"),
+		RedisURL:           getEnv("REDIS_URL", "redis://localhost:6379"),
+		RabbitMQURL:        getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672"),
+		EtherscanAPIKey:    os.Getenv("ETHERSCAN_API_KEY"),
+		EtherscanBaseURL:   os.Getenv("ETHERSCAN_BASE_URL"),
+		BlockstreamBaseURL: getEnv("BLOCKSTREAM_BASE_URL", "https://blockstream.info/api"),
+		HeliusAPIKey:       os.Getenv("HELIUS_API_KEY"),
+		CacheTTLMinutes:    ttl,
+		HTTPPort:           getEnv("HTTP_PORT", "8080"),
 	}
 }
 

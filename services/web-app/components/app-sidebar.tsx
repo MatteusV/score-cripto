@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   ClockIcon,
+  CompassIcon,
   CreditCardIcon,
   LayoutDashboardIcon,
   SearchIcon,
@@ -16,6 +17,7 @@ const NAV_MAIN = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboardIcon },
   { label: "Nova análise", href: "/analyze", icon: SearchIcon },
   { label: "Histórico", href: "/history", icon: ClockIcon },
+  { label: "Explorar", href: "/search", icon: CompassIcon },
 ]
 
 const NAV_ACCOUNT = [
