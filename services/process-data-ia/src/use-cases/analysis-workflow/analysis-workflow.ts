@@ -69,11 +69,25 @@ export class AnalysisWorkflow {
     const walletContextHash = hashWalletContext(walletContext);
 
     // 1. Cache hit — republica resultado sem chamar IA novamente
-    const cachedScore = await this.getCachedScore.execute({
-      chain: walletContext.chain,
-      address: walletContext.address,
-      walletContextHash,
-    });
+    let cachedScore: Awaited<ReturnType<typeof this.getCachedScore.execute>>;
+    try {
+      cachedScore = await this.getCachedScore.execute({
+        chain: walletContext.chain,
+        address: walletContext.address,
+        walletContextHash,
+      });
+    } catch (error) {
+      const reason = (error as Error).message;
+      logger.error(
+        { err: reason },
+        "[AnalysisWorkflow] Cache check failed — publishing failed event"
+      );
+      this.publishFailed({
+        requestId,
+        reason: `Cache lookup failed: ${reason}`,
+      });
+      throw error;
+    }
 
     if (cachedScore) {
       this.publishCalculated({
@@ -145,8 +159,8 @@ export class AnalysisWorkflow {
       throw error;
     }
 
-    // 4. Publica resultado (fire-and-forget)
-    this.publishCalculated({
+    // 4. Publica resultado
+    const published = this.publishCalculated({
       requestId,
       chain: walletContext.chain,
       address: walletContext.address,
@@ -158,6 +172,17 @@ export class AnalysisWorkflow {
       modelVersion: scoringResult.modelVersion,
       promptVersion: scoringResult.promptVersion,
     });
+
+    if (!published) {
+      logger.error(
+        { requestId },
+        "[AnalysisWorkflow] Failed to publish wallet.score.calculated — publishing failed event"
+      );
+      this.publishFailed({
+        requestId,
+        reason: "Event publish failure after successful scoring",
+      });
+    }
 
     return { processedData, cachedResult: false };
   }

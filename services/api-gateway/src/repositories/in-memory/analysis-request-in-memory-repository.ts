@@ -171,6 +171,19 @@ export class AnalysisRequestInMemoryRepository
     return updated;
   }
 
+  async markStaleAsFailed(olderThan: Date, reason: string): Promise<number> {
+    let count = 0;
+    for (const item of this.items) {
+      if (item.status === "PENDING" && item.requestedAt < olderThan) {
+        item.status = "FAILED";
+        item.failedAt = new Date();
+        item.failureReason = reason;
+        count++;
+      }
+    }
+    return count;
+  }
+
   async listByUserId(
     userId: string,
     page: number,

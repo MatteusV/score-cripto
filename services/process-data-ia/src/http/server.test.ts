@@ -36,7 +36,7 @@ function getJson(port: number): Promise<{ status: number; body: unknown }> {
   });
 }
 
-let currentPort = 29100;
+let currentPort = 29_100;
 function nextPort() {
   return currentPort++;
 }

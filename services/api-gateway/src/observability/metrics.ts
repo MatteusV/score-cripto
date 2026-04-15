@@ -26,3 +26,11 @@ export const usersCheckDurationHistogram = meter.createHistogram(
     unit: "ms",
   }
 );
+
+export const staleAnalysisExpiredCounter = meter.createCounter(
+  "stale_analyses.expired",
+  {
+    description:
+      "Número de análises PENDING expiradas e marcadas como FAILED pelo job de reconciliação",
+  }
+);

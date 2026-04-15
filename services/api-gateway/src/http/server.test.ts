@@ -14,6 +14,7 @@ function signToken(userId = "user-test-1") {
 
 const mockFindFirst = vi.fn();
 const mockCreate = vi.fn();
+const mockUpdate = vi.fn();
 const mockFindUnique = vi.fn();
 const mockFindMany = vi.fn();
 const mockCount = vi.fn();
@@ -25,6 +26,7 @@ vi.mock("../services/database.js", () => ({
     analysisRequest: {
       findFirst: mockFindFirst,
       create: mockCreate,
+      update: mockUpdate,
       findUnique: mockFindUnique,
       findMany: mockFindMany,
       count: mockCount,
@@ -592,6 +594,134 @@ describe("api-gateway HTTP server (Fastify)", () => {
         const res = await app.inject({ method: "GET", url: "/health" });
         expect(res.statusCode).toBe(200);
       }
+
+      await app.close();
+    });
+  });
+
+  describe("fluxo completo de análise (PENDING → COMPLETED / FAILED)", () => {
+    const BASE_ANALYSIS = {
+      id: "req-flow-001",
+      userId: "user-flow-1",
+      publicId: 1,
+      chain: "ethereum",
+      address: "0xflow",
+      requestedAt: new Date(),
+      completedAt: null,
+      failedAt: null,
+      failureReason: null,
+      score: null,
+      confidence: null,
+      reasoning: null,
+      positiveFactors: [],
+      riskFactors: [],
+      modelVersion: null,
+      promptVersion: null,
+    };
+
+    it("PENDING → COMPLETED: handleScoreCalculated atualiza status e GET retorna completed", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const { handleScoreCalculated } = await import("../events/consumer.js");
+      const app = await createHttpServer();
+
+      // findById no completeUseCase
+      mockFindUnique.mockResolvedValueOnce({
+        ...BASE_ANALYSIS,
+        status: "PROCESSING",
+      });
+      // markCompleted → update
+      const completedRecord = {
+        ...BASE_ANALYSIS,
+        status: "COMPLETED",
+        completedAt: new Date(),
+        score: 80,
+        confidence: 0.85,
+        reasoning: "Carteira confiável",
+        positiveFactors: ["Wallet antiga"],
+        riskFactors: [],
+        modelVersion: "gpt-4o-mini",
+        promptVersion: "v1.0",
+      };
+      mockUpdate.mockResolvedValueOnce(completedRecord);
+      // GET /analysis/:id → findUnique
+      mockFindUnique.mockResolvedValueOnce(completedRecord);
+
+      const scoreCalculatedPayload = JSON.stringify({
+        event: "wallet.score.calculated",
+        timestamp: new Date().toISOString(),
+        data: {
+          requestId: "req-flow-001",
+          chain: "ethereum",
+          address: "0xflow",
+          score: 80,
+          confidence: 0.85,
+          reasoning: "Carteira confiável",
+          positiveFactors: ["Wallet antiga"],
+          riskFactors: [],
+          modelVersion: "gpt-4o-mini",
+          promptVersion: "v1.0",
+        },
+      });
+
+      await handleScoreCalculated(scoreCalculatedPayload);
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/analysis/req-flow-001",
+        headers: { authorization: `Bearer ${signToken("user-flow-1")}` },
+      });
+      const body = res.json();
+
+      expect(res.statusCode).toBe(200);
+      expect(body.status).toBe("completed");
+      expect(body.result).toBeDefined();
+      expect(body.result.score).toBe(80);
+
+      await app.close();
+    });
+
+    it("PENDING → FAILED: handleScoreFailed atualiza status e GET retorna failed com failureReason", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const { handleScoreFailed } = await import("../events/consumer.js");
+      const app = await createHttpServer();
+
+      // findById no failUseCase
+      mockFindUnique.mockResolvedValueOnce({
+        ...BASE_ANALYSIS,
+        status: "PENDING",
+      });
+      // markFailed → update
+      const failedRecord = {
+        ...BASE_ANALYSIS,
+        status: "FAILED",
+        failedAt: new Date(),
+        failureReason: "Cache lookup failed",
+      };
+      mockUpdate.mockResolvedValueOnce(failedRecord);
+      // GET /analysis/:id → findUnique
+      mockFindUnique.mockResolvedValueOnce(failedRecord);
+
+      const scoreFailedPayload = JSON.stringify({
+        event: "wallet.score.failed",
+        timestamp: new Date().toISOString(),
+        data: {
+          requestId: "req-flow-001",
+          reason: "Cache lookup failed",
+        },
+      });
+
+      await handleScoreFailed(scoreFailedPayload);
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/analysis/req-flow-001",
+        headers: { authorization: `Bearer ${signToken("user-flow-1")}` },
+      });
+      const body = res.json();
+
+      expect(res.statusCode).toBe(200);
+      expect(body.status).toBe("failed");
+      expect(body.result).toBeUndefined();
 
       await app.close();
     });

@@ -28,7 +28,9 @@ async function shutdown(): Promise<void> {
   logger.info("Shutting down process-data-ia worker");
   await new Promise<void>((resolve) => {
     healthServer?.close(() => resolve());
-    if (!healthServer) resolve();
+    if (!healthServer) {
+      resolve();
+    }
   });
   await stopConsumer();
   await disconnectRabbitMQ();

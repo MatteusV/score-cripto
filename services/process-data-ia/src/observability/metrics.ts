@@ -20,13 +20,15 @@ const MODEL_PRICES: Record<string, { input: number; output: number }> = {
 export function recordAiUsage(
   model: string,
   inputTokens: number,
-  outputTokens: number,
+  outputTokens: number
 ): void {
   aiTokensCounter.add(inputTokens, { model, type: "prompt" });
   aiTokensCounter.add(outputTokens, { model, type: "completion" });
 
   const price = MODEL_PRICES[model];
-  if (!price) return;
+  if (!price) {
+    return;
+  }
 
   const cost = inputTokens * price.input + outputTokens * price.output;
   aiCostUsdCounter.add(cost, { model });

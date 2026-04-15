@@ -1,6 +1,6 @@
 import { gateway, generateText, Output } from "ai";
-import { recordAiUsage } from "../observability/metrics.js";
 import { z } from "zod";
+import { recordAiUsage } from "../observability/metrics.js";
 import type { ScoreOutput, WalletContextInput } from "../schemas/score.js";
 
 const PROMPT_VERSION = "v1.0";

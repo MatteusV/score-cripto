@@ -30,6 +30,8 @@ pnpm fix                  # Auto-fix de lint
 | `USERS_SERVICE_RETRY_BACKOFF_MS` | `200` | Backoff fixo entre retries em ms |
 | `USERS_SERVICE_BREAKER_THRESHOLD` | `0.5` | Fração de falhas (0–1) que abre o circuit breaker na janela |
 | `USERS_SERVICE_BREAKER_HALF_OPEN_AFTER_MS` | `30000` | Tempo em ms até o breaker testar recuperação (half-open) |
+| `STALE_ANALYSIS_THRESHOLD_MS` | `600000` | Tempo em ms que uma análise PENDING aguarda antes de ser expirada |
+| `RECONCILE_INTERVAL_MS` | `120000` | Intervalo em ms do job de reconciliação de análises stale |
 
 ## Responsabilidades
 

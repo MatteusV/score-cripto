@@ -4,14 +4,16 @@ import { logger } from "../logger.js";
 import { prisma } from "../services/database.js";
 
 interface HealthChecks {
-  rabbitmq: "up" | "down";
   postgres: "up" | "down";
+  rabbitmq: "up" | "down";
 }
 
 async function runChecks(): Promise<HealthChecks> {
   const [rabbitResult, postgresResult] = await Promise.allSettled([
     checkRabbitMQHealth().then((ok) => {
-      if (!ok) throw new Error("rabbitmq not connected");
+      if (!ok) {
+        throw new Error("rabbitmq not connected");
+      }
     }),
     prisma.$queryRaw`SELECT 1`,
   ]);

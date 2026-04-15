@@ -6,6 +6,7 @@ import { logger } from "../logger.js";
 import { WalletContextInputSchema } from "../schemas/score.js";
 import { makeAnalysisWorkflow } from "../use-cases/analysis-workflow/analysis-workflow.js";
 import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
+import { publishScoreFailed } from "./publisher.js";
 import { assertRetryQueueFor, scheduleRetry } from "./retry-topology.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
@@ -42,6 +43,19 @@ export async function processWalletDataCachedMessage(
       { errors: parsed.error.flatten() },
       "Invalid wallet.data.cached payload"
     );
+    // Tentar extrair requestId do payload malformado para publicar evento de falha
+    try {
+      const partial = JSON.parse(raw) as Record<string, unknown>;
+      const requestId = (partial?.data as Record<string, unknown>)?.requestId;
+      if (typeof requestId === "string" && requestId) {
+        publishScoreFailed({
+          requestId,
+          reason: "Invalid or malformed event payload",
+        });
+      }
+    } catch {
+      // JSON.parse falhou também — não há requestId disponível
+    }
     return { outcome: "invalid_payload" };
   }
 

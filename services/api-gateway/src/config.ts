@@ -18,6 +18,12 @@ const envSchema = z.object({
     .int()
     .positive()
     .default(30_000),
+  STALE_ANALYSIS_THRESHOLD_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(600_000),
+  RECONCILE_INTERVAL_MS: z.coerce.number().int().positive().default(120_000),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -45,4 +51,6 @@ export const config = {
   usersServiceBreakerThreshold: parsed.data.USERS_SERVICE_BREAKER_THRESHOLD,
   usersServiceBreakerHalfOpenAfterMs:
     parsed.data.USERS_SERVICE_BREAKER_HALF_OPEN_AFTER_MS,
+  staleAnalysisThresholdMs: parsed.data.STALE_ANALYSIS_THRESHOLD_MS,
+  reconcileIntervalMs: parsed.data.RECONCILE_INTERVAL_MS,
 } as const;

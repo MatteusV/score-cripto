@@ -134,6 +134,21 @@ export class AnalysisRequestPrismaRepository
     });
   }
 
+  async markStaleAsFailed(olderThan: Date, reason: string): Promise<number> {
+    const result = await this.prisma.analysisRequest.updateMany({
+      where: {
+        status: "PENDING",
+        requestedAt: { lt: olderThan },
+      },
+      data: {
+        status: "FAILED",
+        failedAt: new Date(),
+        failureReason: reason,
+      },
+    });
+    return result.count;
+  }
+
   async listByUserId(
     userId: string,
     page: number,

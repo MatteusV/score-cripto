@@ -62,6 +62,7 @@ export interface AnalysisRequestRepository {
     result: CompleteAnalysisRequestData
   ) => Promise<AnalysisRequest>;
   markFailed: (id: string, reason: string) => Promise<AnalysisRequest>;
+  markStaleAsFailed: (olderThan: Date, reason: string) => Promise<number>;
   summarizeByUserId: (userId: string) => Promise<{ summary: AnalysisSummary }>;
   upsertTranslation: (
     data: UpsertTranslationData
