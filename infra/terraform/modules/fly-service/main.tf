@@ -18,14 +18,6 @@ resource "fly_app" "this" {
 }
 
 # Secrets da aplicação (injetados como env vars)
-resource "fly_app_secret" "secrets" {
-  for_each = var.secrets
-
-  app_id  = fly_app.this.id
-  key     = each.key
-  value   = each.value
-}
-
 # Secret no GitHub para o workflow release.yml — usa o token de org Fly.io
 resource "github_actions_secret" "deploy_token" {
   repository      = split("/", var.github_repo)[1]

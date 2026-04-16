@@ -64,12 +64,7 @@ module "fly_api_gateway" {
   region             = var.fly_region
   github_repo        = local.github_repo
   github_secret_name = "FLY_API_TOKEN_API_GATEWAY"
-  fly_api_token      = var.fly_api_token
-
-  secrets = {
-    DATABASE_URL = module.neon_api_gateway.connection_uri
-    RABBITMQ_URL = module.cloudamqp.amqps_url
-  }
+  fly_api_token = var.fly_api_token
 }
 
 module "fly_process_data_ia" {
@@ -79,12 +74,7 @@ module "fly_process_data_ia" {
   region             = var.fly_region
   github_repo        = local.github_repo
   github_secret_name = "FLY_API_TOKEN_PROCESS_DATA_IA"
-  fly_api_token      = var.fly_api_token
-
-  secrets = {
-    DATABASE_URL = module.neon_process_data_ia.connection_uri
-    RABBITMQ_URL = module.cloudamqp.amqps_url
-  }
+  fly_api_token = var.fly_api_token
 }
 
 module "fly_users" {
@@ -94,12 +84,7 @@ module "fly_users" {
   region             = var.fly_region
   github_repo        = local.github_repo
   github_secret_name = "FLY_API_TOKEN_USERS"
-  fly_api_token      = var.fly_api_token
-
-  secrets = {
-    DATABASE_URL = module.neon_users.connection_uri
-    RABBITMQ_URL = module.cloudamqp.amqps_url
-  }
+  fly_api_token = var.fly_api_token
 }
 
 module "fly_data_search" {
@@ -109,12 +94,7 @@ module "fly_data_search" {
   region             = var.fly_region
   github_repo        = local.github_repo
   github_secret_name = "FLY_API_TOKEN_DATA_SEARCH"
-  fly_api_token      = var.fly_api_token
-
-  secrets = {
-    REDIS_URL    = module.redis.redis_url
-    RABBITMQ_URL = module.cloudamqp.amqps_url
-  }
+  fly_api_token = var.fly_api_token
 }
 
 module "fly_data_indexing" {
@@ -124,11 +104,7 @@ module "fly_data_indexing" {
   region             = var.fly_region
   github_repo        = local.github_repo
   github_secret_name = "FLY_API_TOKEN_DATA_INDEXING"
-  fly_api_token      = var.fly_api_token
-
-  secrets = {
-    RABBITMQ_URL = module.cloudamqp.amqps_url
-  }
+  fly_api_token = var.fly_api_token
 }
 
 # ─── Observabilidade (Grafana Cloud) ─────────────────────────────────────────

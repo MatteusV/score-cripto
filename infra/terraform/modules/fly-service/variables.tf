@@ -33,12 +33,6 @@ variable "max_machines" {
   default     = 1
 }
 
-variable "secrets" {
-  description = "Mapa de secrets a serem injetados como variáveis de ambiente na app"
-  type        = map(string)
-  sensitive   = true
-  default     = {}
-}
 
 variable "github_repo" {
   description = "Repositório GitHub no formato owner/repo para salvar o deploy token"
