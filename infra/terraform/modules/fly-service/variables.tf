@@ -49,3 +49,9 @@ variable "github_secret_name" {
   description = "Nome do secret GitHub onde o deploy token será salvo (ex: FLY_API_TOKEN_API_GATEWAY)"
   type        = string
 }
+
+variable "fly_api_token" {
+  description = "Token Fly.io (org-level) usado como deploy token para o serviço"
+  type        = string
+  sensitive   = true
+}

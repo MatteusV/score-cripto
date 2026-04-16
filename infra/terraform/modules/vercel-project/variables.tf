@@ -33,6 +33,5 @@ variable "env_vars" {
     value  = string
     target = list(string) # production, preview, development
   }))
-  default   = []
-  sensitive = true
+  default = []
 }

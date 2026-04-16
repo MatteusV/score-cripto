@@ -13,8 +13,3 @@ output "internal_hostname" {
   value       = "${fly_app.this.name}.internal"
 }
 
-output "deploy_token" {
-  description = "Token de deploy escopado por app (sensível)"
-  value       = fly_app_token.deploy.token
-  sensitive   = true
-}

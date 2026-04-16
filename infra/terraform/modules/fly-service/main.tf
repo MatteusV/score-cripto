@@ -26,16 +26,9 @@ resource "fly_app_secret" "secrets" {
   value   = each.value
 }
 
-# Deploy token escopado por app — salvo no GitHub Actions
-resource "fly_app_token" "deploy" {
-  app_id    = fly_app.this.id
-  name      = "${var.app_name}-deploy"
-  expiry    = "8760h" # 1 ano
-}
-
-# Secret no GitHub para o workflow release.yml usar
+# Secret no GitHub para o workflow release.yml — usa o token de org Fly.io
 resource "github_actions_secret" "deploy_token" {
   repository      = split("/", var.github_repo)[1]
   secret_name     = var.github_secret_name
-  plaintext_value = fly_app_token.deploy.token
+  plaintext_value = var.fly_api_token
 }

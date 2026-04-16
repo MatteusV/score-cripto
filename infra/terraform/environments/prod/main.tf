@@ -42,8 +42,6 @@ module "cloudamqp" {
   instance_name = "score-cripto-prod"
   plan          = "little-lemur"
   region        = "amazon-web-services::us-east-1"
-  vhost_name    = "score-cripto"
-  user_name     = "app"
 }
 
 # ─── Cache Redis ──────────────────────────────────────────────────────────────
@@ -66,10 +64,11 @@ module "fly_api_gateway" {
   region             = var.fly_region
   github_repo        = local.github_repo
   github_secret_name = "FLY_API_TOKEN_API_GATEWAY"
+  fly_api_token      = var.fly_api_token
 
   secrets = {
-    DATABASE_URL       = module.neon_api_gateway.connection_uri
-    RABBITMQ_URL       = module.cloudamqp.amqps_url
+    DATABASE_URL = module.neon_api_gateway.connection_uri
+    RABBITMQ_URL = module.cloudamqp.amqps_url
   }
 }
 
@@ -80,6 +79,7 @@ module "fly_process_data_ia" {
   region             = var.fly_region
   github_repo        = local.github_repo
   github_secret_name = "FLY_API_TOKEN_PROCESS_DATA_IA"
+  fly_api_token      = var.fly_api_token
 
   secrets = {
     DATABASE_URL = module.neon_process_data_ia.connection_uri
@@ -94,6 +94,7 @@ module "fly_users" {
   region             = var.fly_region
   github_repo        = local.github_repo
   github_secret_name = "FLY_API_TOKEN_USERS"
+  fly_api_token      = var.fly_api_token
 
   secrets = {
     DATABASE_URL = module.neon_users.connection_uri
@@ -108,6 +109,7 @@ module "fly_data_search" {
   region             = var.fly_region
   github_repo        = local.github_repo
   github_secret_name = "FLY_API_TOKEN_DATA_SEARCH"
+  fly_api_token      = var.fly_api_token
 
   secrets = {
     REDIS_URL    = module.redis.redis_url
@@ -122,6 +124,7 @@ module "fly_data_indexing" {
   region             = var.fly_region
   github_repo        = local.github_repo
   github_secret_name = "FLY_API_TOKEN_DATA_INDEXING"
+  fly_api_token      = var.fly_api_token
 
   secrets = {
     RABBITMQ_URL = module.cloudamqp.amqps_url
@@ -175,7 +178,7 @@ resource "github_branch_protection" "main" {
     dismiss_stale_reviews           = true
   }
 
-  require_linear_history = true
+  required_linear_history = true
   allows_force_pushes    = false
   allows_deletions       = false
 }
