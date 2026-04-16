@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "files": ["src"],
   "exports": {
     ".": "./src/index.ts",
     "./logger": "./src/logger.ts",

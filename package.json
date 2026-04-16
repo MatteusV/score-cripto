@@ -2,6 +2,7 @@
   "name": "score-cripto",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.32.1",
   "scripts": {
     "dev": "pnpm --filter \"./services/*\" run dev",
     "test": "pnpm --filter \"./packages/*\" --filter \"./services/*\" run test",
