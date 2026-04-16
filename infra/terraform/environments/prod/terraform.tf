@@ -7,14 +7,14 @@ terraform {
     organization = "score-cripto"
 
     workspaces {
-      name = "score-cripto-prod"
+      name = "score-cripto"
     }
   }
 
   required_providers {
     fly = {
       source  = "fly-apps/fly"
-      version = "~> 0.1"
+      version = "~> 0.0"
     }
     neon = {
       source  = "kislerdm/neon"
