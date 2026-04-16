@@ -6,7 +6,7 @@ variable "instance_name" {
 variable "plan" {
   description = "Plano CloudAMQP (lemur = free, little-lemur = pago básico)"
   type        = string
-  default     = "little-lemur"
+  default     = "lemur"
 }
 
 variable "region" {

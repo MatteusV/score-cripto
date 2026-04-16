@@ -40,7 +40,7 @@ module "cloudamqp" {
   source = "../../modules/cloudamqp-vhost"
 
   instance_name = "score-cripto-prod"
-  plan          = "little-lemur"
+  plan          = "lemur"
   region        = "amazon-web-services::us-east-1"
 }
 
