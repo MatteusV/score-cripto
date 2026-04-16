@@ -1,0 +1,49 @@
+app = "score-cripto-users"
+primary_region = "iad"
+
+# Sem [build] — a imagem é fornecida via --image no release.yml
+
+[deploy]
+  strategy = "rolling"
+  release_command = "pnpm exec prisma migrate deploy"
+
+[[services]]
+  internal_port = 3003
+  protocol      = "tcp"
+
+  [[services.ports]]
+    port     = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port     = 443
+    handlers = ["tls", "http"]
+
+  [[services.http_checks]]
+    interval        = "15s"
+    timeout         = "5s"
+    grace_period    = "30s"
+    method          = "GET"
+    path            = "/health"
+    protocol        = "http"
+    tls_skip_verify = false
+
+[env]
+  NODE_ENV = "production"
+  PORT     = "3003"
+
+[http_service]
+  internal_port        = 3003
+  force_https          = true
+  auto_stop_machines   = false
+  auto_start_machines  = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type       = "requests"
+    hard_limit = 150
+    soft_limit = 120
+
+[[vm]]
+  size   = "shared-cpu-1x"
+  memory = "256mb"

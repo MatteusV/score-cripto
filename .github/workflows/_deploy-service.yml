@@ -1,0 +1,110 @@
+name: Deploy Service (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: "Nome do serviço (ex: api-gateway)"
+        required: true
+        type: string
+      context:
+        description: "Contexto Docker (caminho relativo ao repositório)"
+        required: true
+        type: string
+      fly_app:
+        description: "Nome do app no Fly.io (ex: score-cripto-api-gateway)"
+        required: true
+        type: string
+      health_path:
+        description: "Path do health check (ex: /health ou /api/health)"
+        required: false
+        type: string
+        default: "/health"
+    secrets:
+      FLY_API_TOKEN:
+        description: "Token de deploy escopado ao app Fly.io"
+        required: true
+
+jobs:
+  deploy:
+    name: "deploy · ${{ inputs.service }}"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extrair metadados da imagem
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/score-cripto-${{ inputs.service }}
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest
+
+      - name: Build e push da imagem
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ inputs.service }}
+          cache-to: type=gha,mode=max,scope=${{ inputs.service }}
+
+      - name: Setup flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy no Fly.io
+        id: fly_deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
+          IMAGE="ghcr.io/${{ github.repository_owner }}/score-cripto-${{ inputs.service }}:${IMAGE_TAG}"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          flyctl deploy \
+            --app "${{ inputs.fly_app }}" \
+            --image "${IMAGE}" \
+            --strategy rolling \
+            --wait-timeout 300
+
+      - name: Health check pós-deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          APP_URL="https://${{ inputs.fly_app }}.fly.dev${{ inputs.health_path }}"
+          echo "Verificando health em: ${APP_URL}"
+          for i in 1 2 3 4 5; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${APP_URL}" || echo "000")
+            echo "Tentativa ${i}/5 — HTTP ${STATUS}"
+            if [ "${STATUS}" = "200" ]; then
+              echo "Health check OK!"
+              exit 0
+            fi
+            [ "${i}" -lt 5 ] && sleep 10
+          done
+          echo "Health check falhou após 5 tentativas"
+          exit 1
+
+      - name: Rollback em caso de falha
+        if: failure() && steps.fly_deploy.outcome == 'success'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          echo "Deploy falhou no health check — revertendo para release anterior"
+          flyctl releases rollback --app "${{ inputs.fly_app }}"

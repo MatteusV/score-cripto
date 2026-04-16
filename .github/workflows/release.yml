@@ -1,0 +1,121 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "services/api-gateway/**"
+      - "services/process-data-ia/**"
+      - "services/users/**"
+      - "services/data-search/**"
+      - "services/data-indexing/**"
+      - "packages/**"
+      # Exclui mudanças puramente em infra/terraform — essas são aplicadas via TFC
+      - "!infra/terraform/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false # Não cancela deploys em andamento
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Detecta quais serviços foram alterados
+  # ──────────────────────────────────────────────
+  changes:
+    name: Detectar mudanças
+    runs-on: ubuntu-latest
+    outputs:
+      api-gateway: ${{ steps.filter.outputs.api-gateway }}
+      process-data-ia: ${{ steps.filter.outputs.process-data-ia }}
+      users: ${{ steps.filter.outputs.users }}
+      data-search: ${{ steps.filter.outputs.data-search }}
+      data-indexing: ${{ steps.filter.outputs.data-indexing }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api-gateway:
+              - 'services/api-gateway/**'
+              - 'packages/**'
+            process-data-ia:
+              - 'services/process-data-ia/**'
+              - 'packages/**'
+            users:
+              - 'services/users/**'
+              - 'packages/**'
+            data-search:
+              - 'services/data-search/**'
+            data-indexing:
+              - 'services/data-indexing/**'
+
+  # ──────────────────────────────────────────────
+  # Deploy de cada serviço (via workflow reutilizável)
+  # web-app NÃO entra aqui — deploy é feito via integração nativa Vercel↔GitHub
+  # ──────────────────────────────────────────────
+
+  api-gateway:
+    name: "release · api-gateway"
+    needs: changes
+    if: needs.changes.outputs.api-gateway == 'true'
+    uses: ./.github/workflows/_deploy-service.yml
+    with:
+      service: api-gateway
+      context: services/api-gateway
+      fly_app: score-cripto-api-gateway
+      health_path: /health
+    secrets:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_API_GATEWAY }}
+
+  process-data-ia:
+    name: "release · process-data-ia"
+    needs: changes
+    if: needs.changes.outputs.process-data-ia == 'true'
+    uses: ./.github/workflows/_deploy-service.yml
+    with:
+      service: process-data-ia
+      context: services/process-data-ia
+      fly_app: score-cripto-process-data-ia
+      health_path: /health
+    secrets:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PROCESS_DATA_IA }}
+
+  users:
+    name: "release · users"
+    needs: changes
+    if: needs.changes.outputs.users == 'true'
+    uses: ./.github/workflows/_deploy-service.yml
+    with:
+      service: users
+      context: services/users
+      fly_app: score-cripto-users
+      health_path: /health
+    secrets:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_USERS }}
+
+  data-search:
+    name: "release · data-search"
+    needs: changes
+    if: needs.changes.outputs.data-search == 'true'
+    uses: ./.github/workflows/_deploy-service.yml
+    with:
+      service: data-search
+      context: services/data-search
+      fly_app: score-cripto-data-search
+      health_path: /health
+    secrets:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_DATA_SEARCH }}
+
+  data-indexing:
+    name: "release · data-indexing"
+    needs: changes
+    if: needs.changes.outputs.data-indexing == 'true'
+    uses: ./.github/workflows/_deploy-service.yml
+    with:
+      service: data-indexing
+      context: services/data-indexing
+      fly_app: score-cripto-data-indexing
+      health_path: /api/health
+    secrets:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_DATA_INDEXING }}

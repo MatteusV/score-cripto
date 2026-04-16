@@ -1,0 +1,51 @@
+app = "score-cripto-api-gateway"
+primary_region = "iad"
+
+# Sem [build] — a imagem é fornecida via --image no release.yml
+
+[deploy]
+  strategy = "rolling"
+  release_command = "pnpm exec prisma migrate deploy"
+
+[[services]]
+  internal_port = 3001
+  protocol      = "tcp"
+
+  [[services.ports]]
+    port     = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port     = 443
+    handlers = ["tls", "http"]
+
+  [[services.http_checks]]
+    interval       = "15s"
+    timeout        = "5s"
+    grace_period   = "30s"
+    method         = "GET"
+    path           = "/health"
+    protocol       = "http"
+    tls_skip_verify = false
+
+[env]
+  NODE_ENV = "production"
+  PORT     = "3001"
+  # CORS aceita previews do Vercel e domínio de produção
+  CORS_ORIGIN_PATTERN = "^https://score-cripto-web-app[\\w-]*\\.vercel\\.app$"
+
+[http_service]
+  internal_port = 3001
+  force_https   = true
+  auto_stop_machines  = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type       = "requests"
+    hard_limit = 200
+    soft_limit = 150
+
+[[vm]]
+  size       = "shared-cpu-1x"
+  memory     = "256mb"

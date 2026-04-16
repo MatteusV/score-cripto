@@ -1,0 +1,49 @@
+app = "score-cripto-data-indexing"
+primary_region = "iad"
+
+# Sem [build] — a imagem é fornecida via --image no release.yml
+
+[deploy]
+  strategy = "rolling"
+  # Sem release_command — Elixir release, não usa Prisma
+
+[[services]]
+  internal_port = 4000
+  protocol      = "tcp"
+
+  [[services.ports]]
+    port     = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port     = 443
+    handlers = ["tls", "http"]
+
+  [[services.http_checks]]
+    interval        = "15s"
+    timeout         = "5s"
+    grace_period    = "30s"
+    method          = "GET"
+    path            = "/api/health"
+    protocol        = "http"
+    tls_skip_verify = false
+
+[env]
+  PORT     = "4000"
+  MIX_ENV  = "prod"
+
+[http_service]
+  internal_port        = 4000
+  force_https          = true
+  auto_stop_machines   = false
+  auto_start_machines  = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type       = "requests"
+    hard_limit = 150
+    soft_limit = 120
+
+[[vm]]
+  size   = "shared-cpu-1x"
+  memory = "256mb"
