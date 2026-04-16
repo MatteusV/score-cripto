@@ -9,7 +9,6 @@ terraform {
 
 resource "upstash_redis_database" "this" {
   database_name = var.database_name
-  region        = var.region
   tls           = var.tls_enabled
   eviction      = var.eviction
 }
