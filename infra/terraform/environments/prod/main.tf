@@ -49,9 +49,9 @@ module "cloudamqp" {
 module "redis" {
   source = "../../modules/upstash-redis"
 
-  database_name = "score-cripto-prod"
-  region        = "us-east-1"
-  tls_enabled   = true
+  database_name  = "score-cripto-prod"
+  primary_region = "us-east-1"
+  tls_enabled    = true
   eviction      = false
 }
 

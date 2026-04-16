@@ -3,8 +3,8 @@ variable "database_name" {
   type        = string
 }
 
-variable "region" {
-  description = "Região Upstash (ex: us-east-1)"
+variable "primary_region" {
+  description = "Região primária do banco global Upstash (ex: us-east-1)"
   type        = string
   default     = "us-east-1"
 }

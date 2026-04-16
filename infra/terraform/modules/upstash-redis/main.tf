@@ -8,7 +8,9 @@ terraform {
 }
 
 resource "upstash_redis_database" "this" {
-  database_name = var.database_name
-  tls           = var.tls_enabled
-  eviction      = var.eviction
+  database_name  = var.database_name
+  region         = "global"
+  primary_region = var.primary_region
+  tls            = var.tls_enabled
+  eviction       = var.eviction
 }
