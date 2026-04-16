@@ -8,7 +8,7 @@ import {
   CopyIcon,
   RefreshCwIcon,
 } from "lucide-react"
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 import { useTranslations } from "next-intl"
 import { useWalletScore } from "@/hooks/use-wallet-score"
 import { AnalysisLoader } from "@/components/analysis-loader"
@@ -40,10 +40,8 @@ export function ResultShell({ chain, address }: ResultShellProps) {
   const { phase, result, error, backendStatus, fromCache, submit, reset } = useWalletScore(chain, address)
   const t = useTranslations("analyze")
 
-  const autoStarted = useRef(false)
   useEffect(() => {
-    if (chain && address && !autoStarted.current) {
-      autoStarted.current = true
+    if (chain && address) {
       submit()
     }
   }, [chain, address, submit])
