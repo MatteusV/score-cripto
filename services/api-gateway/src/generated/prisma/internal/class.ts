@@ -23,7 +23,7 @@ const config: runtime.GetPrismaClientConfig = {
       "value": "prisma-client"
     },
     "output": {
-      "value": "/app/src/generated/prisma",
+      "value": "/workspace/services/api-gateway/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -37,7 +37,7 @@ const config: runtime.GetPrismaClientConfig = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/app/prisma/schema.prisma",
+    "sourceFilePath": "/workspace/services/api-gateway/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativePath": "../../../prisma",
@@ -47,6 +47,7 @@ const config: runtime.GetPrismaClientConfig = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
