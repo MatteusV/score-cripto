@@ -8,9 +8,10 @@ terraform {
 }
 
 resource "neon_project" "this" {
-  name       = var.project_name
-  region_id  = var.region_id
-  pg_version = var.pg_version
+  name                      = var.project_name
+  region_id                 = var.region_id
+  pg_version                = var.pg_version
+  history_retention_seconds = 21600 # máximo no free tier (6h)
 }
 
 resource "neon_role" "app" {

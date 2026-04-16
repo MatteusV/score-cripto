@@ -139,22 +139,21 @@ module "vercel_web_app" {
 }
 
 # ─── Branch protection no GitHub ─────────────────────────────────────────────
-
-resource "github_branch_protection" "main" {
-  repository_id = var.github_repo_name
-  pattern       = "main"
-
-  required_status_checks {
-    strict   = true
-    contexts = ["CI / CI passou"]
-  }
-
-  required_pull_request_reviews {
-    required_approving_review_count = 0
-    dismiss_stale_reviews           = true
-  }
-
-  required_linear_history = true
-  allows_force_pushes    = false
-  allows_deletions       = false
-}
+# Requer token com Administration: Read & Write no repositório.
+# Desativado por ora — habilitar manualmente ou via token com escopo admin.
+#
+# resource "github_branch_protection" "main" {
+#   repository_id = var.github_repo_name
+#   pattern       = "main"
+#   required_status_checks {
+#     strict   = true
+#     contexts = ["CI / CI passou"]
+#   }
+#   required_pull_request_reviews {
+#     required_approving_review_count = 0
+#     dismiss_stale_reviews           = true
+#   }
+#   required_linear_history = true
+#   allows_force_pushes     = false
+#   allows_deletions        = false
+# }
