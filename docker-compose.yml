@@ -115,7 +115,7 @@ services:
       [
         "sh",
         "-lc",
-        "corepack enable && pnpm install --frozen-lockfile && pnpm exec prisma generate && pnpm exec prisma db push --skip-generate && NODE_OPTIONS=\"--require @opentelemetry/auto-instrumentations-node/register\" pnpm dev",
+        "corepack enable && pnpm install && pnpm exec prisma generate && pnpm exec prisma db push --skip-generate && NODE_OPTIONS=\"--require @opentelemetry/auto-instrumentations-node/register\" pnpm dev",
       ]
 
   process-data-ia:
@@ -158,7 +158,7 @@ services:
       [
         "sh",
         "-lc",
-        "corepack enable && pnpm install --frozen-lockfile && pnpm exec prisma generate && pnpm exec prisma db push --skip-generate --accept-data-loss && NODE_OPTIONS=\"--require @opentelemetry/auto-instrumentations-node/register\" pnpm dev",
+        "corepack enable && pnpm install && pnpm exec prisma generate && pnpm exec prisma db push --skip-generate --accept-data-loss && NODE_OPTIONS=\"--require @opentelemetry/auto-instrumentations-node/register\" pnpm dev",
       ]
 
   data-search:
@@ -352,7 +352,7 @@ services:
       [
         "sh",
         "-lc",
-        "corepack enable && pnpm install --frozen-lockfile && pnpm exec prisma generate && pnpm exec prisma db push --skip-generate && NODE_OPTIONS=\"--require @opentelemetry/auto-instrumentations-node/register\" pnpm dev",
+        "corepack enable && pnpm install && pnpm exec prisma generate && pnpm exec prisma db push --skip-generate && NODE_OPTIONS=\"--require @opentelemetry/auto-instrumentations-node/register\" pnpm dev",
       ]
 
   web-app:
@@ -387,7 +387,7 @@ services:
       [
         "sh",
         "-c",
-        "corepack enable && pnpm install --frozen-lockfile && pnpm dev --hostname 0.0.0.0 --port 3000",
+        "corepack enable && pnpm install && pnpm dev --hostname 0.0.0.0 --port 3000",
       ]
 
   # ─── Observability stack (profile: observability) ───────────────────────────
