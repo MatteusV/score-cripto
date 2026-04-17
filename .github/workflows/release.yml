@@ -80,11 +80,12 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_API_GATEWAY }}
         run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
           flyctl deploy \
             --app score-cripto-api-gateway \
             --config services/api-gateway/fly.toml \
-            --image "ghcr.io/${{ github.repository_owner }}/score-cripto-api-gateway:${IMAGE_TAG}" \
+            --image "ghcr.io/${OWNER}/score-cripto-api-gateway:${IMAGE_TAG}" \
             --strategy rolling \
             --wait-timeout 300
 
@@ -125,11 +126,12 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PROCESS_DATA_IA }}
         run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
           flyctl deploy \
             --app score-cripto-process-data-ia \
             --config services/process-data-ia/fly.toml \
-            --image "ghcr.io/${{ github.repository_owner }}/score-cripto-process-data-ia:${IMAGE_TAG}" \
+            --image "ghcr.io/${OWNER}/score-cripto-process-data-ia:${IMAGE_TAG}" \
             --strategy rolling \
             --wait-timeout 300
 
@@ -170,11 +172,12 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_USERS }}
         run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
           flyctl deploy \
             --app score-cripto-users \
             --config services/users/fly.toml \
-            --image "ghcr.io/${{ github.repository_owner }}/score-cripto-users:${IMAGE_TAG}" \
+            --image "ghcr.io/${OWNER}/score-cripto-users:${IMAGE_TAG}" \
             --strategy rolling \
             --wait-timeout 300
 
@@ -214,11 +217,12 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_DATA_SEARCH }}
         run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
           flyctl deploy \
             --app score-cripto-data-search \
             --config services/data-search/fly.toml \
-            --image "ghcr.io/${{ github.repository_owner }}/score-cripto-data-search:${IMAGE_TAG}" \
+            --image "ghcr.io/${OWNER}/score-cripto-data-search:${IMAGE_TAG}" \
             --strategy rolling \
             --wait-timeout 300
 
@@ -258,10 +262,11 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_DATA_INDEXING }}
         run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
           flyctl deploy \
             --app score-cripto-data-indexing \
             --config services/data-indexing/fly.toml \
-            --image "ghcr.io/${{ github.repository_owner }}/score-cripto-data-indexing:${IMAGE_TAG}" \
+            --image "ghcr.io/${OWNER}/score-cripto-data-indexing:${IMAGE_TAG}" \
             --strategy rolling \
             --wait-timeout 300

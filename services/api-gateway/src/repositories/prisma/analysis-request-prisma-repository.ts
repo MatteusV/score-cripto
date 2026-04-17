@@ -159,7 +159,7 @@ export class AnalysisRequestPrismaRepository
     userId: string,
     page: number,
     limit: number
-  ): Promise<{ items: AnalysisRequest[]; total: number }> {
+  ): Promise<{ items: AnalysisRequestDTO[]; total: number }> {
     const where = { userId, status: "COMPLETED" as const };
 
     const [items, total] = await Promise.all([

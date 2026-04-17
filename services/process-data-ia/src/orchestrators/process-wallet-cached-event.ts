@@ -69,7 +69,7 @@ export class ProcessWalletCachedEvent {
     if (cachedScore) {
       // Publica o resultado do cache para o gateway atualizar o status
       this.publishCalculated({
-        processId: requestId,
+        requestId,
         chain: walletContext.chain,
         address: walletContext.address,
         score: cachedScore.score,
@@ -139,7 +139,7 @@ export class ProcessWalletCachedEvent {
 
     // 4. Publica evento com resultado completo (fire-and-forget)
     this.publishCalculated({
-      processId: requestId,
+      requestId,
       chain: walletContext.chain,
       address: walletContext.address,
       score: scoringResult.output.score,

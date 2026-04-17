@@ -5,6 +5,10 @@ import type {
   UpsertTranslationData,
 } from "../analysis-translation-repository";
 
+function toDTO(record: unknown): AnalysisTranslationDTO {
+  return record as AnalysisTranslationDTO;
+}
+
 export class AnalysisTranslationPrismaRepository
   implements AnalysisTranslationRepository
 {
@@ -18,15 +22,16 @@ export class AnalysisTranslationPrismaRepository
     analysisId: string,
     locale: string
   ): Promise<AnalysisTranslationDTO | null> {
-    return this.prisma.analysisTranslation.findUnique({
+    const result = await this.prisma.analysisTranslation.findUnique({
       where: { analysisId_locale: { analysisId, locale } },
     });
+    return result ? toDTO(result) : null;
   }
 
   async upsertTranslation(
     data: UpsertTranslationData
   ): Promise<AnalysisTranslationDTO> {
-    return this.prisma.analysisTranslation.upsert({
+    const record = await this.prisma.analysisTranslation.upsert({
       where: {
         analysisId_locale: { analysisId: data.analysisId, locale: data.locale },
       },
@@ -44,5 +49,6 @@ export class AnalysisTranslationPrismaRepository
         riskFactors: data.riskFactors ?? undefined,
       },
     });
+    return toDTO(record);
   }
 }
