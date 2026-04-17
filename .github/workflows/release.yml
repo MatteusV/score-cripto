@@ -11,13 +11,9 @@ on:
       - "services/data-search/**"
       - "services/data-indexing/**"
       - "packages/**"
-      # Exclui mudanças puramente em infra/terraform — essas são aplicadas via TFC
       - "!infra/terraform/**"
 
 jobs:
-  # ──────────────────────────────────────────────
-  # Detecta quais serviços foram alterados
-  # ──────────────────────────────────────────────
   changes:
     name: Detectar mudanças
     runs-on: ubuntu-latest
@@ -47,72 +43,217 @@ jobs:
             data-indexing:
               - 'services/data-indexing/**'
 
-  # ──────────────────────────────────────────────
-  # Deploy de cada serviço (via workflow reutilizável)
-  # web-app NÃO entra aqui — deploy é feito via integração nativa Vercel↔GitHub
-  # ──────────────────────────────────────────────
-
-  api-gateway:
+  deploy-api-gateway:
     name: "release · api-gateway"
     needs: changes
     if: needs.changes.outputs.api-gateway == 'true'
-    uses: ./.github/workflows/_deploy-service.yml
-    with:
-      service: api-gateway
-      context: services/api-gateway
-      fly_app: score-cripto-api-gateway
-      health_path: /health
-    secrets:
-      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_API_GATEWAY }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/score-cripto-api-gateway
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest
+      - uses: docker/build-push-action@v6
+        with:
+          context: services/api-gateway
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=api-gateway
+          cache-to: type=gha,mode=max,scope=api-gateway
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_API_GATEWAY }}
+        run: |
+          IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
+          flyctl deploy \
+            --app score-cripto-api-gateway \
+            --image "ghcr.io/${{ github.repository_owner }}/score-cripto-api-gateway:${IMAGE_TAG}" \
+            --strategy rolling \
+            --wait-timeout 300
 
-  process-data-ia:
+  deploy-process-data-ia:
     name: "release · process-data-ia"
     needs: changes
     if: needs.changes.outputs.process-data-ia == 'true'
-    uses: ./.github/workflows/_deploy-service.yml
-    with:
-      service: process-data-ia
-      context: services/process-data-ia
-      fly_app: score-cripto-process-data-ia
-      health_path: /health
-    secrets:
-      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PROCESS_DATA_IA }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/score-cripto-process-data-ia
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest
+      - uses: docker/build-push-action@v6
+        with:
+          context: services/process-data-ia
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=process-data-ia
+          cache-to: type=gha,mode=max,scope=process-data-ia
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PROCESS_DATA_IA }}
+        run: |
+          IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
+          flyctl deploy \
+            --app score-cripto-process-data-ia \
+            --image "ghcr.io/${{ github.repository_owner }}/score-cripto-process-data-ia:${IMAGE_TAG}" \
+            --strategy rolling \
+            --wait-timeout 300
 
-  users:
+  deploy-users:
     name: "release · users"
     needs: changes
     if: needs.changes.outputs.users == 'true'
-    uses: ./.github/workflows/_deploy-service.yml
-    with:
-      service: users
-      context: services/users
-      fly_app: score-cripto-users
-      health_path: /health
-    secrets:
-      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_USERS }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/score-cripto-users
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest
+      - uses: docker/build-push-action@v6
+        with:
+          context: services/users
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=users
+          cache-to: type=gha,mode=max,scope=users
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_USERS }}
+        run: |
+          IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
+          flyctl deploy \
+            --app score-cripto-users \
+            --image "ghcr.io/${{ github.repository_owner }}/score-cripto-users:${IMAGE_TAG}" \
+            --strategy rolling \
+            --wait-timeout 300
 
-  data-search:
+  deploy-data-search:
     name: "release · data-search"
     needs: changes
     if: needs.changes.outputs.data-search == 'true'
-    uses: ./.github/workflows/_deploy-service.yml
-    with:
-      service: data-search
-      context: services/data-search
-      fly_app: score-cripto-data-search
-      health_path: /health
-    secrets:
-      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_DATA_SEARCH }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/score-cripto-data-search
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest
+      - uses: docker/build-push-action@v6
+        with:
+          context: services/data-search
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=data-search
+          cache-to: type=gha,mode=max,scope=data-search
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_DATA_SEARCH }}
+        run: |
+          IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
+          flyctl deploy \
+            --app score-cripto-data-search \
+            --image "ghcr.io/${{ github.repository_owner }}/score-cripto-data-search:${IMAGE_TAG}" \
+            --strategy rolling \
+            --wait-timeout 300
 
-  data-indexing:
+  deploy-data-indexing:
     name: "release · data-indexing"
     needs: changes
     if: needs.changes.outputs.data-indexing == 'true'
-    uses: ./.github/workflows/_deploy-service.yml
-    with:
-      service: data-indexing
-      context: services/data-indexing
-      fly_app: score-cripto-data-indexing
-      health_path: /api/health
-    secrets:
-      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_DATA_INDEXING }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/score-cripto-data-indexing
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest
+      - uses: docker/build-push-action@v6
+        with:
+          context: services/data-indexing
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=data-indexing
+          cache-to: type=gha,mode=max,scope=data-indexing
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_DATA_INDEXING }}
+        run: |
+          IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
+          flyctl deploy \
+            --app score-cripto-data-indexing \
+            --image "ghcr.io/${{ github.repository_owner }}/score-cripto-data-indexing:${IMAGE_TAG}" \
+            --strategy rolling \
+            --wait-timeout 300
