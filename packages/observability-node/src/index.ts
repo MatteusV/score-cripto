@@ -1,6 +1,6 @@
 // Logger
 export { createLogger, getLoggerOptions } from "./logger.js";
-export type { CreateLoggerOptions } from "./logger.js";
+export type { CreateLoggerOptions, Logger } from "./logger.js";
 
 // PII redaction
 export { maskAddress, hashUserId } from "./redact.js";

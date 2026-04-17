@@ -5,7 +5,7 @@ import {
   getLoggerOptions,
   observabilityPlugin,
 } from "@score-cripto/observability-node";
-import fastify from "fastify";
+import fastify, { type FastifyError } from "fastify";
 import {
   jsonSchemaTransform,
   serializerCompiler,
@@ -59,7 +59,7 @@ export async function createHttpServer() {
     transform: jsonSchemaTransform,
   });
 
-  app.setErrorHandler((error, _request, reply) => {
+  app.setErrorHandler((error: FastifyError, _request, reply) => {
     if (error.validation) {
       return reply.status(400).send({
         error: "Invalid body",

@@ -114,7 +114,7 @@ export function publishWalletDataRequested(data: {
 }
 
 export function publishScoreCalculated(data: {
-  processId: string;
+  requestId: string;
   chain: string;
   address: string;
   score: number;

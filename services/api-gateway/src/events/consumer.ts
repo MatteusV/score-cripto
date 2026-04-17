@@ -1,6 +1,6 @@
 import { withCorrelation } from "@score-cripto/observability-node";
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
-import type { Logger } from "pino";
+import type { Logger } from "@score-cripto/observability-node";
 import { z } from "zod";
 import { config } from "../config.js";
 import { publishUserAnalysisConsumed } from "../events/publisher.js";

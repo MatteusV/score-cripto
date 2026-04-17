@@ -1,3 +1,3 @@
-import { createLogger } from "@score-cripto/observability-node";
+import { createLogger, type Logger } from "@score-cripto/observability-node";
 
-export const logger = createLogger({ service: "users" });
+export const logger: Logger = createLogger({ service: "users" });

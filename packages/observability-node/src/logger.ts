@@ -1,4 +1,5 @@
 import pino from "pino";
+export type { Logger } from "pino";
 
 export interface CreateLoggerOptions {
   service: string;

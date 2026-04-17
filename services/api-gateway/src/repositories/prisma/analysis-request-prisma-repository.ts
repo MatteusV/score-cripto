@@ -9,6 +9,10 @@ import type {
   CreateAnalysisRequestData,
 } from "../analysis-request-repository";
 
+function toDTO(record: unknown): AnalysisRequestDTO {
+  return record as AnalysisRequestDTO;
+}
+
 export class AnalysisRequestPrismaRepository
   implements AnalysisRequestRepository
 {
@@ -19,7 +23,7 @@ export class AnalysisRequestPrismaRepository
   }
 
   async create(data: CreateAnalysisRequestData): Promise<AnalysisRequestDTO> {
-    return await this.prisma.analysisRequest.create({
+    const record = await this.prisma.analysisRequest.create({
       data: {
         userId: data.userId,
         chain: data.chain,
@@ -27,6 +31,7 @@ export class AnalysisRequestPrismaRepository
         status: "PENDING",
       },
     });
+    return toDTO(record);
   }
 
   async createWithPublicId(
@@ -39,7 +44,7 @@ export class AnalysisRequestPrismaRepository
         create: { userId: data.userId, counter: 1 },
       });
 
-      return tx.analysisRequest.create({
+      const record = await tx.analysisRequest.create({
         data: {
           userId: data.userId,
           chain: data.chain,
@@ -48,6 +53,7 @@ export class AnalysisRequestPrismaRepository
           publicId: counter.counter,
         },
       });
+      return toDTO(record);
     });
   }
 
@@ -61,7 +67,7 @@ export class AnalysisRequestPrismaRepository
       orderBy: { requestedAt: "desc" },
     });
 
-    return result ?? null;
+    return result ? toDTO(result) : null;
   }
 
   async findByUserIdAndPublicId(
@@ -72,7 +78,7 @@ export class AnalysisRequestPrismaRepository
       where: { userId_publicId: { userId, publicId } },
     });
 
-    return result ?? null;
+    return result ? toDTO(result) : null;
   }
 
   async findActive(
@@ -90,7 +96,7 @@ export class AnalysisRequestPrismaRepository
       orderBy: { requestedAt: "desc" },
     });
 
-    return result ?? null;
+    return result ? toDTO(result) : null;
   }
 
   async findById(id: string): Promise<AnalysisRequestDTO | null> {
@@ -98,14 +104,14 @@ export class AnalysisRequestPrismaRepository
       where: { id },
     });
 
-    return result ?? null;
+    return result ? toDTO(result) : null;
   }
 
   async markCompleted(
     id: string,
     result: CompleteAnalysisRequestData
   ): Promise<AnalysisRequestDTO> {
-    return await this.prisma.analysisRequest.update({
+    const record = await this.prisma.analysisRequest.update({
       where: { id },
       data: {
         status: "COMPLETED",
@@ -119,10 +125,11 @@ export class AnalysisRequestPrismaRepository
         promptVersion: result.promptVersion,
       },
     });
+    return toDTO(record);
   }
 
   async markFailed(id: string, reason: string): Promise<AnalysisRequestDTO> {
-    return await this.prisma.analysisRequest.update({
+    const record = await this.prisma.analysisRequest.update({
       where: { id },
       data: {
         status: "FAILED",
@@ -130,6 +137,7 @@ export class AnalysisRequestPrismaRepository
         failureReason: reason,
       },
     });
+    return toDTO(record);
   }
 
   async markStaleAsFailed(olderThan: Date, reason: string): Promise<number> {
