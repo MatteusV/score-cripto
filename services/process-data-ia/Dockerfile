@@ -8,7 +8,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /workspace
 
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml .npmrc ./
 COPY packages/ ./packages/
 
 COPY services/process-data-ia/package.json ./services/process-data-ia/
