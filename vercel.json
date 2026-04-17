@@ -1,6 +1,0 @@
-{
-  "buildCommand": "pnpm run build",
-  "outputDirectory": "services/web-app/.next",
-  "rootDirectory": "services/web-app",
-  "installCommand": "pnpm install"
-}
