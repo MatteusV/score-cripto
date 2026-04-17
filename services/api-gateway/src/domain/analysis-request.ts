@@ -43,6 +43,7 @@ export interface AnalysisListItem {
   chain: string;
   completedAt: Date;
   id: string;
+  publicId: number | null;
   requestedAt: Date;
   score: number;
 }

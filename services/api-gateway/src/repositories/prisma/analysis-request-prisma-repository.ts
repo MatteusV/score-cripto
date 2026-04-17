@@ -191,7 +191,7 @@ export class AnalysisRequestPrismaRepository
       this.prisma.analysisRequest.count({ where }),
     ]);
 
-    return { items, total };
+    return { items: items.map(toDTO), total };
   }
 
   async listAll(
