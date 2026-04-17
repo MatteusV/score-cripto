@@ -68,7 +68,8 @@ jobs:
             type=raw,value=latest
       - uses: docker/build-push-action@v6
         with:
-          context: services/api-gateway
+          context: .
+          file: services/api-gateway/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -82,6 +83,7 @@ jobs:
           IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
           flyctl deploy \
             --app score-cripto-api-gateway \
+            --fly-toml services/api-gateway/fly.toml \
             --image "ghcr.io/${{ github.repository_owner }}/score-cripto-api-gateway:${IMAGE_TAG}" \
             --strategy rolling \
             --wait-timeout 300
@@ -111,7 +113,8 @@ jobs:
             type=raw,value=latest
       - uses: docker/build-push-action@v6
         with:
-          context: services/process-data-ia
+          context: .
+          file: services/process-data-ia/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -125,6 +128,7 @@ jobs:
           IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
           flyctl deploy \
             --app score-cripto-process-data-ia \
+            --fly-toml services/process-data-ia/fly.toml \
             --image "ghcr.io/${{ github.repository_owner }}/score-cripto-process-data-ia:${IMAGE_TAG}" \
             --strategy rolling \
             --wait-timeout 300
@@ -154,7 +158,8 @@ jobs:
             type=raw,value=latest
       - uses: docker/build-push-action@v6
         with:
-          context: services/users
+          context: .
+          file: services/users/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -168,6 +173,7 @@ jobs:
           IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
           flyctl deploy \
             --app score-cripto-users \
+            --fly-toml services/users/fly.toml \
             --image "ghcr.io/${{ github.repository_owner }}/score-cripto-users:${IMAGE_TAG}" \
             --strategy rolling \
             --wait-timeout 300
@@ -211,6 +217,7 @@ jobs:
           IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
           flyctl deploy \
             --app score-cripto-data-search \
+            --fly-toml services/data-search/fly.toml \
             --image "ghcr.io/${{ github.repository_owner }}/score-cripto-data-search:${IMAGE_TAG}" \
             --strategy rolling \
             --wait-timeout 300
@@ -254,6 +261,7 @@ jobs:
           IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
           flyctl deploy \
             --app score-cripto-data-indexing \
+            --fly-toml services/data-indexing/fly.toml \
             --image "ghcr.io/${{ github.repository_owner }}/score-cripto-data-indexing:${IMAGE_TAG}" \
             --strategy rolling \
             --wait-timeout 300

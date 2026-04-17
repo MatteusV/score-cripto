@@ -1,39 +1,44 @@
-# ─── Stage 1: Build ────────────────────────────────────────────────────────────
 FROM node:22-bookworm-slim AS builder
 
-WORKDIR /app
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
-COPY package.json pnpm-lock.yaml* ./
+WORKDIR /workspace
+
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY packages/ ./packages/
+
+COPY services/users/package.json ./services/users/
+COPY services/users/prisma ./services/users/prisma/
+COPY services/users/tsconfig.json ./services/users/
+
 RUN pnpm install --frozen-lockfile
 
-COPY prisma ./prisma
-RUN pnpm exec prisma generate
+COPY services/users/src ./services/users/src/
 
-COPY tsconfig.json ./
-COPY src ./src
-RUN pnpm build
+RUN pnpm --filter @score-cripto/users exec prisma generate
+RUN pnpm --filter @score-cripto/users run build
 
-# ─── Stage 2: Production ───────────────────────────────────────────────────────
+RUN pnpm --filter @score-cripto/users deploy --prod /standalone
+RUN cp -r /workspace/services/users/dist /standalone/dist
+RUN cp -r /workspace/services/users/prisma /standalone/prisma
+
+# ── production ───────────────────────────────────────────────────────────────
+
 FROM node:22-bookworm-slim AS production
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --system appgroup && useradd --system --gid appgroup appuser
 
 WORKDIR /app
 
-RUN corepack enable
-
-# Non-root user
-RUN groupadd --system appgroup && useradd --system --gid appgroup appuser
-
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --frozen-lockfile --prod
-
-COPY prisma ./prisma
-RUN pnpm exec prisma generate
-
-COPY --from=builder /app/dist ./dist
-
-RUN chown -R appuser:appgroup /app
+COPY --from=builder /standalone ./
 
 USER appuser
 
