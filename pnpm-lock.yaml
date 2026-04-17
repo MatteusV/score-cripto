@@ -29,6 +29,9 @@ importers:
       amqplib:
         specifier: ^0.10.5
         version: 0.10.9
+      fastify:
+        specifier: ^5.0.0
+        version: 5.8.5
       typescript:
         specifier: ^5.7.0
         version: 5.9.3

@@ -18,6 +18,9 @@
     "check": "ultracite check",
     "fix": "ultracite fix"
   },
+  "peerDependencies": {
+    "fastify": ">=5.0.0"
+  },
   "dependencies": {
     "fastify-plugin": "^5.0.0",
     "pino": "^9.6.0",
@@ -27,6 +30,7 @@
     "@types/amqplib": "^0.10.6",
     "@types/node": "^22.0.0",
     "amqplib": "^0.10.5",
+    "fastify": "^5.0.0",
     "typescript": "^5.7.0",
     "ultracite": "7.4.3",
     "vitest": "^3.1.0"
