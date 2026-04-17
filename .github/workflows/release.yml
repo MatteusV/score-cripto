@@ -14,10 +14,6 @@ on:
       # Exclui mudanças puramente em infra/terraform — essas são aplicadas via TFC
       - "!infra/terraform/**"
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false # Não cancela deploys em andamento
-
 jobs:
   # ──────────────────────────────────────────────
   # Detecta quais serviços foram alterados
