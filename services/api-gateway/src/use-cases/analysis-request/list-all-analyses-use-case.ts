@@ -2,21 +2,25 @@ import type { AnalysisRequestDTO } from "../../domain/analysis-request.js";
 import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository.js";
 
 interface ListAllAnalysesInput {
-  page: number;
   limit: number;
+  page: number;
   status?: string;
   userId?: string;
 }
 
 interface ListAllAnalysesOutput {
   items: AnalysisRequestDTO[];
-  total: number;
-  page: number;
   limit: number;
+  page: number;
+  total: number;
 }
 
 export class ListAllAnalysesUseCase {
-  constructor(private readonly repository: AnalysisRequestRepository) {}
+  private readonly repository: AnalysisRequestRepository;
+
+  constructor(repository: AnalysisRequestRepository) {
+    this.repository = repository;
+  }
 
   async execute(input: ListAllAnalysesInput): Promise<ListAllAnalysesOutput> {
     const { page, limit, status, userId } = input;

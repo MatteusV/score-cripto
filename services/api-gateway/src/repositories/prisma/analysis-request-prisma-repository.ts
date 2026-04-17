@@ -200,8 +200,12 @@ export class AnalysisRequestPrismaRepository
     filters?: { status?: string; userId?: string }
   ): Promise<{ items: AnalysisRequestDTO[]; total: number }> {
     const where: Record<string, unknown> = {};
-    if (filters?.status) where.status = filters.status;
-    if (filters?.userId) where.userId = filters.userId;
+    if (filters?.status) {
+      where.status = filters.status;
+    }
+    if (filters?.userId) {
+      where.userId = filters.userId;
+    }
 
     const [rows, total] = await Promise.all([
       this.prisma.analysisRequest.findMany({

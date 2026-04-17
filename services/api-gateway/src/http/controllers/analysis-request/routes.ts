@@ -18,7 +18,7 @@ import { ListAnalysesUseCase } from "../../../use-cases/analysis-request/list-an
 import { AnalysisRequestNotFoundError } from "../../../use-cases/errors/analysis-request-not-found-error";
 import { authenticate } from "../../middleware/authenticate";
 
-const SSE_TIMEOUT_MS = 5 * 60 * 1_000; // 5 minutos
+const SSE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutos
 
 const repository = new AnalysisRequestPrismaRepository(prisma);
 const translationRepository = new AnalysisTranslationPrismaRepository(prisma);
@@ -334,7 +334,9 @@ export async function analysisRequestHandler(app: FastifyInstance) {
         ({ analysisRequest: analysis } = await getUseCase.execute({ id }));
       } catch (err) {
         if (err instanceof AnalysisRequestNotFoundError) {
-          return reply.status(404).send({ error: "Analysis request not found" });
+          return reply
+            .status(404)
+            .send({ error: "Analysis request not found" });
         }
         throw err;
       }
@@ -382,17 +384,25 @@ export async function analysisRequestHandler(app: FastifyInstance) {
         const cleanup = (closeStream = true) => {
           clearTimeout(timer);
           analysisEventBus.off(id, onDone);
-          if (closeStream) reply.raw.end();
+          if (closeStream) {
+            reply.raw.end();
+          }
           resolve();
         };
 
-        const onDone = (event: { status: "completed" | "failed"; result?: unknown; error?: string }) => {
+        const onDone = (event: {
+          status: "completed" | "failed";
+          result?: unknown;
+          error?: string;
+        }) => {
           sendEvent("result", event);
           cleanup();
         };
 
         const timer = setTimeout(() => {
-          sendEvent("timeout", { message: "SSE timeout — use polling fallback" });
+          sendEvent("timeout", {
+            message: "SSE timeout — use polling fallback",
+          });
           cleanup();
         }, SSE_TIMEOUT_MS);
 

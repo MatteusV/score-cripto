@@ -4,8 +4,8 @@ import { config } from "../../config.js";
 
 interface JwtPayload {
   email: string;
-  sub: string;
   role?: string;
+  sub: string;
 }
 
 export async function authenticate(

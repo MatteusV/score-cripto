@@ -8,7 +8,7 @@ import { EventEmitter } from "node:events";
  */
 
 export interface AnalysisDoneEvent {
-  status: "completed" | "failed";
+  error?: string;
   result?: {
     score: number;
     confidence: number;
@@ -18,7 +18,7 @@ export interface AnalysisDoneEvent {
     modelVersion: string;
     promptVersion: string;
   };
-  error?: string;
+  status: "completed" | "failed";
 }
 
 class AnalysisEventBus extends EventEmitter {

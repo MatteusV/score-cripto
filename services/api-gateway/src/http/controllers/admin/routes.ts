@@ -61,7 +61,12 @@ export async function adminHandler(app: FastifyInstance) {
     },
     async (request, reply) => {
       const { page, limit, status, userId } = request.query;
-      const result = await listAllUseCase.execute({ page, limit, status, userId });
+      const result = await listAllUseCase.execute({
+        page,
+        limit,
+        status,
+        userId,
+      });
 
       return reply.status(200).send({
         total: result.total,
@@ -73,7 +78,11 @@ export async function adminHandler(app: FastifyInstance) {
           publicId: item.publicId,
           chain: item.chain,
           address: item.address,
-          status: item.status as "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED",
+          status: item.status as
+            | "PENDING"
+            | "PROCESSING"
+            | "COMPLETED"
+            | "FAILED",
           score: item.score,
           confidence: item.confidence,
           requestedAt: item.requestedAt.toISOString(),
@@ -107,15 +116,19 @@ export async function adminHandler(app: FastifyInstance) {
       },
     },
     async (_request, reply) => {
-      const [total, pending, processing, completed, failed] = await Promise.all([
-        prisma.analysisRequest.count(),
-        prisma.analysisRequest.count({ where: { status: "PENDING" } }),
-        prisma.analysisRequest.count({ where: { status: "PROCESSING" } }),
-        prisma.analysisRequest.count({ where: { status: "COMPLETED" } }),
-        prisma.analysisRequest.count({ where: { status: "FAILED" } }),
-      ]);
+      const [total, pending, processing, completed, failed] = await Promise.all(
+        [
+          prisma.analysisRequest.count(),
+          prisma.analysisRequest.count({ where: { status: "PENDING" } }),
+          prisma.analysisRequest.count({ where: { status: "PROCESSING" } }),
+          prisma.analysisRequest.count({ where: { status: "COMPLETED" } }),
+          prisma.analysisRequest.count({ where: { status: "FAILED" } }),
+        ]
+      );
 
-      return reply.status(200).send({ total, pending, processing, completed, failed });
+      return reply
+        .status(200)
+        .send({ total, pending, processing, completed, failed });
     }
   );
 
@@ -154,7 +167,9 @@ export async function adminHandler(app: FastifyInstance) {
           id,
           reason: "Manually expired by admin",
         });
-        return reply.status(200).send({ id: updated.analysisRequest.id, status: "FAILED" });
+        return reply
+          .status(200)
+          .send({ id: updated.analysisRequest.id, status: "FAILED" });
       } catch (err) {
         if (err instanceof AnalysisRequestNotFoundError) {
           return reply.status(404).send({ error: "Analysis not found" });

@@ -14,22 +14,23 @@
 import "dotenv/config";
 
 interface QueueInfo {
-  name: string;
-  messages: number;
   consumers: number;
+  messages: number;
+  name: string;
   state: string;
 }
 
 interface DeathEntry {
-  exchange: string;
-  "routing-keys": string[];
-  reason: string;
   count: number;
+  exchange: string;
   queue: string;
+  reason: string;
+  "routing-keys": string[];
   time: string;
 }
 
 interface ManagementMessage {
+  exchange: string;
   payload: string;
   properties: {
     headers?: {
@@ -41,7 +42,6 @@ interface ManagementMessage {
     };
   };
   routing_key: string;
-  exchange: string;
 }
 
 const MGMT_URL = process.env.RABBITMQ_MGMT_URL ?? "http://localhost:15673";
@@ -58,13 +58,18 @@ async function fetchJson<T>(path: string): Promise<T> {
   });
 
   if (!res.ok) {
-    throw new Error(`RabbitMQ Management API error ${res.status}: ${await res.text()}`);
+    throw new Error(
+      `RabbitMQ Management API error ${res.status}: ${await res.text()}`
+    );
   }
 
   return res.json() as Promise<T>;
 }
 
-async function peekMessages(queueName: string, count = 5): Promise<ManagementMessage[]> {
+async function peekMessages(
+  queueName: string,
+  count = 5
+): Promise<ManagementMessage[]> {
   const body = JSON.stringify({
     count,
     ackmode: "reject_requeue_true", // peek sem consumir
@@ -78,12 +83,20 @@ async function peekMessages(queueName: string, count = 5): Promise<ManagementMes
       method: "POST",
       headers: { Authorization: auth, "Content-Type": "application/json" },
       body,
-    },
+    }
   );
 
   if (!res.ok) {
     const text = await res.text();
-    console.error(JSON.stringify({ level: "warn", msg: "Falha ao fazer peek na DLQ", queue: queueName, status: res.status, error: text }));
+    console.error(
+      JSON.stringify({
+        level: "warn",
+        msg: "Falha ao fazer peek na DLQ",
+        queue: queueName,
+        status: res.status,
+        error: text,
+      })
+    );
     return [];
   }
 
@@ -97,7 +110,13 @@ async function main() {
   const timestamp = new Date().toISOString();
 
   if (dlqs.length === 0) {
-    console.log(JSON.stringify({ level: "info", msg: "Nenhuma DLQ encontrada", timestamp }));
+    console.log(
+      JSON.stringify({
+        level: "info",
+        msg: "Nenhuma DLQ encontrada",
+        timestamp,
+      })
+    );
     return;
   }
 
@@ -115,7 +134,12 @@ async function main() {
 
     if (dlq.messages >= THRESHOLD) {
       hasAlert = true;
-      console.warn(JSON.stringify({ ...entry, alert: `DLQ com ${dlq.messages} mensagem(ns) — investigar` }));
+      console.warn(
+        JSON.stringify({
+          ...entry,
+          alert: `DLQ com ${dlq.messages} mensagem(ns) — investigar`,
+        })
+      );
 
       // Faz peek para extrair metadados x-death sem consumir
       const msgs = await peekMessages(dlq.name, 3);
@@ -123,7 +147,8 @@ async function main() {
         const xDeath = msg.properties.headers?.["x-death"];
         const retryCount = msg.properties.headers?.["x-retry-count"];
         const firstDeathQueue = msg.properties.headers?.["x-first-death-queue"];
-        const firstDeathReason = msg.properties.headers?.["x-first-death-reason"];
+        const firstDeathReason =
+          msg.properties.headers?.["x-first-death-reason"];
 
         console.warn(
           JSON.stringify({
@@ -143,7 +168,7 @@ async function main() {
               exchange: d.exchange,
               routing_keys: d["routing-keys"],
             })),
-          }),
+          })
         );
       }
     } else {
@@ -158,6 +183,12 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(JSON.stringify({ level: "error", msg: "Falha no monitor de DLQ", error: String(err) }));
+  console.error(
+    JSON.stringify({
+      level: "error",
+      msg: "Falha no monitor de DLQ",
+      error: String(err),
+    })
+  );
   process.exit(2);
 });

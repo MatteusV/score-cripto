@@ -25,7 +25,8 @@
 import "dotenv/config";
 import amqp from "amqplib";
 
-const RABBITMQ_URL = process.env.RABBITMQ_URL ?? "amqp://guest:guest@localhost:5673";
+const RABBITMQ_URL =
+  process.env.RABBITMQ_URL ?? "amqp://guest:guest@localhost:5673";
 
 const args = process.argv.slice(2);
 const dlqName = args.find((a) => !a.startsWith("--"));
@@ -33,7 +34,9 @@ const limitArg = args.find((a) => a.startsWith("--limit="));
 const dryRun = args.includes("--dry-run");
 
 if (!dlqName) {
-  console.error("Uso: tsx scripts/dlq-reprocess.ts <dlq-name> [--limit=<n>] [--dry-run]");
+  console.error(
+    "Uso: tsx scripts/dlq-reprocess.ts <dlq-name> [--limit=<n>] [--dry-run]"
+  );
   console.error("");
   console.error("DLQs disponíveis:");
   console.error("  api-gateway.wallet.score.calculated.dlq");
@@ -44,19 +47,26 @@ if (!dlqName) {
   process.exit(1);
 }
 
-const LIMIT = limitArg ? Number.parseInt(limitArg.split("=")[1], 10) : Number.POSITIVE_INFINITY;
+const LIMIT = limitArg
+  ? Number.parseInt(limitArg.split("=")[1], 10)
+  : Number.POSITIVE_INFINITY;
 
 interface DeathEntry {
-  exchange: string;
-  "routing-keys": string[];
-  reason: string;
   count: number;
+  exchange: string;
   queue: string;
+  reason: string;
+  "routing-keys": string[];
 }
 
 async function main() {
   if (dryRun) {
-    console.log(JSON.stringify({ level: "info", msg: "MODO DRY-RUN — nenhuma mensagem será republicada" }));
+    console.log(
+      JSON.stringify({
+        level: "info",
+        msg: "MODO DRY-RUN — nenhuma mensagem será republicada",
+      })
+    );
   }
 
   const conn = await amqp.connect(RABBITMQ_URL);
@@ -68,24 +78,31 @@ async function main() {
   let processed = 0;
   let failed = 0;
 
-  console.log(JSON.stringify({
-    level: "info",
-    msg: `Iniciando reprocessamento da DLQ: ${dlqName}`,
-    limit: Number.isFinite(LIMIT) ? LIMIT : "sem limite",
-    dry_run: dryRun,
-  }));
+  console.log(
+    JSON.stringify({
+      level: "info",
+      msg: `Iniciando reprocessamento da DLQ: ${dlqName}`,
+      limit: Number.isFinite(LIMIT) ? LIMIT : "sem limite",
+      dry_run: dryRun,
+    })
+  );
 
   const { messageCount } = await channel.checkQueue(dlqName);
-  console.log(JSON.stringify({ level: "info", msg: `Mensagens na DLQ: ${messageCount}` }));
+  console.log(
+    JSON.stringify({ level: "info", msg: `Mensagens na DLQ: ${messageCount}` })
+  );
 
   if (messageCount === 0) {
-    console.log(JSON.stringify({ level: "info", msg: "DLQ vazia. Nada a reprocessar." }));
+    console.log(
+      JSON.stringify({ level: "info", msg: "DLQ vazia. Nada a reprocessar." })
+    );
     await channel.close();
     await conn.close();
     return;
   }
 
   await new Promise<void>((resolve) => {
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: DLQ reprocess logic requires handling multiple failure states in a single consumer callback
     channel.consume(dlqName, async (msg) => {
       if (!msg) {
         resolve();
@@ -102,27 +119,33 @@ async function main() {
       const xDeath = headers["x-death"] as DeathEntry[] | undefined;
 
       if (!xDeath || xDeath.length === 0) {
-        console.error(JSON.stringify({
-          level: "error",
-          msg: "Mensagem sem x-death header — não é possível determinar origem. Pulando.",
-          routing_key: msg.fields.routingKey,
-        }));
+        console.error(
+          JSON.stringify({
+            level: "error",
+            msg: "Mensagem sem x-death header — não é possível determinar origem. Pulando.",
+            routing_key: msg.fields.routingKey,
+          })
+        );
         channel.nack(msg, false, false); // descarta (vai para DLQ do DLQ, se existir)
         failed++;
         return;
       }
 
       // Pega o primeiro registro de morte (origem original)
-      const origin = xDeath[xDeath.length - 1];
+      // xDeath.length > 0 guaranteed by guard above
+      const origin = xDeath.at(-1) as DeathEntry;
       const targetExchange = origin.exchange;
-      const targetRoutingKey = origin["routing-keys"][0] ?? msg.fields.routingKey;
+      const targetRoutingKey =
+        origin["routing-keys"][0] ?? msg.fields.routingKey;
 
       // Remove headers de morte para evitar loop na DLQ
-      const cleanHeaders: Record<string, unknown> = { ...headers };
-      delete cleanHeaders["x-death"];
-      delete cleanHeaders["x-first-death-exchange"];
-      delete cleanHeaders["x-first-death-queue"];
-      delete cleanHeaders["x-first-death-reason"];
+      const {
+        "x-death": _xd,
+        "x-first-death-exchange": _xfde,
+        "x-first-death-queue": _xfdq,
+        "x-first-death-reason": _xfdr,
+        ...cleanHeaders
+      } = headers as Record<string, unknown>;
 
       const logCtx = {
         dlq: dlqName,
@@ -134,10 +157,18 @@ async function main() {
       };
 
       if (dryRun) {
-        console.log(JSON.stringify({ level: "info", msg: "DRY-RUN: republicaria", ...logCtx }));
+        console.log(
+          JSON.stringify({
+            level: "info",
+            msg: "DRY-RUN: republicaria",
+            ...logCtx,
+          })
+        );
         channel.ack(msg);
         processed++;
-        if (processed >= LIMIT || processed >= messageCount) resolve();
+        if (processed >= LIMIT || processed >= messageCount) {
+          resolve();
+        }
         return;
       }
 
@@ -150,7 +181,7 @@ async function main() {
             persistent: true,
             headers: cleanHeaders,
             contentType: msg.properties.contentType,
-          },
+          }
         );
 
         if (!published) {
@@ -159,9 +190,22 @@ async function main() {
 
         channel.ack(msg);
         processed++;
-        console.log(JSON.stringify({ level: "info", msg: "Republicado com sucesso", ...logCtx }));
+        console.log(
+          JSON.stringify({
+            level: "info",
+            msg: "Republicado com sucesso",
+            ...logCtx,
+          })
+        );
       } catch (err) {
-        console.error(JSON.stringify({ level: "error", msg: "Falha ao republicar", error: String(err), ...logCtx }));
+        console.error(
+          JSON.stringify({
+            level: "error",
+            msg: "Falha ao republicar",
+            error: String(err),
+            ...logCtx,
+          })
+        );
         channel.nack(msg, false, true); // requeue na DLQ
         failed++;
       }
@@ -172,21 +216,31 @@ async function main() {
     });
   });
 
-  console.log(JSON.stringify({
-    level: "info",
-    msg: "Reprocessamento concluído",
-    processed,
-    failed,
-    dry_run: dryRun,
-  }));
+  console.log(
+    JSON.stringify({
+      level: "info",
+      msg: "Reprocessamento concluído",
+      processed,
+      failed,
+      dry_run: dryRun,
+    })
+  );
 
   await channel.close();
   await conn.close();
 
-  if (failed > 0) process.exit(1);
+  if (failed > 0) {
+    process.exit(1);
+  }
 }
 
 main().catch((err) => {
-  console.error(JSON.stringify({ level: "error", msg: "Erro fatal no reprocessamento", error: String(err) }));
+  console.error(
+    JSON.stringify({
+      level: "error",
+      msg: "Erro fatal no reprocessamento",
+      error: String(err),
+    })
+  );
   process.exit(2);
 });

@@ -52,7 +52,10 @@ export async function createHttpServer() {
           name: "analysis",
           description: "Análise de confiabilidade de carteiras",
         },
-        { name: "admin", description: "Operações administrativas (role=ADMIN)" },
+        {
+          name: "admin",
+          description: "Operações administrativas (role=ADMIN)",
+        },
         { name: "system", description: "Status e saúde do serviço" },
       ],
     },

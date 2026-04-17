@@ -39,6 +39,11 @@ export interface AnalysisRequestRepository {
     userId: string,
     publicId: number
   ) => Promise<AnalysisRequestDTO | null>;
+  listAll: (
+    page: number,
+    limit: number,
+    filters?: { status?: string; userId?: string }
+  ) => Promise<{ items: AnalysisRequestDTO[]; total: number }>;
   listByUserId: (
     userId: string,
     page: number,
@@ -51,9 +56,4 @@ export interface AnalysisRequestRepository {
   markFailed: (id: string, reason: string) => Promise<AnalysisRequestDTO>;
   markStaleAsFailed: (olderThan: Date, reason: string) => Promise<number>;
   summarizeByUserId: (userId: string) => Promise<{ summary: AnalysisSummary }>;
-  listAll: (
-    page: number,
-    limit: number,
-    filters?: { status?: string; userId?: string }
-  ) => Promise<{ items: AnalysisRequestDTO[]; total: number }>;
 }

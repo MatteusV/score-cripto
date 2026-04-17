@@ -208,8 +208,12 @@ export class AnalysisRequestInMemoryRepository
   ): Promise<{ items: AnalysisRequestDTO[]; total: number }> {
     const filtered = this.items
       .filter((item) => {
-        if (filters?.status && item.status !== filters.status) return false;
-        if (filters?.userId && item.userId !== filters.userId) return false;
+        if (filters?.status && item.status !== filters.status) {
+          return false;
+        }
+        if (filters?.userId && item.userId !== filters.userId) {
+          return false;
+        }
         return true;
       })
       .sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime());

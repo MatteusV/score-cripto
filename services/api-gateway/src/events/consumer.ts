@@ -1,6 +1,6 @@
+import type { Logger } from "@score-cripto/observability-node";
 import { withCorrelation } from "@score-cripto/observability-node";
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
-import type { Logger } from "@score-cripto/observability-node";
 import { z } from "zod";
 import { config } from "../config.js";
 import { publishUserAnalysisConsumed } from "../events/publisher.js";
@@ -9,8 +9,8 @@ import { AnalysisRequestPrismaRepository } from "../repositories/prisma/analysis
 import { prisma } from "../services/database.js";
 import { CompleteAnalysisRequestUseCase } from "../use-cases/analysis-request/complete-analysis-request-use-case.js";
 import { FailAnalysisRequestUseCase } from "../use-cases/analysis-request/fail-analysis-request-use-case.js";
-import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
 import { analysisEventBus } from "./analysis-event-bus.js";
+import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
 import { assertRetryQueueFor, scheduleRetry } from "./retry-topology.js";
 
 const EXCHANGE_NAME = "score-cripto.events";
