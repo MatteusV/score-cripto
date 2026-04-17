@@ -1,4 +1,4 @@
-FROM golang:1.26.1-alpine AS builder
+FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
@@ -15,8 +15,6 @@ USER appuser
 WORKDIR /app
 
 COPY --from=builder /bin/data-search /usr/local/bin/data-search
-COPY .env.example ./
-
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \

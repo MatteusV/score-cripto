@@ -7,27 +7,6 @@ primary_region = "iad"
   strategy = "rolling"
   release_command = "pnpm exec prisma migrate deploy"
 
-[[services]]
-  internal_port = 3002
-  protocol      = "tcp"
-
-  [[services.ports]]
-    port     = 80
-    handlers = ["http"]
-
-  [[services.ports]]
-    port     = 443
-    handlers = ["tls", "http"]
-
-  [[services.http_checks]]
-    interval        = "15s"
-    timeout         = "5s"
-    grace_period    = "30s"
-    method          = "GET"
-    path            = "/health"
-    protocol        = "http"
-    tls_skip_verify = false
-
 [env]
   NODE_ENV    = "production"
   HEALTH_PORT = "3002"
@@ -43,6 +22,13 @@ primary_region = "iad"
     type       = "requests"
     hard_limit = 100
     soft_limit = 80
+
+  [[http_service.checks]]
+    interval     = "15s"
+    timeout      = "5s"
+    grace_period = "30s"
+    method       = "GET"
+    path         = "/health"
 
 [[vm]]
   size   = "shared-cpu-1x"
