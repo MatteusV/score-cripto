@@ -16,8 +16,17 @@ const usageRepo = new UsagePrismaRepository(prisma);
 const subscriptionRepo = new SubscriptionPrismaRepository(prisma);
 const planPolicy = new DefaultPlanPolicy();
 
-const checkUseCase = new CheckUsageUseCase(usageRepo, subscriptionRepo, planPolicy);
-const consumeUseCase = new ConsumeUsageUseCase(usageRepo, subscriptionRepo, userRepo, planPolicy);
+const checkUseCase = new CheckUsageUseCase(
+  usageRepo,
+  subscriptionRepo,
+  planPolicy
+);
+const consumeUseCase = new ConsumeUsageUseCase(
+  usageRepo,
+  subscriptionRepo,
+  userRepo,
+  planPolicy
+);
 
 const UsageResponseSchema = z.object({
   allowed: z.boolean(),

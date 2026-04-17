@@ -9,5 +9,10 @@ export function makeConsumeUsageUseCase(): ConsumeUsageUseCase {
   const usageRepo = new UsagePrismaRepository(prisma);
   const subscriptionRepo = new SubscriptionPrismaRepository(prisma);
   const userRepo = new UserPrismaRepository(prisma);
-  return new ConsumeUsageUseCase(usageRepo, subscriptionRepo, userRepo, new DefaultPlanPolicy());
+  return new ConsumeUsageUseCase(
+    usageRepo,
+    subscriptionRepo,
+    userRepo,
+    new DefaultPlanPolicy()
+  );
 }

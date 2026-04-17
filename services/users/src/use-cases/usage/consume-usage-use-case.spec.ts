@@ -43,7 +43,12 @@ describe("ConsumeUsageUseCase", () => {
     usageRepo = new UsageInMemoryRepository();
     subscriptionRepo = new SubscriptionInMemoryRepository();
     userRepo = new UserInMemoryRepository();
-    sut = new ConsumeUsageUseCase(usageRepo, subscriptionRepo, userRepo, new DefaultPlanPolicy());
+    sut = new ConsumeUsageUseCase(
+      usageRepo,
+      subscriptionRepo,
+      userRepo,
+      new DefaultPlanPolicy()
+    );
   });
 
   it("incrementa analysisCount e retorna remaining correto", async () => {

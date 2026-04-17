@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/tests/e2e/**/*.spec.ts"],
-    globalSetup: ["./src/tests/e2e/helpers/globalSetup.ts"],
+    globalSetup: ["./src/tests/e2e/helpers/global-setup.ts"],
     env: {
       E2E_DATABASE_URL:
         process.env.E2E_DATABASE_URL ??

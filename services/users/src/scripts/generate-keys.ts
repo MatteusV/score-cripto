@@ -17,7 +17,7 @@ export function generateRsaKeyPair(): RsaKeyPair {
 }
 
 // CLI entry point — executado via `pnpm keys:generate`
-if (process.argv[1] && process.argv[1].includes("generate-keys")) {
+if (process.argv[1]?.includes("generate-keys")) {
   const force = process.argv.includes("--force");
   const outDir = resolve(process.cwd(), "keys");
   const privateKeyPath = resolve(outDir, "private.pem");

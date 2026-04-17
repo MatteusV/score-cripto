@@ -5,7 +5,6 @@ import { createE2EDatabase } from "./helpers/e2e-database";
 
 describe("Auth E2E — register, login, refresh", () => {
   let db: E2EDatabase;
-  // biome-ignore lint/suspicious/noExplicitAny: fastify instance type in e2e context
   let app: any;
 
   beforeAll(async () => {

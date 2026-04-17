@@ -3,11 +3,7 @@ import { createHttpServer } from "../../http/server";
 import type { E2EDatabase } from "./helpers/e2e-database";
 import { createE2EDatabase } from "./helpers/e2e-database";
 
-async function registerAndGetUserId(
-  // biome-ignore lint/suspicious/noExplicitAny: fastify instance type in e2e context
-  app: any,
-  email: string
-): Promise<string> {
+async function registerAndGetUserId(app: any, email: string): Promise<string> {
   const res = await app.inject({
     method: "POST",
     url: "/auth/register",
@@ -18,7 +14,6 @@ async function registerAndGetUserId(
 
 describe("Usage E2E — check, consume e limites mensais", () => {
   let db: E2EDatabase;
-  // biome-ignore lint/suspicious/noExplicitAny: fastify instance type in e2e context
   let app: any;
 
   beforeAll(async () => {

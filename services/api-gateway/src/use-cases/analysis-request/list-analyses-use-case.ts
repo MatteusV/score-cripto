@@ -35,6 +35,7 @@ export class ListAnalysesUseCase {
       summary,
       data: all.map((item) => ({
         id: item.id,
+        publicId: item.publicId,
         chain: item.chain,
         address: item.address,
         score: item.score as number,

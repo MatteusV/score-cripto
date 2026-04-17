@@ -46,7 +46,7 @@ describe("JwtServiceImpl (RS256)", () => {
   it("should throw on a tampered token", () => {
     const svc = makeService();
     const token = svc.sign({ sub: "user-123", email: "alice@example.com" });
-    const tampered = token.slice(0, -5) + "xxxxx";
+    const tampered = `${token.slice(0, -5)}xxxxx`;
 
     expect(() => svc.verify(tampered)).toThrow();
   });

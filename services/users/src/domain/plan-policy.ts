@@ -9,6 +9,6 @@ export class DefaultPlanPolicy implements PlanPolicy {
   };
 
   getLimitForPlan(plan: string): number {
-    return DefaultPlanPolicy.LIMITS[plan] ?? DefaultPlanPolicy.LIMITS["FREE_TIER"];
+    return DefaultPlanPolicy.LIMITS[plan] ?? DefaultPlanPolicy.LIMITS.FREE_TIER;
   }
 }

@@ -4,11 +4,7 @@ import { createHttpServer } from "../../http/server";
 import type { E2EDatabase } from "./helpers/e2e-database";
 import { createE2EDatabase } from "./helpers/e2e-database";
 
-async function registerUser(
-  // biome-ignore lint/suspicious/noExplicitAny: fastify instance type in e2e context
-  app: any,
-  email: string
-): Promise<string> {
+async function registerUser(app: any, email: string): Promise<string> {
   const res = await app.inject({
     method: "POST",
     url: "/auth/register",
@@ -37,7 +33,6 @@ function makeConsumedEvent(
 
 describe("Consumer E2E — processUserAnalysisConsumedMessage", () => {
   let db: E2EDatabase;
-  // biome-ignore lint/suspicious/noExplicitAny: fastify instance type in e2e context
   let app: any;
 
   beforeAll(async () => {

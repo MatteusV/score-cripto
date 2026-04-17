@@ -142,8 +142,7 @@ export async function billingHandler(app: FastifyInstance) {
   );
 
   // rawBody não está no tipo base FastifyContextConfig mas é suportado em runtime
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const webhookConfig = {
+  const webhookOptions = {
     config: { rawBody: true },
     schema: {
       tags: ["billing"],
@@ -154,7 +153,9 @@ export async function billingHandler(app: FastifyInstance) {
         400: z.object({ error: z.string() }),
       },
     },
-  } as any;
+  };
+  // biome-ignore lint/suspicious/noExplicitAny: rawBody not in standard Fastify types
+  const webhookConfig = webhookOptions as any;
 
   async function handleStripeWebhook(
     request: import("fastify").FastifyRequest,
