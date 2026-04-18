@@ -17,14 +17,18 @@ COPY services/users/tsconfig.json ./services/users/
 
 RUN pnpm install --frozen-lockfile
 
+# Build shared workspace packages before service build so their compiled JS
+# ships in the production image (Node 22 cannot strip types under node_modules).
+RUN pnpm --filter @score-cripto/observability-node run build
+
 COPY services/users/src ./services/users/src/
 
 RUN pnpm --filter @score-cripto/users exec prisma generate
 RUN pnpm --filter @score-cripto/users run build
 
 RUN pnpm --filter @score-cripto/users deploy --prod /standalone
-RUN cp -r /workspace/services/users/dist /standalone/dist
-RUN cp -r /workspace/services/users/prisma /standalone/prisma
+RUN cp -rT /workspace/services/users/dist /standalone/dist
+RUN cp -rT /workspace/services/users/prisma /standalone/prisma
 
 # ── production ───────────────────────────────────────────────────────────────
 

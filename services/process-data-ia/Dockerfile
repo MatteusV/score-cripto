@@ -17,14 +17,18 @@ COPY services/process-data-ia/tsconfig.json ./services/process-data-ia/
 
 RUN pnpm install --frozen-lockfile
 
+# Build shared workspace packages before service build so their compiled JS
+# ships in the production image (Node 22 cannot strip types under node_modules).
+RUN pnpm --filter @score-cripto/observability-node run build
+
 COPY services/process-data-ia/src ./services/process-data-ia/src/
 
 RUN pnpm --filter @score-cripto/process-data-ia exec prisma generate
 RUN pnpm --filter @score-cripto/process-data-ia run build
 
 RUN pnpm --filter @score-cripto/process-data-ia deploy --prod /standalone
-RUN cp -r /workspace/services/process-data-ia/dist /standalone/dist
-RUN cp -r /workspace/services/process-data-ia/prisma /standalone/prisma
+RUN cp -rT /workspace/services/process-data-ia/dist /standalone/dist
+RUN cp -rT /workspace/services/process-data-ia/prisma /standalone/prisma
 
 # ── production ───────────────────────────────────────────────────────────────
 

@@ -3,16 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "files": ["src"],
+  "files": ["dist"],
   "exports": {
-    ".": "./src/index.ts",
-    "./logger": "./src/logger.ts",
-    "./redact": "./src/redact.ts",
-    "./context": "./src/context.ts",
-    "./http": "./src/http/fastify-plugin.ts",
-    "./amqp": "./src/amqp/index.ts"
+    ".": "./dist/index.js",
+    "./logger": "./dist/logger.js",
+    "./redact": "./dist/redact.js",
+    "./context": "./dist/context.js",
+    "./http": "./dist/http/fastify-plugin.js",
+    "./amqp": "./dist/amqp/index.js"
   },
   "scripts": {
+    "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "ultracite check",

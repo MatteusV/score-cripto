@@ -19,6 +19,10 @@ COPY services/api-gateway/tsconfig.json ./services/api-gateway/
 
 RUN pnpm install --frozen-lockfile
 
+# Build shared workspace packages before service build so their compiled JS
+# ships in the production image (Node 22 cannot strip types under node_modules).
+RUN pnpm --filter @score-cripto/observability-node run build
+
 COPY services/api-gateway/src ./services/api-gateway/src/
 
 RUN pnpm --filter @score-cripto/api-gateway exec prisma generate
@@ -27,9 +31,9 @@ RUN pnpm --filter @score-cripto/api-gateway run build
 # Standalone deploy — prod deps only, resolves workspace:* packages
 RUN pnpm --filter @score-cripto/api-gateway deploy --prod /standalone
 
-# Copy compiled output
-RUN cp -r /workspace/services/api-gateway/dist /standalone/dist
-RUN cp -r /workspace/services/api-gateway/prisma /standalone/prisma
+# Copy compiled output (-T avoids nesting if target already exists)
+RUN cp -rT /workspace/services/api-gateway/dist /standalone/dist
+RUN cp -rT /workspace/services/api-gateway/prisma /standalone/prisma
 
 # ── production ───────────────────────────────────────────────────────────────
 
