@@ -201,6 +201,25 @@ For more details, see README.md and docs/QUICKSTART.md.
    └─ Exibe score, explicação e sinais analisados
 ```
 
+### Monorepo Structure
+
+**score-cripto** é um pnpm monorepo com dois tipos de workspaces:
+
+- **`packages/`** - Código compartilhado reutilizado por vários serviços
+  - `observability-node`: Pacote central de observabilidade (logger, tracing, AMQP, Fastify plugin)
+    - ⚠️ **IMPORTANTE**: Este pacote **precisa ser compilado antes** que os serviços o usem
+    - Exports apontam para `dist/` (TypeScript compilado), não para `.ts` raw
+    - Cada serviço importa via `"@score-cripto/observability-node": "workspace:*"`
+
+- **`services/`** - Microserviços autônomos
+  - `api-gateway`: Boundary externo, orquestra requisições e eventos
+  - `process-data-ia`: Processamento e cálculo de score com IA
+  - `data-search`: Busca e cache de dados blockchain
+  - `users`: Gerenciamento de usuários e billing
+  - `web-app`: Dashboard frontend (em desenvolvimento)
+
+Cada serviço tem seu próprio `package.json`, `Dockerfile`, e `CLAUDE.md` com instruções específicas.
+
 ## Key Considerations
 
 ### Blockchain Data
@@ -247,21 +266,185 @@ O score gerado por IA deve ser:
 
 ## Build & Test
 
+### Setup Inicial
+
 ```bash
-# Exemplo: frontend
-cd frontend
-pnpm install
+pnpm install          # Instala todas as dependências (root + packages + services)
+```
 
-# Testes
-pnpm test             # Todos os testes (TDD obrigatório)
-pnpm test:watch       # Watch mode
+### Desenvolvimento (Hot-Reload)
 
-# Desenvolvimento
-pnpm dev
+```bash
+# Rodar todos os serviços em watch mode (dev)
+pnpm dev              # Usa tsx watch internamente
 
-# Build para produção
-pnpm build
-pnpm preview
+# Rodar um serviço específico
+cd services/api-gateway
+pnpm dev              # Hot-reload para este serviço
+```
+
+### Build & Compilação
+
+```bash
+# ⚠️ ORDEM IMPORTANTE: compilar observability-node PRIMEIRO
+pnpm --filter "@score-cripto/observability-node" run build
+
+# Depois compilar um serviço específico
+pnpm --filter "@score-cripto/api-gateway" run build
+
+# Ou compilar todos os serviços
+pnpm --filter "./services/*" run build
+```
+
+**Por que?** Serviços dependem de `observability-node` compilado em `dist/`. Se `observability-node` não estiver compilado, imports falham com `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`.
+
+### Testes
+
+```bash
+# Todos os testes
+pnpm test             # Usa vitest em cada workspace
+
+# Watch mode
+pnpm test:watch
+
+# Testes de um pacote/serviço específico
+pnpm --filter "@score-cripto/api-gateway" run test
+pnpm --filter "@score-cripto/process-data-ia" run test:watch
+```
+
+### Lint & Type Check
+
+```bash
+# Verificar tipos TypeScript + Ultracite/Biome lint
+pnpm check            # Roda "check" em todos os workspaces
+
+# Auto-fix issues
+pnpm fix              # Roda "fix" em todos os workspaces
+```
+
+### Docker Build
+
+```bash
+# Build individual (ex: api-gateway)
+docker build -f services/api-gateway/Dockerfile -t score-cripto-api-gateway .
+
+# Build com docker-compose (local development)
+docker-compose up --build
+```
+
+**Nota**: Dockerfiles compilam `observability-node` automaticamente como parte do multi-stage build (antes de `pnpm install`).
+
+## Local Development with Docker Compose
+
+Para testar a stack completa em containers (mais próximo de produção):
+
+```bash
+# Subir todos os serviços + infra (postgres, redis, rabbitmq)
+docker-compose up -d
+
+# Verificar logs
+docker-compose logs -f api-gateway
+docker-compose logs -f process-data-ia
+docker-compose logs -f data-search
+
+# Parar a stack
+docker-compose down
+
+# Limpar volumes (reset database/redis)
+docker-compose down -v
+```
+
+### Acessando os Serviços Localmente
+
+| Serviço | URL | Porta |
+|---------|-----|-------|
+| API Gateway | http://localhost:3001 | 3001 |
+| API Gateway Docs | http://localhost:3001/docs | 3001 |
+| Process Data IA | http://localhost:3002 | 3002 |
+| Data Search | http://localhost:8080 | 8080 |
+| PostgreSQL (process-data-ia) | localhost:5433 | 5433 |
+| Redis (data-search) | localhost:6380 | 6380 |
+| RabbitMQ AMQP | amqp://localhost:5673 | 5673 |
+| RabbitMQ Management | http://localhost:15673 | 15673 |
+
+### Debugging with Docker Compose
+
+```bash
+# Executar comando em um container rodando
+docker-compose exec api-gateway sh
+
+# Verificar variáveis de ambiente
+docker-compose exec api-gateway env | grep DATABASE_URL
+
+# Ver healthcheck status
+docker-compose ps
+```
+
+## Common Gotchas & Solutions
+
+### 1. **observability-node Exports Pointing to Raw .ts**
+
+**Problema**: `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING` quando serviços tentam importar observability-node.
+
+**Causa**: Package exports apontavam para `.ts` em vez de `dist/`.
+
+**Solução**: 
+- Garantir `packages/observability-node/package.json` exports apontam para `./dist/*`
+- Executar `pnpm --filter "@score-cripto/observability-node" run build` antes de buildear serviços
+- Dockerfiles já fazem isso automaticamente na primeira etapa
+
+### 2. **Docker Build Fails: Cannot Find observability-node**
+
+**Problema**: Docker build falha com "Cannot find module '@score-cripto/observability-node'"
+
+**Causa**: observability-node não foi compilado antes de `pnpm install`.
+
+**Solução**: Dockerfiles devem compilar observability-node ANTES de rodar `pnpm install` nos serviços. Exemplo:
+```dockerfile
+RUN pnpm --filter "@score-cripto/observability-node" install
+RUN pnpm --filter "@score-cripto/observability-node" run build
+RUN pnpm install --frozen-lockfile
+```
+
+### 3. **Prisma Permission Issues in Non-Root Container**
+
+**Problema**: Fly.io deployment falha com "permission denied" ao rodar Prisma migrations em container non-root.
+
+**Causa**: Prisma CLI precisa de write access a `/app/node_modules/.prisma/client/` mas container roda como `appuser` (uid=999).
+
+**Solução**: Dockerfile deve fazer `RUN chown -R appuser:appuser /app` antes de trocar para non-root:
+```dockerfile
+# Garantir appuser pode acessar todo o /app
+RUN chown -R appuser:appuser /app
+USER appuser
+```
+
+### 4. **pnpm install Hangs or Fails in CI**
+
+**Problema**: `pnpm install` fica travado ou falha em CI/Docker.
+
+**Causa**: Pode ser lock de arquivo ou permissões.
+
+**Solução**:
+- Use `pnpm install --frozen-lockfile` em CI/Docker
+- Se estiver desenvolvendo localmente, `pnpm install` sem flags
+
+### 5. **RabbitMQ Connection Refused**
+
+**Problema**: Serviços não conseguem conectar a RabbitMQ em local dev.
+
+**Causa**: `docker-compose` rodando mas RabbitMQ healthcheck não passou.
+
+**Solução**:
+```bash
+# Aguardar RabbitMQ inicializar
+docker-compose up -d
+sleep 5
+docker-compose logs rabbitmq | grep "ready to accept"
+
+# Se ainda falhar, resetar
+docker-compose down -v
+docker-compose up -d --wait-for-service-health
 ```
 
 ## Conventions & Patterns
