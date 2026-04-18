@@ -12,7 +12,7 @@
  */
 
 import * as runtime from "@prisma/client/runtime/library"
-import type * as Prisma from "./prismaNamespace"
+import type * as Prisma from "./prismaNamespace.js"
 
 
 const config: runtime.GetPrismaClientConfig = {
@@ -23,21 +23,22 @@ const config: runtime.GetPrismaClientConfig = {
       "value": "prisma-client"
     },
     "output": {
-      "value": "/workspace/services/api-gateway/src/generated/prisma",
+      "value": "/home/matteus-varlesse/www/score-cripto/services/api-gateway/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
+      "importFileExtension": "js",
       "engineType": "library"
     },
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "debian-openssl-1.1.x",
+        "value": "debian-openssl-3.0.x",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/workspace/services/api-gateway/prisma/schema.prisma",
+    "sourceFilePath": "/home/matteus-varlesse/www/score-cripto/services/api-gateway/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativePath": "../../../prisma",
@@ -56,8 +57,8 @@ const config: runtime.GetPrismaClientConfig = {
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider = \"prisma-client\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum AnalysisStatus {\n  PENDING\n  PROCESSING\n  COMPLETED\n  FAILED\n}\n\nmodel AnalysisRequest {\n  id            String         @id @default(cuid())\n  userId        String         @map(\"user_id\")\n  publicId      Int?           @map(\"public_id\")\n  chain         String\n  address       String\n  status        AnalysisStatus @default(PENDING)\n  requestedAt   DateTime       @default(now()) @map(\"requested_at\")\n  completedAt   DateTime?      @map(\"completed_at\")\n  failedAt      DateTime?      @map(\"failed_at\")\n  failureReason String?        @map(\"failure_reason\")\n\n  // Resultado inline (preenchido ao consumir wallet.score.calculated)\n  score           Int?\n  confidence      Float?\n  reasoning       String?\n  positiveFactors Json?   @map(\"positive_factors\")\n  riskFactors     Json?   @map(\"risk_factors\")\n  modelVersion    String? @map(\"model_version\")\n  promptVersion   String? @map(\"prompt_version\")\n\n  translations AnalysisTranslation[]\n\n  @@unique([userId, publicId])\n  @@index([userId])\n  @@index([userId, publicId])\n  @@index([status])\n  @@index([chain, address])\n  @@index([userId, chain, address])\n  @@map(\"analysis_requests\")\n}\n\nmodel AnalysisTranslation {\n  id              String          @id @default(cuid())\n  analysisId      String          @map(\"analysis_id\")\n  locale          String\n  reasoning       String?\n  positiveFactors Json?           @map(\"positive_factors\")\n  riskFactors     Json?           @map(\"risk_factors\")\n  translatedAt    DateTime        @default(now()) @map(\"translated_at\")\n  analysis        AnalysisRequest @relation(fields: [analysisId], references: [id], onDelete: Cascade)\n\n  @@unique([analysisId, locale])\n  @@index([analysisId])\n  @@map(\"analysis_translations\")\n}\n\nmodel UserAnalysisCounter {\n  userId  String @id @map(\"user_id\")\n  counter Int    @default(0)\n\n  @@map(\"user_analysis_counters\")\n}\n",
-  "inlineSchemaHash": "73a589b96747d2dd5a308c6fab1ac1864fd61a5f2514dd0b4091324a948acb05",
+  "inlineSchema": "generator client {\n  provider            = \"prisma-client\"\n  output              = \"../src/generated/prisma\"\n  importFileExtension = \"js\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum AnalysisStatus {\n  PENDING\n  PROCESSING\n  COMPLETED\n  FAILED\n}\n\nmodel AnalysisRequest {\n  id            String         @id @default(cuid())\n  userId        String         @map(\"user_id\")\n  publicId      Int?           @map(\"public_id\")\n  chain         String\n  address       String\n  status        AnalysisStatus @default(PENDING)\n  requestedAt   DateTime       @default(now()) @map(\"requested_at\")\n  completedAt   DateTime?      @map(\"completed_at\")\n  failedAt      DateTime?      @map(\"failed_at\")\n  failureReason String?        @map(\"failure_reason\")\n\n  // Resultado inline (preenchido ao consumir wallet.score.calculated)\n  score           Int?\n  confidence      Float?\n  reasoning       String?\n  positiveFactors Json?   @map(\"positive_factors\")\n  riskFactors     Json?   @map(\"risk_factors\")\n  modelVersion    String? @map(\"model_version\")\n  promptVersion   String? @map(\"prompt_version\")\n\n  translations AnalysisTranslation[]\n\n  @@unique([userId, publicId])\n  @@index([userId])\n  @@index([userId, publicId])\n  @@index([status])\n  @@index([chain, address])\n  @@index([userId, chain, address])\n  @@map(\"analysis_requests\")\n}\n\nmodel AnalysisTranslation {\n  id              String          @id @default(cuid())\n  analysisId      String          @map(\"analysis_id\")\n  locale          String\n  reasoning       String?\n  positiveFactors Json?           @map(\"positive_factors\")\n  riskFactors     Json?           @map(\"risk_factors\")\n  translatedAt    DateTime        @default(now()) @map(\"translated_at\")\n  analysis        AnalysisRequest @relation(fields: [analysisId], references: [id], onDelete: Cascade)\n\n  @@unique([analysisId, locale])\n  @@index([analysisId])\n  @@map(\"analysis_translations\")\n}\n\nmodel UserAnalysisCounter {\n  userId  String @id @map(\"user_id\")\n  counter Int    @default(0)\n\n  @@map(\"user_analysis_counters\")\n}\n",
+  "inlineSchemaHash": "7776e5a056682a4e3ff9b42bbc210652eb2e2cec143a519308e92b9cc6292b16",
   "copyEngine": true,
   "runtimeDataModel": {
     "models": {},

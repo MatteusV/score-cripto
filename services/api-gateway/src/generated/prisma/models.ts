@@ -8,7 +8,7 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/AnalysisRequest'
-export type * from './models/AnalysisTranslation'
-export type * from './models/UserAnalysisCounter'
-export type * from './commonInputTypes'
+export type * from './models/AnalysisRequest.js'
+export type * from './models/AnalysisTranslation.js'
+export type * from './models/UserAnalysisCounter.js'
+export type * from './commonInputTypes.js'
