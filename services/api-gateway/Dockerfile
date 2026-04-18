@@ -43,7 +43,7 @@ RUN groupadd --system appgroup && useradd --system --gid appgroup appuser
 
 WORKDIR /app
 
-COPY --from=builder /standalone ./
+COPY --from=builder --chown=appuser:appgroup /standalone ./
 
 USER appuser
 
