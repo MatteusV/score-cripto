@@ -67,6 +67,9 @@ jobs:
       - name: Instalar dependências (workspace)
         run: pnpm install --frozen-lockfile
 
+      - name: Compilar observability-node (workspace package)
+        run: pnpm --filter @score-cripto/observability-node run build
+
       - name: Lint
         run: pnpm --filter @score-cripto/api-gateway run check
 
@@ -95,6 +98,9 @@ jobs:
       - name: Instalar dependências (workspace)
         run: pnpm install --frozen-lockfile
 
+      - name: Compilar observability-node (workspace package)
+        run: pnpm --filter @score-cripto/observability-node run build
+
       - name: Lint
         run: pnpm --filter @score-cripto/process-data-ia run check
 
@@ -122,6 +128,9 @@ jobs:
 
       - name: Instalar dependências (workspace)
         run: pnpm install --frozen-lockfile
+
+      - name: Compilar observability-node (workspace package)
+        run: pnpm --filter @score-cripto/observability-node run build
 
       - name: Lint
         run: pnpm --filter @score-cripto/users run check
