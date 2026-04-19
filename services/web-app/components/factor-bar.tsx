@@ -24,7 +24,7 @@ export function FactorBar({ label, value, max = 100, variant = "primary", classN
         <span className="text-muted-foreground">{label}</span>
         <span className="font-heading font-semibold text-foreground">{value}</span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-white/6">
+      <div className="h-1.5 overflow-hidden rounded-full bg-foreground/8">
         <div
           className={cn("h-full rounded-full transition-all duration-700", barColor)}
           style={{ width: `${pct}%` }}

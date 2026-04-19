@@ -140,7 +140,7 @@ export default function HistoryPage() {
                       ? `/analyze?id=${row.publicId}`
                       : `/analyze?chain=${row.chain}&address=${row.address}`
                   }
-                  className="grid grid-cols-[1fr_80px_100px_100px] items-center gap-4 px-5 py-4 transition-colors hover:bg-white/3"
+                  className="grid grid-cols-[1fr_80px_100px_100px] items-center gap-4 px-5 py-4 transition-colors hover:bg-foreground/4"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-mono text-xs text-foreground/80">

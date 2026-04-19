@@ -50,7 +50,7 @@ export function AppSidebar() {
       <div className="mt-auto">
         <button
           onClick={() => void logout()}
-          className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-white/4"
+          className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-foreground/5"
         >
           <div className="flex size-8 items-center justify-center rounded-lg bg-primary/15 font-heading text-xs font-bold text-primary">
             {initials}
@@ -100,7 +100,7 @@ function NavSection({
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                 active
                   ? "border border-primary/20 bg-primary/8 text-primary"
-                  : "text-muted-foreground hover:bg-white/4 hover:text-foreground",
+                  : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
               )}
             >
               <item.icon

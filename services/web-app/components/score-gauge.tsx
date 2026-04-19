@@ -10,23 +10,27 @@ interface ScoreGaugeProps {
 function scoreColor(score: number) {
   if (score >= 70)
     return {
-      stroke: "#22C55E",
-      glow: "rgba(34,197,94,0.25)",
+      stroke: "oklch(0.74 0.19 66)",        // gold — design tier 1
+      glow: "oklch(0.74 0.19 66 / 25%)",
       label: "Confiável",
     }
   if (score >= 40)
     return {
-      stroke: "#F59E0B",
-      glow: "rgba(245,158,11,0.25)",
+      stroke: "oklch(0.74 0.16 85)",        // amber — design tier 2
+      glow: "oklch(0.74 0.16 85 / 25%)",
       label: "Moderado",
     }
-  return { stroke: "#EF4444", glow: "rgba(239,68,68,0.25)", label: "Arriscado" }
+  return {
+    stroke: "oklch(0.63 0.24 28)",          // red — design tier 3
+    glow: "oklch(0.63 0.24 28 / 25%)",
+    label: "Arriscado",
+  }
 }
 
 function scoreBg(score: number) {
-  if (score >= 70) return "from-emerald-500/10 to-transparent"
+  if (score >= 70) return "from-primary/10 to-transparent"
   if (score >= 40) return "from-amber-500/10 to-transparent"
-  return "from-red-500/10 to-transparent"
+  return "from-destructive/10 to-transparent"
 }
 
 export function ScoreGauge({ score, confidence }: ScoreGaugeProps) {

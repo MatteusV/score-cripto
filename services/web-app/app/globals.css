@@ -49,8 +49,9 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Dark cyberpunk — single theme (no light mode) */
-:root {
+/* Dark cyberpunk — canonical theme. Applied by default and via .dark class. */
+:root,
+.dark {
   --background: oklch(0.09 0.03 263);         /* #0A1220 */
   --foreground: oklch(0.97 0.005 210);         /* #F8FAFC */
   --card: oklch(0.13 0.025 265);               /* #111827 */
@@ -88,6 +89,50 @@
   --sidebar-accent-foreground: oklch(0.97 0.005 210);
   --sidebar-border: oklch(1 0 0 / 6%);
   --sidebar-ring: oklch(0.74 0.19 66 / 60%);
+  --grid-line: oklch(0.74 0.19 66 / 2.5%);     /* gold-tinted grid lines */
+  color-scheme: dark;
+}
+
+/* Light theme — preserves gold + purple identity, tuned for contrast. */
+.light {
+  --background: oklch(0.985 0.003 240);        /* near-white, subtle cool */
+  --foreground: oklch(0.16 0.03 263);          /* deep navy */
+  --card: oklch(1 0 0);                        /* pure white */
+  --card-foreground: oklch(0.16 0.03 263);
+  --card2: oklch(0.97 0.01 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0.03 263);
+  --primary: oklch(0.68 0.18 66);              /* darker gold for contrast */
+  --primary-foreground: oklch(1 0 0);
+  --primary-dim: oklch(0.68 0.18 66 / 14%);
+  --secondary: oklch(0.94 0.01 250);
+  --secondary-foreground: oklch(0.16 0.03 263);
+  --muted: oklch(0.95 0.01 250);
+  --muted-foreground: oklch(0.48 0.02 245);
+  --muted-dim: oklch(0.72 0.015 245);
+  --accent: oklch(0.52 0.22 295);              /* darker purple */
+  --accent-foreground: oklch(1 0 0);
+  --accent-dim: oklch(0.52 0.22 295 / 12%);
+  --destructive: oklch(0.56 0.22 28);
+  --border: oklch(0.16 0.03 263 / 10%);
+  --border-gold: oklch(0.68 0.18 66 / 30%);
+  --input: oklch(0.16 0.03 263 / 6%);
+  --ring: oklch(0.68 0.18 66 / 45%);
+  --chart-1: oklch(0.68 0.18 66);
+  --chart-2: oklch(0.52 0.22 295);
+  --chart-3: oklch(0.58 0.18 162);
+  --chart-4: oklch(0.56 0.22 28);
+  --chart-5: oklch(0.54 0.18 253);
+  --sidebar: oklch(0.975 0.005 250);
+  --sidebar-foreground: oklch(0.16 0.03 263);
+  --sidebar-primary: oklch(0.68 0.18 66);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.94 0.01 250);
+  --sidebar-accent-foreground: oklch(0.16 0.03 263);
+  --sidebar-border: oklch(0.16 0.03 263 / 10%);
+  --sidebar-ring: oklch(0.68 0.18 66 / 45%);
+  --grid-line: oklch(0.68 0.18 66 / 5%);       /* slightly stronger on light bg */
+  color-scheme: light;
 }
 
 @layer base {
@@ -99,14 +144,10 @@
     @apply bg-background text-foreground;
     font-family: var(--font-exo2), "Exo 2", "Avenir Next", sans-serif;
     background-image:
-      linear-gradient(oklch(0.74 0.19 66 / 2.5%) 1px, transparent 1px),
-      linear-gradient(90deg, oklch(0.74 0.19 66 / 2.5%) 1px, transparent 1px);
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 60px 60px;
     background-attachment: fixed;
-  }
-
-  html {
-    color-scheme: dark;
   }
 
   h1,
@@ -186,19 +227,11 @@
   /* Background grid overlay */
   .hero-grid {
     background-image:
-      linear-gradient(
-        90deg,
-        oklch(1 0 0 / 4%) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        0deg,
-        oklch(1 0 0 / 4%) 1px,
-        transparent 1px
-      );
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(0deg, var(--grid-line) 1px, transparent 1px);
     background-size: 120px 120px;
     mask-image: radial-gradient(circle at 50% 10%, black 35%, transparent 70%);
-    opacity: 0.3;
+    opacity: 0.6;
   }
 
   /* Floating orb */

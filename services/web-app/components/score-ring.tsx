@@ -21,7 +21,7 @@ export function ScoreRing({ score, size = 160, confidence, className }: ScoreRin
 
   return (
     <div
-      className={cn("relative flex items-center justify-center", className)}
+      className={cn("relative flex items-center justify-center text-foreground", className)}
       style={{ width: size, height: size }}
     >
       <svg width={size} height={size} className="-rotate-90">
@@ -31,7 +31,8 @@ export function ScoreRing({ score, size = 160, confidence, className }: ScoreRin
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="oklch(1 0 0 / 6%)"
+          stroke="currentColor"
+          strokeOpacity={0.08}
           strokeWidth="10"
         />
         {/* Progress */}

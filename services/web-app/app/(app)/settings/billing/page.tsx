@@ -37,7 +37,7 @@ function UsageBar({ count, limit }: { count: number; limit: number }) {
           {count} / {limit}
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-white/6">
+      <div className="h-2 overflow-hidden rounded-full bg-foreground/8">
         <div
           className={`h-full rounded-full transition-all duration-500 ${color}`}
           style={{ width: `${pct}%` }}

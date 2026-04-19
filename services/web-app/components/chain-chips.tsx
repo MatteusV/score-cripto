@@ -29,7 +29,7 @@ export function ChainChips({ selected, onChange, chains = CHAINS }: ChainChipsPr
             "rounded-lg px-2.5 py-1 text-xs font-bold tracking-wider transition-all",
             selected === chain.id
               ? "border border-primary/30 bg-primary/15 text-primary shadow-[0_0_8px_oklch(0.74_0.19_66/20%)]"
-              : "border border-border text-muted-foreground hover:border-white/15 hover:text-foreground",
+              : "border border-border text-muted-foreground hover:border-foreground/15 hover:text-foreground",
           )}
         >
           {chain.label}

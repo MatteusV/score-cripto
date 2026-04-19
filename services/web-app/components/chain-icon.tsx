@@ -18,7 +18,7 @@ interface ChainIconProps {
 
 export function ChainIcon({ chain, size = "md", className }: ChainIconProps) {
   const key = chain.toLowerCase()
-  const config = CHAIN_COLORS[key] ?? { bg: "bg-white/10", text: "text-muted-foreground", label: chain.slice(0, 4).toUpperCase() }
+  const config = CHAIN_COLORS[key] ?? { bg: "bg-foreground/10", text: "text-muted-foreground", label: chain.slice(0, 4).toUpperCase() }
 
   const sizes = { sm: "size-6 text-[9px]", md: "size-8 text-[10px]", lg: "size-10 text-xs" }
 

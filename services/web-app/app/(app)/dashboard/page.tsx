@@ -98,7 +98,7 @@ export default function DashboardPage() {
                   {t("analyzeCard.usageRemaining", { remaining: analysisRemaining })}
                 </span>
               </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/6">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-foreground/8">
                 <div
                   className="h-full rounded-full bg-primary transition-all"
                   style={{ width: `${usagePct}%` }}
@@ -149,7 +149,7 @@ export default function DashboardPage() {
                   <a
                     key={item.id}
                     href={`/analyze?chain=${item.chain}&address=${item.address}`}
-                    className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/3"
+                    className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-foreground/4"
                   >
                     <ChainIcon chain={item.chain} size="sm" />
                     <div className="min-w-0 flex-1">
@@ -201,7 +201,7 @@ export default function DashboardPage() {
               <a
                 key={action.href}
                 href={action.href}
-                className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-white/10"
+                className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-foreground/15"
               >
                 <div className={`flex size-10 items-center justify-center rounded-xl ${action.bg}`}>
                   <action.icon className={`size-4 ${action.color}`} strokeWidth={1.75} />

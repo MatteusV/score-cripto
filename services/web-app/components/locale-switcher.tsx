@@ -39,7 +39,7 @@ export function LocaleSwitcher() {
         onClick={() => setOpen((v) => !v)}
         disabled={pending}
         aria-label={t("label")}
-        className="flex h-9 items-center gap-1.5 rounded-xl border border-border px-2.5 text-xs text-muted-foreground transition-colors hover:border-white/15 hover:text-foreground disabled:opacity-50"
+        className="flex h-9 items-center gap-1.5 rounded-xl border border-border px-2.5 text-xs text-muted-foreground transition-colors hover:border-foreground/15 hover:text-foreground disabled:opacity-50"
       >
         <GlobeIcon className="size-3.5" strokeWidth={1.75} />
         <span>{current?.short ?? locale}</span>
@@ -56,7 +56,7 @@ export function LocaleSwitcher() {
               <button
                 key={l.value}
                 onClick={() => void handleSelect(l.value)}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-white/5 ${
+                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-foreground/5 ${
                   l.value === locale ? "text-primary" : "text-foreground/80"
                 }`}
               >
