@@ -1,13 +1,16 @@
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
-const USERS_URL = process.env.USERS_URL ?? "http://localhost:3003"
+const API_URL =
+  process.env.API_GATEWAY_URL ??
+  process.env.USERS_URL ??
+  "http://localhost:3001"
 
 export async function POST(request: Request) {
   const body = await request.json()
 
   try {
-    const regRes = await fetch(`${USERS_URL}/auth/register`, {
+    const regRes = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -23,7 +26,7 @@ export async function POST(request: Request) {
     }
 
     // Auto-login after register
-    const loginRes = await fetch(`${USERS_URL}/auth/login`, {
+    const loginRes = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: body.email, password: body.password }),

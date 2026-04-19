@@ -1,7 +1,10 @@
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
-const USERS_URL = process.env.USERS_URL ?? "http://localhost:3003"
+const API_URL =
+  process.env.API_GATEWAY_URL ??
+  process.env.USERS_URL ??
+  "http://localhost:3001"
 
 export async function GET() {
   const cookieStore = await cookies()
@@ -9,7 +12,7 @@ export async function GET() {
   if (!token) return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
 
   try {
-    const res = await fetch(`${USERS_URL}/billing/portal`, {
+    const res = await fetch(`${API_URL}/billing/portal`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     })
