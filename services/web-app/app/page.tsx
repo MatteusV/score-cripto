@@ -8,10 +8,10 @@ import {
   SearchIcon,
   ShieldAlertIcon,
   ShieldCheckIcon,
-  ShieldIcon,
   ZapIcon,
 } from "lucide-react"
 import { AuthHeader } from "@/components/auth-header"
+import { Logo } from "@/components/logo"
 import { WalletIntakeForm } from "@/components/wallet-intake-form"
 import { ScoreRing } from "@/components/score-ring"
 import { PlanCard } from "@/components/plan-card"
@@ -108,13 +108,8 @@ export default function Page() {
       {/* ─── NAV ─────────────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6 md:px-10">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl border border-primary/30 bg-primary/10">
-              <ShieldIcon className="size-4 text-primary" strokeWidth={2.5} />
-            </div>
-            <span className="font-heading text-sm font-bold tracking-widest text-foreground">
-              Score<span className="text-primary">Cripto</span>
-            </span>
+          <Link href="/" className="flex items-center" aria-label="Score Cripto">
+            <Logo variant="wordmark" className="h-9 w-auto" />
           </Link>
 
           <div className="flex items-center gap-2">

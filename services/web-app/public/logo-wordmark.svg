@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 200 40" fill="none">
+  <rect x="1" y="1" width="38" height="38" rx="12" stroke="#F59E0B" stroke-opacity="0.3" stroke-width="1.5" fill="#F59E0B" fill-opacity="0.1"></rect>
+  <path d="M20 10 L28 13 V20 C28 24.4 24.4 28 20 30 C15.6 28 12 24.4 12 20 V13 L20 10 Z" stroke="#F59E0B" stroke-width="2.2" stroke-linejoin="round" fill="none"></path>
+  <text x="52" y="26" font-family="Orbitron, monospace" font-weight="700" font-size="13" letter-spacing="2" fill="currentColor">SCORE</text>
+  <text x="114" y="26" font-family="Orbitron, monospace" font-weight="700" font-size="13" letter-spacing="2" fill="#F59E0B">CRIPTO</text>
+</svg>

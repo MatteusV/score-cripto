@@ -52,34 +52,45 @@
 /* Dark cyberpunk — canonical theme. Applied by default and via .dark class. */
 :root,
 .dark {
+  /* Raw brand hues — exposed for inline color-mix() consumers. */
+  --gold:        oklch(0.74 0.19 66);
+  --gold-soft:   oklch(0.74 0.19 66 / 12%);
+  --gold-ring:   oklch(0.74 0.19 66 / 25%);
+  --purple:      oklch(0.59 0.22 295);
+  --purple-soft: oklch(0.59 0.22 295 / 12%);
+  --green:       oklch(0.69 0.19 162);
+  --red:         oklch(0.63 0.24 28);
+  --blue:        oklch(0.60 0.17 253);
+  --amber:       oklch(0.74 0.16 85);
+
   --background: oklch(0.09 0.03 263);         /* #0A1220 */
   --foreground: oklch(0.97 0.005 210);         /* #F8FAFC */
   --card: oklch(0.13 0.025 265);               /* #111827 */
   --card-foreground: oklch(0.97 0.005 210);
-  --card2: oklch(0.16 0.03 258);               /* #162032 */
+  --card-2: oklch(0.16 0.03 258);              /* #162032 */
   --popover: oklch(0.12 0.028 263);
   --popover-foreground: oklch(0.97 0.005 210);
-  --primary: oklch(0.74 0.19 66);              /* #F59E0B gold */
+  --primary: var(--gold);                      /* #F59E0B gold */
   --primary-foreground: oklch(0.09 0.03 263);
-  --primary-dim: oklch(0.74 0.19 66 / 12%);
+  --primary-dim: var(--gold-soft);
   --secondary: oklch(0.18 0.03 263);
   --secondary-foreground: oklch(0.97 0.005 210);
   --muted: oklch(0.16 0.025 260);
   --muted-foreground: oklch(0.59 0.02 230);    /* #94A3B8 */
   --muted-dim: oklch(0.36 0.02 245);           /* #475569 */
-  --accent: oklch(0.59 0.22 295);              /* #8B5CF6 purple */
+  --accent: var(--purple);                     /* #8B5CF6 purple */
   --accent-foreground: oklch(0.97 0.005 210);
-  --accent-dim: oklch(0.59 0.22 295 / 12%);
-  --destructive: oklch(0.63 0.24 28);          /* #EF4444 */
+  --accent-dim: var(--purple-soft);
+  --destructive: var(--red);                   /* #EF4444 */
   --border: oklch(1 0 0 / 6%);                 /* rgba(255,255,255,0.06) */
-  --border-gold: oklch(0.74 0.19 66 / 25%);
+  --border-gold: var(--gold-ring);
   --input: oklch(1 0 0 / 9%);
   --ring: oklch(0.74 0.19 66 / 60%);
-  --chart-1: oklch(0.74 0.19 66);              /* gold */
-  --chart-2: oklch(0.59 0.22 295);             /* purple */
-  --chart-3: oklch(0.69 0.19 162);             /* #10B981 green */
-  --chart-4: oklch(0.63 0.24 28);              /* #EF4444 red */
-  --chart-5: oklch(0.6 0.17 253);              /* #3B82F6 blue */
+  --chart-1: var(--gold);
+  --chart-2: var(--purple);
+  --chart-3: var(--green);
+  --chart-4: var(--red);
+  --chart-5: var(--blue);
   --radius: 0.75rem;
   --sidebar: oklch(0.11 0.028 263);            /* #0D1625 */
   --sidebar-foreground: oklch(0.97 0.005 210);
@@ -95,34 +106,45 @@
 
 /* Light theme — preserves gold + purple identity, tuned for contrast. */
 .light {
+  /* Raw brand hues (slightly darkened for contrast on light bg). */
+  --gold:        oklch(0.68 0.18 66);
+  --gold-soft:   oklch(0.68 0.18 66 / 14%);
+  --gold-ring:   oklch(0.68 0.18 66 / 30%);
+  --purple:      oklch(0.52 0.22 295);
+  --purple-soft: oklch(0.52 0.22 295 / 12%);
+  --green:       oklch(0.58 0.18 162);
+  --red:         oklch(0.56 0.22 28);
+  --blue:        oklch(0.54 0.18 253);
+  --amber:       oklch(0.72 0.16 85);
+
   --background: oklch(0.985 0.003 240);        /* near-white, subtle cool */
   --foreground: oklch(0.16 0.03 263);          /* deep navy */
   --card: oklch(1 0 0);                        /* pure white */
   --card-foreground: oklch(0.16 0.03 263);
-  --card2: oklch(0.97 0.01 250);
+  --card-2: oklch(0.97 0.01 250);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.16 0.03 263);
-  --primary: oklch(0.68 0.18 66);              /* darker gold for contrast */
+  --primary: var(--gold);                      /* darker gold for contrast */
   --primary-foreground: oklch(1 0 0);
-  --primary-dim: oklch(0.68 0.18 66 / 14%);
+  --primary-dim: var(--gold-soft);
   --secondary: oklch(0.94 0.01 250);
   --secondary-foreground: oklch(0.16 0.03 263);
   --muted: oklch(0.95 0.01 250);
   --muted-foreground: oklch(0.48 0.02 245);
   --muted-dim: oklch(0.72 0.015 245);
-  --accent: oklch(0.52 0.22 295);              /* darker purple */
+  --accent: var(--purple);                     /* darker purple */
   --accent-foreground: oklch(1 0 0);
-  --accent-dim: oklch(0.52 0.22 295 / 12%);
-  --destructive: oklch(0.56 0.22 28);
+  --accent-dim: var(--purple-soft);
+  --destructive: var(--red);
   --border: oklch(0.16 0.03 263 / 10%);
-  --border-gold: oklch(0.68 0.18 66 / 30%);
+  --border-gold: var(--gold-ring);
   --input: oklch(0.16 0.03 263 / 6%);
   --ring: oklch(0.68 0.18 66 / 45%);
-  --chart-1: oklch(0.68 0.18 66);
-  --chart-2: oklch(0.52 0.22 295);
-  --chart-3: oklch(0.58 0.18 162);
-  --chart-4: oklch(0.56 0.22 28);
-  --chart-5: oklch(0.54 0.18 253);
+  --chart-1: var(--gold);
+  --chart-2: var(--purple);
+  --chart-3: var(--green);
+  --chart-4: var(--red);
+  --chart-5: var(--blue);
   --sidebar: oklch(0.975 0.005 250);
   --sidebar-foreground: oklch(0.16 0.03 263);
   --sidebar-primary: oklch(0.68 0.18 66);

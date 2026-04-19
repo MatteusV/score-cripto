@@ -8,9 +8,9 @@ import {
   CreditCardIcon,
   LayoutDashboardIcon,
   SearchIcon,
-  ShieldIcon,
 } from "lucide-react"
 import { useUser } from "@/hooks/use-user"
+import { Logo } from "@/components/logo"
 import { cn } from "@/lib/utils"
 
 const NAV_MAIN = [
@@ -31,13 +31,8 @@ export function AppSidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border bg-sidebar px-4 py-6">
       {/* Logo */}
-      <Link href="/" className="mb-8 flex items-center gap-3">
-        <div className="flex size-9 items-center justify-center rounded-xl border border-primary/30 bg-primary/10">
-          <ShieldIcon className="size-4 text-primary" strokeWidth={2.5} />
-        </div>
-        <span className="font-heading text-sm font-bold tracking-widest text-foreground">
-          Score<span className="text-primary">Cripto</span>
-        </span>
+      <Link href="/" className="mb-8 flex items-center" aria-label="Score Cripto">
+        <Logo variant="wordmark" className="h-9 w-auto" />
       </Link>
 
       {/* Nav principal */}
