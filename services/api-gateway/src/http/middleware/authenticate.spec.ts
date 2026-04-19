@@ -40,7 +40,12 @@ function makeReply() {
 }
 
 function signToken(payload: { sub: string; email: string }, pk = privateKey) {
-  return jwt.sign(payload, pk, { algorithm: "RS256", expiresIn: "15m" });
+  return jwt.sign(payload, pk, {
+    algorithm: "RS256",
+    expiresIn: "15m",
+    issuer: "score-cripto-users",
+    audience: "score-cripto-api",
+  });
 }
 
 describe("authenticate middleware (RS256)", () => {
@@ -102,7 +107,12 @@ describe("authenticate middleware (RS256)", () => {
     const token = jwt.sign(
       { sub: "user-abc", email: "alice@example.com" },
       privateKey,
-      { algorithm: "RS256", expiresIn: "1ms" }
+      {
+        algorithm: "RS256",
+        expiresIn: "1ms",
+        issuer: "score-cripto-users",
+        audience: "score-cripto-api",
+      }
     );
     await new Promise((r) => setTimeout(r, 50));
 

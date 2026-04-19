@@ -37,6 +37,8 @@ function makeRequest(authorization?: string, ip = "1.2.3.4") {
 function makeToken(sub: string, key: string, expiresIn?: number) {
   return jwt.sign({ sub, email: "test@example.com" }, key, {
     algorithm: "RS256",
+    issuer: "score-cripto-users",
+    audience: "score-cripto-api",
     ...(expiresIn === undefined ? {} : { expiresIn }),
   });
 }

@@ -57,6 +57,7 @@ export class LoginUserUseCase {
     const accessToken = this.jwtService.sign({
       sub: user.id,
       email: user.email,
+      role: user.role,
     });
 
     const rawToken = randomBytes(64).toString("hex");

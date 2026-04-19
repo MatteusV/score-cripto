@@ -1,7 +1,11 @@
 import jwt from "jsonwebtoken";
 
+export const JWT_ISSUER = "score-cripto-users";
+export const JWT_AUDIENCE = "score-cripto-api";
+
 export interface JwtPayload {
   email: string;
+  role?: string;
   sub: string;
 }
 
@@ -25,12 +29,16 @@ export class JwtServiceImpl implements JwtService {
     return jwt.sign(payload, this.privateKey, {
       algorithm: "RS256",
       expiresIn: this.expiresIn as jwt.SignOptions["expiresIn"],
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
     });
   }
 
   verify(token: string): JwtPayload {
     return jwt.verify(token, this.publicKey, {
       algorithms: ["RS256"],
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
     }) as JwtPayload;
   }
 }

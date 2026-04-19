@@ -2,6 +2,7 @@ import rateLimit from "@fastify/rate-limit";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import jwt from "jsonwebtoken";
 import { config } from "../../config.js";
+import { JWT_AUDIENCE, JWT_ISSUER } from "../constants.js";
 
 const SKIP_PATHS = new Set(["/health"]);
 
@@ -19,6 +20,8 @@ export function buildKeyGenerator(
       try {
         const payload = jwt.verify(auth.slice(7), jwtPublicKey, {
           algorithms: ["RS256"],
+          issuer: JWT_ISSUER,
+          audience: JWT_AUDIENCE,
         }) as { sub: string };
         return `user:${payload.sub}`;
       } catch {

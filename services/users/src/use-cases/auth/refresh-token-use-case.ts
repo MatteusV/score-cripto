@@ -53,6 +53,7 @@ export class RefreshTokenUseCase {
     const accessToken = this.jwtService.sign({
       sub: user.id,
       email: user.email,
+      role: user.role,
     });
 
     const newRawToken = randomBytes(64).toString("hex");

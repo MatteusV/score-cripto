@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import jwt from "jsonwebtoken";
 import { config } from "../../config.js";
+import { JWT_AUDIENCE, JWT_ISSUER } from "../constants.js";
 
 interface JwtPayload {
   email: string;
@@ -24,6 +25,8 @@ export async function authenticate(
   try {
     const payload = jwt.verify(token, config.jwtPublicKey, {
       algorithms: ["RS256"],
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
     }) as JwtPayload;
     request.user = {
       id: payload.sub,

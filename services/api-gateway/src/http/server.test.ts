@@ -8,7 +8,12 @@ function signToken(userId = "user-test-1") {
   return jwt.sign(
     { sub: userId, email: "test@example.com" },
     TEST_PRIVATE_KEY,
-    { algorithm: "RS256", expiresIn: "15m" }
+    {
+      algorithm: "RS256",
+      expiresIn: "15m",
+      issuer: "score-cripto-users",
+      audience: "score-cripto-api",
+    }
   );
 }
 

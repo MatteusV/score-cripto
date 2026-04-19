@@ -22,7 +22,11 @@ export async function authenticate(
   const token = authHeader.slice(7);
   try {
     const payload = jwtService.verify(token);
-    request.user = { id: payload.sub, email: payload.email };
+    request.user = {
+      id: payload.sub,
+      email: payload.email,
+      role: payload.role ?? "USER",
+    };
   } catch {
     return reply.status(401).send({ error: "Invalid or expired token" });
   }
@@ -30,6 +34,6 @@ export async function authenticate(
 
 declare module "fastify" {
   interface FastifyRequest {
-    user: { id: string; email: string };
+    user: { id: string; email: string; role: string };
   }
 }

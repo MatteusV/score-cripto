@@ -18,6 +18,7 @@ export default defineConfig({
         "postgresql://score_cripto:score_cripto@localhost:5435/score_cripto_users",
       JWT_PRIVATE_KEY: privateKey,
       JWT_PUBLIC_KEY: publicKey,
+      TEST_JWT_PRIVATE_KEY: privateKey,
       JWT_EXPIRES_IN: "15m",
       REFRESH_TOKEN_EXPIRES_IN: "7d",
       RABBITMQ_URL: "amqp://guest:guest@localhost:5672",
