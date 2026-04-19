@@ -172,46 +172,111 @@
   },
   "billing": {
     "title": "Planos & Billing",
-    "subtitle": "Gerencie seu plano e acompanhe o uso mensal",
+    "subtitle": "Gerencie sua assinatura, uso e faturas",
     "currentPlan": {
       "free": "Plano Gratuito",
       "pro": "Plano Pro",
       "active": "Ativo",
-      "cancelAt": "Cancelamento em {date}"
+      "cancelAt": "Cancelamento em {date}",
+      "renewsIn": "renova em {date}"
+    },
+    "hero": {
+      "eyebrow": "SEU PLANO",
+      "remaining": "Você tem <strong>{remaining} análises restantes</strong> neste ciclo. Faça upgrade para ampliar seus limites.",
+      "upgradeTeam": "Upgrade para Pro",
+      "manage": "Gerenciar assinatura",
+      "pause": "Pausar plano"
     },
     "upgrade": "Fazer upgrade para Pro",
     "upgradingStripe": "Abrindo Stripe…",
     "manageSubscription": "Gerenciar assinatura",
     "openingPortal": "Abrindo portal…",
+    "cycle": {
+      "label": "PLANOS",
+      "headline": "Escolha o que faz sentido pra você",
+      "monthly": "Mensal",
+      "annual": "Anual",
+      "save": "economize 2 meses",
+      "comingSoon": "ciclo anual em breve"
+    },
     "usage": {
       "title": "Uso mensal",
       "month": "Análises este mês",
-      "remaining": "{remaining, plural, one {# análise restante} other {# análises restantes}} — reseta no dia 1 do próximo mês"
+      "remaining": "{remaining, plural, one {# análise restante} other {# análises restantes}} — reseta no dia 1 do próximo mês",
+      "miniTitle": "USO · CICLO ATUAL",
+      "detailedTitle": "USO DETALHADO",
+      "cycleRange": "ciclo: {start} → {end}",
+      "analyses": "Análises de IA",
+      "watchlist": "Watchlist",
+      "exports": "Exports PDF · mês",
+      "api": "API requests",
+      "lockedTeam": "em breve",
+      "comingSoon": "Em breve"
     },
     "plans": {
       "title": "Planos disponíveis",
       "freeName": "Free",
       "proName": "Pro",
+      "teamName": "Team",
+      "freeCaption": "Para experimentar",
+      "proCaption": "Para traders e investigadores",
+      "teamCaption": "Para equipes de compliance",
       "freeDesc": "Para explorar a plataforma e análises pontuais.",
       "proDesc": "Para uso profissional com mais análises e recursos completos.",
+      "freePrice": "Grátis",
       "period": "/mês",
+      "periodAnnual": "/ano",
+      "monthlyEquivalent": "equivale a {amount}/mês",
       "current": "Plano atual",
       "subscribe": "Assinar Pro",
+      "startFree": "Começar grátis",
+      "continuePro": "Continuar no Pro",
+      "comingSoon": "Em breve",
+      "atualBadge": "ATUAL",
+      "soonBadge": "EM BREVE",
       "freeFeatures": [
         "5 análises por mês",
-        "Score completo 0-100",
-        "Fatores positivos e de risco",
-        "Redes EVM principais",
-        "Cache prioritário",
-        "Histórico de análises"
+        "Reasoning básico da IA",
+        "1 chain (Ethereum)",
+        "Histórico de análises",
+        "Watchlist e alertas",
+        "Exportar relatórios"
       ],
       "proFeatures": [
         "15 análises por mês",
-        "Score completo 0-100",
-        "Fatores positivos e de risco",
+        "Reasoning completo + histórico auditável",
         "Todas as redes suportadas",
-        "Cache prioritário",
-        "Histórico de análises"
+        "Watchlist · até 50 carteiras",
+        "Exportar PDF + CSV",
+        "API access ilimitado"
+      ],
+      "teamFeatures": [
+        "Análises ilimitadas",
+        "API access · 10k req/mês",
+        "Todas as chains (+ L2s custom)",
+        "Watchlist ilimitada + alertas em tempo real",
+        "Webhooks · Slack · email",
+        "Até 5 seats · SSO"
+      ]
+    },
+    "manage": {
+      "eyebrow": "ASSINATURA",
+      "title": "Gerencie tudo no Stripe",
+      "body": "Atualize cartão, baixe faturas, troque de plano e cancele a qualquer momento pelo portal seguro do Stripe.",
+      "cta": "Abrir portal",
+      "nextCharge": "Próxima cobrança",
+      "billingEmail": "Email de cobrança",
+      "billingCountry": "Endereço",
+      "noActive": "Sem assinatura ativa.",
+      "fallback": "—"
+    },
+    "faq": {
+      "eyebrow": "PERGUNTAS FREQUENTES",
+      "items": [
+        ["Posso cancelar a qualquer momento?", "Sim. O cancelamento é imediato e você mantém acesso até o fim do ciclo já pago. Nenhuma multa."],
+        ["Como funciona o upgrade?", "Cobramos o pro-rata do período restante. A troca é imediata e os novos limites passam a valer na hora."],
+        ["Vocês guardam meus endereços?", "Só os que você analisa. Nunca coletamos carteiras automaticamente. Você pode apagar o histórico a qualquer momento."],
+        ["Preciso de nota fiscal?", "Emitimos NFS-e automaticamente para clientes Brasil. Basta adicionar CNPJ em Gerenciar assinatura."]
       ]
     },
     "account": "Conta"

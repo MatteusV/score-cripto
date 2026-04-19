@@ -172,46 +172,111 @@
   },
   "billing": {
     "title": "Plans & Billing",
-    "subtitle": "Manage your plan and track monthly usage",
+    "subtitle": "Manage your subscription, usage and invoices",
     "currentPlan": {
       "free": "Free Plan",
       "pro": "Pro Plan",
       "active": "Active",
-      "cancelAt": "Cancels on {date}"
+      "cancelAt": "Cancels on {date}",
+      "renewsIn": "renews on {date}"
+    },
+    "hero": {
+      "eyebrow": "YOUR PLAN",
+      "remaining": "You have <strong>{remaining} analyses remaining</strong> this cycle. Upgrade to expand your limits.",
+      "upgradeTeam": "Upgrade to Pro",
+      "manage": "Manage subscription",
+      "pause": "Pause plan"
     },
     "upgrade": "Upgrade to Pro",
     "upgradingStripe": "Opening Stripe…",
     "manageSubscription": "Manage subscription",
     "openingPortal": "Opening portal…",
+    "cycle": {
+      "label": "PLANS",
+      "headline": "Pick what fits your workflow",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "save": "save 2 months",
+      "comingSoon": "annual cycle coming soon"
+    },
     "usage": {
       "title": "Monthly usage",
       "month": "Analyses this month",
-      "remaining": "{remaining, plural, one {# analysis remaining} other {# analyses remaining}} — resets on the 1st of next month"
+      "remaining": "{remaining, plural, one {# analysis remaining} other {# analyses remaining}} — resets on the 1st of next month",
+      "miniTitle": "USAGE · CURRENT CYCLE",
+      "detailedTitle": "DETAILED USAGE",
+      "cycleRange": "cycle: {start} → {end}",
+      "analyses": "AI analyses",
+      "watchlist": "Watchlist",
+      "exports": "PDF exports · month",
+      "api": "API requests",
+      "lockedTeam": "coming soon",
+      "comingSoon": "Coming soon"
     },
     "plans": {
       "title": "Available plans",
       "freeName": "Free",
       "proName": "Pro",
-      "freeDesc": "To explore the platform and occasional analyses.",
-      "proDesc": "For professional use with more analyses and full features.",
+      "teamName": "Team",
+      "freeCaption": "To get started",
+      "proCaption": "For traders and investigators",
+      "teamCaption": "For compliance teams",
+      "freeDesc": "Explore the platform and one-off analyses.",
+      "proDesc": "Professional use with more analyses and full features.",
+      "freePrice": "Free",
       "period": "/month",
+      "periodAnnual": "/year",
+      "monthlyEquivalent": "≈ {amount}/month",
       "current": "Current plan",
       "subscribe": "Subscribe to Pro",
+      "startFree": "Start free",
+      "continuePro": "Stay on Pro",
+      "comingSoon": "Coming soon",
+      "atualBadge": "CURRENT",
+      "soonBadge": "SOON",
       "freeFeatures": [
         "5 analyses per month",
-        "Full score 0-100",
-        "Positive and risk factors",
-        "Main EVM networks",
-        "Priority cache",
-        "Analysis history"
+        "Basic AI reasoning",
+        "1 chain (Ethereum)",
+        "Analysis history",
+        "Watchlist & alerts",
+        "Export reports"
       ],
       "proFeatures": [
         "15 analyses per month",
-        "Full score 0-100",
-        "Positive and risk factors",
+        "Full reasoning + auditable history",
         "All supported networks",
-        "Priority cache",
-        "Analysis history"
+        "Watchlist · up to 50 wallets",
+        "Export PDF + CSV",
+        "Unlimited API access"
+      ],
+      "teamFeatures": [
+        "Unlimited analyses",
+        "API access · 10k req/month",
+        "All chains (+ custom L2s)",
+        "Unlimited watchlist + realtime alerts",
+        "Webhooks · Slack · email",
+        "Up to 5 seats · SSO"
+      ]
+    },
+    "manage": {
+      "eyebrow": "SUBSCRIPTION",
+      "title": "Manage everything in Stripe",
+      "body": "Update card, download invoices, switch plans and cancel any time through Stripe's secure portal.",
+      "cta": "Open portal",
+      "nextCharge": "Next charge",
+      "billingEmail": "Billing email",
+      "billingCountry": "Address",
+      "noActive": "No active subscription.",
+      "fallback": "—"
+    },
+    "faq": {
+      "eyebrow": "FREQUENTLY ASKED",
+      "items": [
+        ["Can I cancel anytime?", "Yes. Cancellation is immediate and you keep access until the end of the paid cycle. No fees."],
+        ["How does upgrading work?", "We charge pro-rata for the remaining period. The switch is immediate and new limits apply right away."],
+        ["Do you store my addresses?", "Only the ones you analyze. We never collect wallets automatically. You can erase your history any time."],
+        ["Do I need a tax invoice?", "We issue NFS-e automatically for Brazil customers. Just add your CNPJ in Manage subscription."]
       ]
     },
     "account": "Account"

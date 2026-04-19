@@ -172,46 +172,111 @@
   },
   "billing": {
     "title": "Planes y Facturación",
-    "subtitle": "Gestiona tu plan y monitorea el uso mensual",
+    "subtitle": "Gestiona tu suscripción, uso y facturas",
     "currentPlan": {
       "free": "Plan Gratuito",
       "pro": "Plan Pro",
       "active": "Activo",
-      "cancelAt": "Cancelación el {date}"
+      "cancelAt": "Cancelación el {date}",
+      "renewsIn": "renueva el {date}"
+    },
+    "hero": {
+      "eyebrow": "TU PLAN",
+      "remaining": "Tienes <strong>{remaining} análisis restantes</strong> este ciclo. Mejora para ampliar tus límites.",
+      "upgradeTeam": "Mejorar a Pro",
+      "manage": "Gestionar suscripción",
+      "pause": "Pausar plan"
     },
     "upgrade": "Mejorar a Pro",
     "upgradingStripe": "Abriendo Stripe…",
     "manageSubscription": "Gestionar suscripción",
     "openingPortal": "Abriendo portal…",
+    "cycle": {
+      "label": "PLANES",
+      "headline": "Elige el que mejor te encaje",
+      "monthly": "Mensual",
+      "annual": "Anual",
+      "save": "ahorra 2 meses",
+      "comingSoon": "ciclo anual próximamente"
+    },
     "usage": {
       "title": "Uso mensual",
       "month": "Análisis este mes",
-      "remaining": "{remaining, plural, one {# análisis restante} other {# análisis restantes}} — se reinicia el día 1 del próximo mes"
+      "remaining": "{remaining, plural, one {# análisis restante} other {# análisis restantes}} — se reinicia el día 1 del próximo mes",
+      "miniTitle": "USO · CICLO ACTUAL",
+      "detailedTitle": "USO DETALLADO",
+      "cycleRange": "ciclo: {start} → {end}",
+      "analyses": "Análisis de IA",
+      "watchlist": "Watchlist",
+      "exports": "Exports PDF · mes",
+      "api": "API requests",
+      "lockedTeam": "próximamente",
+      "comingSoon": "Próximamente"
     },
     "plans": {
       "title": "Planes disponibles",
       "freeName": "Free",
       "proName": "Pro",
+      "teamName": "Team",
+      "freeCaption": "Para empezar",
+      "proCaption": "Para traders e investigadores",
+      "teamCaption": "Para equipos de compliance",
       "freeDesc": "Para explorar la plataforma y análisis puntuales.",
       "proDesc": "Para uso profesional con más análisis y funciones completas.",
+      "freePrice": "Gratis",
       "period": "/mes",
+      "periodAnnual": "/año",
+      "monthlyEquivalent": "≈ {amount}/mes",
       "current": "Plan actual",
       "subscribe": "Suscribirse a Pro",
+      "startFree": "Empezar gratis",
+      "continuePro": "Seguir en Pro",
+      "comingSoon": "Próximamente",
+      "atualBadge": "ACTUAL",
+      "soonBadge": "PRONTO",
       "freeFeatures": [
         "5 análisis por mes",
-        "Puntuación completa 0-100",
-        "Factores positivos y de riesgo",
-        "Redes EVM principales",
-        "Caché prioritaria",
-        "Historial de análisis"
+        "Razonamiento básico de IA",
+        "1 chain (Ethereum)",
+        "Historial de análisis",
+        "Watchlist y alertas",
+        "Exportar reportes"
       ],
       "proFeatures": [
         "15 análisis por mes",
-        "Puntuación completa 0-100",
-        "Factores positivos y de riesgo",
+        "Razonamiento completo + historial auditable",
         "Todas las redes compatibles",
-        "Caché prioritaria",
-        "Historial de análisis"
+        "Watchlist · hasta 50 wallets",
+        "Exportar PDF + CSV",
+        "Acceso API ilimitado"
+      ],
+      "teamFeatures": [
+        "Análisis ilimitados",
+        "API access · 10k req/mes",
+        "Todas las chains (+ L2s custom)",
+        "Watchlist ilimitada + alertas en tiempo real",
+        "Webhooks · Slack · email",
+        "Hasta 5 seats · SSO"
+      ]
+    },
+    "manage": {
+      "eyebrow": "SUSCRIPCIÓN",
+      "title": "Gestiona todo en Stripe",
+      "body": "Actualiza tarjeta, descarga facturas, cambia de plan y cancela cuando quieras desde el portal seguro de Stripe.",
+      "cta": "Abrir portal",
+      "nextCharge": "Próximo cargo",
+      "billingEmail": "Email de facturación",
+      "billingCountry": "Dirección",
+      "noActive": "Sin suscripción activa.",
+      "fallback": "—"
+    },
+    "faq": {
+      "eyebrow": "PREGUNTAS FRECUENTES",
+      "items": [
+        ["¿Puedo cancelar cuando quiera?", "Sí. La cancelación es inmediata y mantienes acceso hasta el final del ciclo pagado. Sin penalizaciones."],
+        ["¿Cómo funciona el upgrade?", "Cobramos prorrateado el periodo restante. El cambio es inmediato y los nuevos límites se aplican al instante."],
+        ["¿Guardáis mis direcciones?", "Solo las que analizas. Nunca recolectamos wallets automáticamente. Puedes borrar el historial cuando quieras."],
+        ["¿Necesito factura?", "Emitimos NFS-e automáticamente para clientes Brasil. Añade tu CNPJ en Gestionar suscripción."]
       ]
     },
     "account": "Cuenta"
