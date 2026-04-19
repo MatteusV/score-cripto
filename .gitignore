@@ -27,3 +27,4 @@ keys/
 services/*/src/.generated-stuck/
 .vercel
 .env*.local
+.tmp-plans/

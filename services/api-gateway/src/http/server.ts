@@ -6,6 +6,7 @@ import {
   observabilityPlugin,
 } from "@score-cripto/observability-node";
 import fastify, { type FastifyError } from "fastify";
+import fastifyRawBody from "fastify-raw-body";
 import {
   jsonSchemaTransform,
   serializerCompiler,
@@ -15,6 +16,8 @@ import {
 import { z } from "zod/v4";
 import { adminHandler } from "./controllers/admin/routes.js";
 import { analysisRequestHandler } from "./controllers/analysis-request/routes.js";
+import { authHandler, profileHandler } from "./controllers/auth/routes.js";
+import { billingHandler } from "./controllers/billing/routes.js";
 import { registerRateLimit } from "./plugins/rate-limit.js";
 
 export async function createHttpServer() {
@@ -53,6 +56,14 @@ export async function createHttpServer() {
           description: "Análise de confiabilidade de carteiras",
         },
         {
+          name: "auth",
+          description: "Autenticação e perfil do usuário",
+        },
+        {
+          name: "billing",
+          description: "Assinatura, checkout e webhook Stripe",
+        },
+        {
           name: "admin",
           description: "Operações administrativas (role=ADMIN)",
         },
@@ -72,7 +83,19 @@ export async function createHttpServer() {
     reply.send(error);
   });
 
+  // Raw body preservation escopado — necessário para Stripe webhook passthrough
+  // em /billing/webhook (a assinatura HMAC do Stripe é sobre bytes crus).
+  await app.register(fastifyRawBody, {
+    field: "rawBody",
+    global: false,
+    encoding: false,
+    runFirst: true,
+  });
+
   await app.register(analysisRequestHandler, { prefix: "/analysis" });
+  await app.register(authHandler, { prefix: "/auth" });
+  await app.register(profileHandler);
+  await app.register(billingHandler, { prefix: "/billing" });
   await app.register(adminHandler, { prefix: "/admin" });
 
   // GET /health
