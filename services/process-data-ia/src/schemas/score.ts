@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const WalletContextInputSchema = z.object({
-  chain: z.string().min(1),
-  address: z.string().min(1),
+  chain: z.string().min(1).max(32),
+  address: z.string().min(1).max(128),
   tx_count: z.number().int().min(0),
   total_volume: z.number().min(0),
   unique_counterparties: z.number().int().min(0),
@@ -14,7 +14,7 @@ export const WalletContextInputSchema = z.object({
   token_diversity: z.number().int().min(0),
   nft_activity: z.boolean(),
   defi_interactions: z.number().int().min(0),
-  risk_flags: z.array(z.string()),
+  risk_flags: z.array(z.string().max(64)).max(10),
 });
 
 export type WalletContextInput = z.infer<typeof WalletContextInputSchema>;

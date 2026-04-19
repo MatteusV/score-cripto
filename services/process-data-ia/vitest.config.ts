@@ -5,6 +5,8 @@ export default defineConfig({
     include: [
       "src/use-cases/**/*.spec.ts",
       "src/orchestrators/**/*.spec.ts",
+      "src/services/**/*.spec.ts",
+      "src/schemas/**/*.spec.ts",
       "src/http/**/*.test.ts",
     ],
     exclude: ["src/tests/e2e/**"],
