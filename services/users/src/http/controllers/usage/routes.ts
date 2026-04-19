@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
 import { DefaultPlanPolicy } from "../../../domain/plan-policy.js";
+import { authenticate } from "../../middleware/authenticate.js";
 import { SubscriptionPrismaRepository } from "../../../repositories/prisma/subscription-prisma-repository.js";
 import { UsagePrismaRepository } from "../../../repositories/prisma/usage-prisma-repository.js";
 import { UserPrismaRepository } from "../../../repositories/prisma/user-prisma-repository.js";
@@ -42,6 +43,7 @@ export async function usageHandler(app: FastifyInstance) {
   typed.get(
     "/:userId",
     {
+      preHandler: [authenticate],
       schema: {
         tags: ["usage"],
         summary: "Consultar uso mensal do usuário",
@@ -54,6 +56,12 @@ export async function usageHandler(app: FastifyInstance) {
     },
     async (request, reply) => {
       const { userId } = request.params;
+      const requester = request.user;
+
+      const isAdmin = requester.role === "ADMIN";
+      if (!isAdmin && requester.id !== userId) {
+        return reply.status(404).send({ error: "User not found" });
+      }
 
       const user = await userRepo.findById(userId);
       if (!user) {
@@ -72,11 +80,11 @@ export async function usageHandler(app: FastifyInstance) {
   typed.post(
     "/check",
     {
+      preHandler: [authenticate],
       schema: {
         tags: ["usage"],
         summary: "Verificar se usuário pode fazer análise",
         description: "Usado pelo API Gateway antes de criar uma análise.",
-        body: z.object({ userId: z.string().min(1) }),
         response: {
           200: UsageResponseSchema,
           404: z.object({ error: z.string("User not found") }),
@@ -85,7 +93,7 @@ export async function usageHandler(app: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { userId } = request.body;
+      const userId = request.user.id;
 
       const user = await userRepo.findById(userId);
       if (!user) {
@@ -112,13 +120,10 @@ export async function usageHandler(app: FastifyInstance) {
   typed.post(
     "/consume",
     {
+      preHandler: [authenticate],
       schema: {
         tags: ["usage"],
         summary: "Registrar consumo de análise",
-        body: z.object({
-          userId: z.string().min(1),
-          analysisId: z.string().min(1),
-        }),
         response: {
           200: z.object({ remaining: z.number(), limit: z.number() }),
           429: z.object({ error: z.string() }),
@@ -127,7 +132,7 @@ export async function usageHandler(app: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { userId } = request.body;
+      const userId = request.user.id;
       try {
         const result = await consumeUseCase.execute({ userId });
         return reply.status(200).send(result);

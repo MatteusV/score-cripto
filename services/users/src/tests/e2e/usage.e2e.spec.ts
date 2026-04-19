@@ -3,13 +3,25 @@ import { createHttpServer } from "../../http/server.js";
 import type { E2EDatabase } from "./helpers/e2e-database.js";
 import { createE2EDatabase } from "./helpers/e2e-database.js";
 
-async function registerAndGetUserId(app: any, email: string): Promise<string> {
-  const res = await app.inject({
+async function registerAndLogin(
+  app: any,
+  email: string
+): Promise<{ userId: string; authHeader: string }> {
+  const reg = await app.inject({
     method: "POST",
     url: "/auth/register",
     payload: { email, password: "senha1234" },
   });
-  return (res.json() as { id: string }).id;
+  const userId = (reg.json() as { id: string }).id;
+
+  const login = await app.inject({
+    method: "POST",
+    url: "/auth/login",
+    payload: { email, password: "senha1234" },
+  });
+  const { accessToken } = login.json() as { accessToken: string };
+
+  return { userId, authHeader: `Bearer ${accessToken}` };
 }
 
 describe("Usage E2E — check, consume e limites mensais", () => {
@@ -33,11 +45,15 @@ describe("Usage E2E — check, consume e limites mensais", () => {
 
   describe("GET /usage/:userId", () => {
     it("should return initial usage with 5 remaining for FREE_TIER", async () => {
-      const userId = await registerAndGetUserId(app, "usage-get@example.com");
+      const { userId, authHeader } = await registerAndLogin(
+        app,
+        "usage-get@example.com"
+      );
 
       const res = await app.inject({
         method: "GET",
         url: `/usage/${userId}`,
+        headers: { authorization: authHeader },
       });
 
       expect(res.statusCode).toBe(200);
@@ -51,10 +67,28 @@ describe("Usage E2E — check, consume e limites mensais", () => {
       expect(body.limit).toBe(5);
     });
 
-    it("should return 404 for non-existent userId", async () => {
+    it("should return 401 without token", async () => {
       const res = await app.inject({
         method: "GET",
-        url: "/usage/user-nao-existe",
+        url: "/usage/anything",
+      });
+      expect(res.statusCode).toBe(401);
+    });
+
+    it("should return 404 when querying another user's id (no ownership leak)", async () => {
+      const { authHeader } = await registerAndLogin(
+        app,
+        "usage-viewer@example.com"
+      );
+      const { userId: targetId } = await registerAndLogin(
+        app,
+        "usage-target@example.com"
+      );
+
+      const res = await app.inject({
+        method: "GET",
+        url: `/usage/${targetId}`,
+        headers: { authorization: authHeader },
       });
 
       expect(res.statusCode).toBe(404);
@@ -62,13 +96,21 @@ describe("Usage E2E — check, consume e limites mensais", () => {
   });
 
   describe("POST /usage/check", () => {
+    it("should return 401 without token", async () => {
+      const res = await app.inject({ method: "POST", url: "/usage/check" });
+      expect(res.statusCode).toBe(401);
+    });
+
     it("should return 200 with allowed=true when within limit", async () => {
-      const userId = await registerAndGetUserId(app, "check-ok@example.com");
+      const { authHeader } = await registerAndLogin(
+        app,
+        "check-ok@example.com"
+      );
 
       const res = await app.inject({
         method: "POST",
         url: "/usage/check",
-        payload: { userId },
+        headers: { authorization: authHeader },
       });
 
       expect(res.statusCode).toBe(200);
@@ -76,21 +118,23 @@ describe("Usage E2E — check, consume e limites mensais", () => {
     });
 
     it("should return 429 when limit reached", async () => {
-      const userId = await registerAndGetUserId(app, "check-limit@example.com");
+      const { authHeader } = await registerAndLogin(
+        app,
+        "check-limit@example.com"
+      );
 
-      // Consume all 5 analyses
       for (let i = 0; i < 5; i++) {
         await app.inject({
           method: "POST",
           url: "/usage/consume",
-          payload: { userId, analysisId: `analysis-${i}` },
+          headers: { authorization: authHeader },
         });
       }
 
       const res = await app.inject({
         method: "POST",
         url: "/usage/check",
-        payload: { userId },
+        headers: { authorization: authHeader },
       });
 
       expect(res.statusCode).toBe(429);
@@ -101,12 +145,21 @@ describe("Usage E2E — check, consume e limites mensais", () => {
   });
 
   describe("POST /usage/consume", () => {
+    it("should return 401 without token", async () => {
+      const res = await app.inject({ method: "POST", url: "/usage/consume" });
+      expect(res.statusCode).toBe(401);
+    });
+
     it("should decrement remaining after consumption", async () => {
-      const userId = await registerAndGetUserId(app, "consume-dec@example.com");
+      const { userId, authHeader } = await registerAndLogin(
+        app,
+        "consume-dec@example.com"
+      );
 
       const before = await app.inject({
         method: "GET",
         url: `/usage/${userId}`,
+        headers: { authorization: authHeader },
       });
       const beforeRemaining = (before.json() as { remaining: number })
         .remaining;
@@ -114,12 +167,13 @@ describe("Usage E2E — check, consume e limites mensais", () => {
       await app.inject({
         method: "POST",
         url: "/usage/consume",
-        payload: { userId, analysisId: "analysis-1" },
+        headers: { authorization: authHeader },
       });
 
       const after = await app.inject({
         method: "GET",
         url: `/usage/${userId}`,
+        headers: { authorization: authHeader },
       });
       const afterRemaining = (after.json() as { remaining: number }).remaining;
 
@@ -127,43 +181,44 @@ describe("Usage E2E — check, consume e limites mensais", () => {
     });
 
     it("should return 429 when exceeding limit of 5 analyses", async () => {
-      const userId = await registerAndGetUserId(
+      const { authHeader } = await registerAndLogin(
         app,
         "consume-limit@example.com"
       );
 
-      // Consume 5 (FREE_TIER limit)
       for (let i = 0; i < 5; i++) {
         const res = await app.inject({
           method: "POST",
           url: "/usage/consume",
-          payload: { userId, analysisId: `analysis-${i}` },
+          headers: { authorization: authHeader },
         });
         expect(res.statusCode).toBe(200);
       }
 
-      // 6th should be blocked
       const res = await app.inject({
         method: "POST",
         url: "/usage/consume",
-        payload: { userId, analysisId: "analysis-over" },
+        headers: { authorization: authHeader },
       });
 
       expect(res.statusCode).toBe(429);
     });
 
     it("should persist count in the database", async () => {
-      const userId = await registerAndGetUserId(app, "consume-db@example.com");
+      const { userId, authHeader } = await registerAndLogin(
+        app,
+        "consume-db@example.com"
+      );
 
       await app.inject({
         method: "POST",
         url: "/usage/consume",
-        payload: { userId, analysisId: "analysis-1" },
+        headers: { authorization: authHeader },
       });
       await app.inject({
         method: "POST",
         url: "/usage/consume",
-        payload: { userId, analysisId: "analysis-2" },
+        headers: { authorization: authHeader },
       });
 
       const rows = await db.query(

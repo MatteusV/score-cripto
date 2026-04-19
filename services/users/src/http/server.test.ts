@@ -1,5 +1,21 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const TEST_PRIVATE_KEY = process.env.TEST_JWT_PRIVATE_KEY as string;
+
+function signTestToken(userId = "u-1") {
+  return jwt.sign(
+    { sub: userId, email: "test@example.com" },
+    TEST_PRIVATE_KEY,
+    {
+      algorithm: "RS256",
+      expiresIn: "15m",
+      issuer: "score-cripto-users",
+      audience: "score-cripto-api",
+    }
+  );
+}
 
 // ── mocks ──────────────────────────────────────────────────────────────────────
 const mockUser = vi.fn();
@@ -191,7 +207,7 @@ describe("Users HTTP server (Fastify)", () => {
       const res = await app.inject({
         method: "POST",
         url: "/usage/check",
-        payload: { userId: "u-1" },
+        headers: { authorization: `Bearer ${signTestToken("u-1")}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -217,7 +233,7 @@ describe("Users HTTP server (Fastify)", () => {
       const res = await app.inject({
         method: "POST",
         url: "/usage/check",
-        payload: { userId: "u-1" },
+        headers: { authorization: `Bearer ${signTestToken("u-1")}` },
       });
 
       expect(res.statusCode).toBe(429);
@@ -227,7 +243,7 @@ describe("Users HTTP server (Fastify)", () => {
       await app.close();
     });
 
-    it("should return 404 for non-existent userId", async () => {
+    it("should return 404 when authenticated user no longer exists in DB", async () => {
       const app = await getApp();
 
       mockUser.mockResolvedValueOnce(null);
@@ -235,10 +251,19 @@ describe("Users HTTP server (Fastify)", () => {
       const res = await app.inject({
         method: "POST",
         url: "/usage/check",
-        payload: { userId: "nao-existe" },
+        headers: { authorization: `Bearer ${signTestToken("nao-existe")}` },
       });
 
       expect(res.statusCode).toBe(404);
+      await app.close();
+    });
+
+    it("should return 401 when no Authorization header is present", async () => {
+      const app = await getApp();
+
+      const res = await app.inject({ method: "POST", url: "/usage/check" });
+
+      expect(res.statusCode).toBe(401);
       await app.close();
     });
   });
