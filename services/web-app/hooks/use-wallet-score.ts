@@ -67,6 +67,140 @@ export function useWalletScore(chain: string, address: string) {
     }
   }, [clearTimer])
 
+  const pollHTTP = useCallback((processId: string, controller: AbortController) => {
+    async function tick() {
+      if (controller.signal.aborted) return
+
+      if (pollCountRef.current >= MAX_POLL_ATTEMPTS) {
+        setState((prev) => ({
+          ...prev,
+          phase: "error",
+          error: "Timeout: análise não completou a tempo.",
+        }))
+        return
+      }
+
+      pollCountRef.current += 1
+
+      try {
+        const response: AnalysisResponse = await pollAnalysis(processId)
+
+        if (controller.signal.aborted) return
+
+        if (response.status === "completed" && response.result) {
+          setState((prev) => ({
+            ...prev,
+            phase: "completed",
+            result: response.result!,
+            backendStatus: "completed",
+          }))
+          return
+        }
+
+        if (response.status === "failed") {
+          setState((prev) => ({
+            ...prev,
+            phase: "error",
+            backendStatus: "failed",
+            error: response.error ?? "Erro no processamento da análise.",
+          }))
+          return
+        }
+
+        setState((prev) => ({
+          ...prev,
+          backendStatus: response.status,
+        }))
+
+        timerRef.current = setTimeout(tick, POLL_INTERVAL_MS)
+      } catch (err) {
+        if (controller.signal.aborted) return
+        setState((prev) => ({
+          ...prev,
+          phase: "error",
+          error:
+            err instanceof Error ? err.message : "Erro ao consultar status",
+        }))
+      }
+    }
+
+    tick()
+  }, [])
+
+  const connectSSE = useCallback((processId: string, controller: AbortController) => {
+    if (controller.signal.aborted) return
+
+    const es = new EventSource(`/api/analyze/${processId}/stream`)
+
+    const cleanup = () => {
+      es.close()
+    }
+
+    controller.signal.addEventListener("abort", cleanup, { once: true })
+
+    es.addEventListener("status", (e: MessageEvent) => {
+      if (controller.signal.aborted) return
+      try {
+        const data = JSON.parse(e.data) as { status: AnalysisStatus }
+        setState((prev) => ({ ...prev, backendStatus: data.status }))
+      } catch { /* ignora parse error de status intermediário */ }
+    })
+
+    es.addEventListener("result", (e: MessageEvent) => {
+      if (controller.signal.aborted) return
+      try {
+        const data = JSON.parse(e.data) as {
+          status: "completed" | "failed"
+          result?: ScoreResult
+          error?: string
+        }
+
+        cleanup()
+
+        if (data.status === "completed" && data.result) {
+          setState((prev) => ({
+            ...prev,
+            phase: "completed",
+            result: data.result!,
+            backendStatus: "completed",
+          }))
+        } else {
+          setState((prev) => ({
+            ...prev,
+            phase: "error",
+            backendStatus: "failed",
+            error: data.error ?? "Erro no processamento da análise.",
+          }))
+        }
+      } catch { /* ignora parse error */ }
+    })
+
+    es.addEventListener("timeout", () => {
+      // SSE expirou no servidor — cai para polling HTTP
+      cleanup()
+      if (!controller.signal.aborted) {
+        pollHTTP(processId, controller)
+      }
+    })
+
+    es.onerror = () => {
+      // Conexão SSE falhou — fallback para polling HTTP
+      cleanup()
+      if (!controller.signal.aborted) {
+        pollHTTP(processId, controller)
+      }
+    }
+  }, [pollHTTP])
+
+  const poll = useCallback((processId: string, controller: AbortController) => {
+    // Tenta SSE primeiro; cai de volta em polling HTTP se não suportado ou falhar
+    if (SSE_SUPPORTED) {
+      connectSSE(processId, controller)
+    } else {
+      pollHTTP(processId, controller)
+    }
+  }, [connectSSE, pollHTTP])
+
   const submit = useCallback(async (opts?: { force?: boolean }) => {
     if (!chain || !address) return
 
@@ -139,141 +273,7 @@ export function useWalletScore(chain: string, address: string) {
         error: err instanceof Error ? err.message : "Erro ao iniciar análise",
       }))
     }
-  }, [chain, address, clearTimer])
-
-  function poll(processId: string, controller: AbortController) {
-    // Tenta SSE primeiro; cai de volta em polling HTTP se não suportado ou falhar
-    if (SSE_SUPPORTED) {
-      connectSSE(processId, controller)
-    } else {
-      pollHTTP(processId, controller)
-    }
-  }
-
-  function connectSSE(processId: string, controller: AbortController) {
-    if (controller.signal.aborted) return
-
-    const es = new EventSource(`/api/analyze/${processId}/stream`)
-
-    const cleanup = () => {
-      es.close()
-    }
-
-    controller.signal.addEventListener("abort", cleanup, { once: true })
-
-    es.addEventListener("status", (e: MessageEvent) => {
-      if (controller.signal.aborted) return
-      try {
-        const data = JSON.parse(e.data) as { status: AnalysisStatus }
-        setState((prev) => ({ ...prev, backendStatus: data.status }))
-      } catch { /* ignora parse error de status intermediário */ }
-    })
-
-    es.addEventListener("result", (e: MessageEvent) => {
-      if (controller.signal.aborted) return
-      try {
-        const data = JSON.parse(e.data) as {
-          status: "completed" | "failed"
-          result?: ScoreResult
-          error?: string
-        }
-
-        cleanup()
-
-        if (data.status === "completed" && data.result) {
-          setState((prev) => ({
-            ...prev,
-            phase: "completed",
-            result: data.result!,
-            backendStatus: "completed",
-          }))
-        } else {
-          setState((prev) => ({
-            ...prev,
-            phase: "error",
-            backendStatus: "failed",
-            error: data.error ?? "Erro no processamento da análise.",
-          }))
-        }
-      } catch { /* ignora parse error */ }
-    })
-
-    es.addEventListener("timeout", () => {
-      // SSE expirou no servidor — cai para polling HTTP
-      cleanup()
-      if (!controller.signal.aborted) {
-        pollHTTP(processId, controller)
-      }
-    })
-
-    es.onerror = () => {
-      // Conexão SSE falhou — fallback para polling HTTP
-      cleanup()
-      if (!controller.signal.aborted) {
-        pollHTTP(processId, controller)
-      }
-    }
-  }
-
-  function pollHTTP(processId: string, controller: AbortController) {
-    async function tick() {
-      if (controller.signal.aborted) return
-
-      if (pollCountRef.current >= MAX_POLL_ATTEMPTS) {
-        setState((prev) => ({
-          ...prev,
-          phase: "error",
-          error: "Timeout: análise não completou a tempo.",
-        }))
-        return
-      }
-
-      pollCountRef.current += 1
-
-      try {
-        const response: AnalysisResponse = await pollAnalysis(processId)
-
-        if (controller.signal.aborted) return
-
-        if (response.status === "completed" && response.result) {
-          setState((prev) => ({
-            ...prev,
-            phase: "completed",
-            result: response.result!,
-            backendStatus: "completed",
-          }))
-          return
-        }
-
-        if (response.status === "failed") {
-          setState((prev) => ({
-            ...prev,
-            phase: "error",
-            backendStatus: "failed",
-            error: response.error ?? "Erro no processamento da análise.",
-          }))
-          return
-        }
-
-        setState((prev) => ({
-          ...prev,
-          backendStatus: response.status,
-        }))
-
-        timerRef.current = setTimeout(tick, POLL_INTERVAL_MS)
-      } catch (err) {
-        if (controller.signal.aborted) return
-        setState((prev) => ({
-          ...prev,
-          phase: "error",
-          error:
-            err instanceof Error ? err.message : "Erro ao consultar status",
-        }))
-      }
-    }
-
-    tick()
-  }
+  }, [chain, address, clearTimer, poll])
 
   return { ...state, submit, reset }
 }
