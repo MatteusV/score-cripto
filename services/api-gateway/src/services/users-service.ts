@@ -75,11 +75,13 @@ const breakerPolicy = circuitBreaker(handleAll, {
 // Wrap: breaker → retry → timeout → user code
 const policy = wrap(breakerPolicy, retryPolicy, timeoutPolicy);
 
-export async function checkUsage(userId: string): Promise<CheckUsageResult> {
+export async function checkUsage(
+  authHeader: string
+): Promise<CheckUsageResult> {
   const url = `${config.usersServiceUrl}/usage/check`;
   const start = Date.now();
 
-  // doFetch captura userId e url via closure — sem estado compartilhado entre requisições.
+  // doFetch captura authHeader e url via closure — sem estado compartilhado entre requisições.
   async function doFetch(signal: AbortSignal): Promise<CheckUsageResult> {
     const correlationId = getCorrelationId();
 
@@ -89,9 +91,9 @@ export async function checkUsage(userId: string): Promise<CheckUsageResult> {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: authHeader,
           ...(correlationId ? { "x-request-id": correlationId } : {}),
         },
-        body: JSON.stringify({ userId }),
         signal,
       });
     } catch (err) {

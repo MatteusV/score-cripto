@@ -130,7 +130,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
       }
 
       try {
-        await checkUsage(userId);
+        await checkUsage(request.headers.authorization as string);
       } catch (err) {
         if (err instanceof UsersServiceError && err.statusCode === 429) {
           analysisRequestsCounter.add(1, { chain, status: "error" });

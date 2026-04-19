@@ -58,7 +58,7 @@ describe("checkUsage", () => {
     };
     mockFetch.mockResolvedValueOnce(makeOkResponse(expected));
 
-    const result = await checkUsage("user-123");
+    const result = await checkUsage("Bearer token-user-123");
 
     expect(result).toEqual(expected);
     expect(mockFetch).toHaveBeenCalledOnce();
@@ -66,9 +66,9 @@ describe("checkUsage", () => {
       "http://users-mock:3003/usage/check",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ userId: "user-123" }),
         headers: expect.objectContaining({
           "x-request-id": "test-correlation-id",
+          Authorization: "Bearer token-user-123",
         }),
       })
     );
@@ -79,7 +79,7 @@ describe("checkUsage", () => {
       makeErrorResponse(429, { message: "Monthly limit reached" })
     );
 
-    await expect(checkUsage("user-429")).rejects.toMatchObject({
+    await expect(checkUsage("Bearer token-user-429")).rejects.toMatchObject({
       name: "UsersServiceError",
       statusCode: 429,
       message: "Monthly limit reached",
@@ -93,7 +93,7 @@ describe("checkUsage", () => {
   it("lança UsersServiceError(5xx) após 1 retry em resposta 500", async () => {
     mockFetch.mockResolvedValue(makeErrorResponse(500, { error: "Internal" }));
 
-    await expect(checkUsage("user-500")).rejects.toMatchObject({
+    await expect(checkUsage("Bearer token-user-500")).rejects.toMatchObject({
       name: "UsersServiceError",
       statusCode: 500,
     });
@@ -105,7 +105,7 @@ describe("checkUsage", () => {
   it("lança UsersServiceError(503) após 1 retry em erro de rede", async () => {
     mockFetch.mockRejectedValue(new Error("ECONNREFUSED"));
 
-    await expect(checkUsage("user-net")).rejects.toMatchObject({
+    await expect(checkUsage("Bearer token-user-net")).rejects.toMatchObject({
       name: "UsersServiceError",
       statusCode: 503,
     });
@@ -118,7 +118,7 @@ describe("checkUsage", () => {
       makeOkResponse({ allowed: true, limit: 5, remaining: 4, resetsAt: "" })
     );
 
-    await checkUsage("user-corr");
+    await checkUsage("Bearer token-user-corr");
 
     expect(mockFetch).toHaveBeenCalledWith(
       expect.any(String),
@@ -133,7 +133,7 @@ describe("checkUsage", () => {
   it("não faz retry em erros 4xx (ex: 404)", async () => {
     mockFetch.mockResolvedValue(makeErrorResponse(404, { error: "Not found" }));
 
-    await expect(checkUsage("user-404")).rejects.toMatchObject({
+    await expect(checkUsage("Bearer token-user-404")).rejects.toMatchObject({
       name: "UsersServiceError",
       statusCode: 404,
     });
@@ -147,7 +147,7 @@ describe("checkUsage", () => {
 
     // Com threshold=50% e minimumRps=1, precisamos de falhas suficientes para abrir.
     // Neste teste, simulamos diretamente o BrokenCircuitError no fetch.
-    await expect(checkUsage("user-breaker")).rejects.toMatchObject({
+    await expect(checkUsage("Bearer token-user-breaker")).rejects.toMatchObject({
       name: "UsersServiceError",
       statusCode: 503,
       message: "users service circuit open",
@@ -158,7 +158,7 @@ describe("checkUsage", () => {
     // Simula timeout lançando TaskCancelledError diretamente
     mockFetch.mockRejectedValue(new TaskCancelledError());
 
-    await expect(checkUsage("user-timeout")).rejects.toMatchObject({
+    await expect(checkUsage("Bearer token-user-timeout")).rejects.toMatchObject({
       name: "UsersServiceError",
       statusCode: 504,
       message: "users service timeout",
