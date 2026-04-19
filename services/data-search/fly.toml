@@ -10,19 +10,27 @@ primary_region = "iad"
 [env]
   HTTP_PORT = "8080"
 
-[http_service]
-  internal_port        = 8080
-  force_https          = true
+# Worker AMQP: sem [http_service] (não é público).
+# O /health fica acessível via 6PN para health checks do Fly e via
+# Flycast (score-cripto-data-search.flycast:8080) para outros apps
+# da mesma org Fly. Ver https://fly.io/docs/networking/flycast/
+[[services]]
+  internal_port = 8080
+  protocol      = "tcp"
   auto_stop_machines   = false
   auto_start_machines  = true
   min_machines_running = 1
 
-  [http_service.concurrency]
+  [[services.ports]]
+    port     = 8080
+    handlers = ["http"]
+
+  [services.concurrency]
     type       = "requests"
     hard_limit = 200
     soft_limit = 150
 
-  [[http_service.checks]]
+  [[services.http_checks]]
     interval     = "15s"
     timeout      = "5s"
     grace_period = "30s"
