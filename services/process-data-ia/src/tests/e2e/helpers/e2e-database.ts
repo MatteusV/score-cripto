@@ -11,7 +11,6 @@ export class E2EDatabase {
   private readonly client: Client;
   private readonly schema: string;
   private readonly tables: Record<string, string> = {
-    analysisRequests: "analysis_requests",
     processedData: "processed_data",
   };
 
@@ -51,7 +50,7 @@ export class E2EDatabase {
 
   /**
    * Query com schema automático
-   * Exemplo: queryTable('analysisRequests', 'SELECT *')
+   * Exemplo: queryTable('processedData', 'SELECT *')
    */
   async queryTable(
     tableName: keyof typeof this.tables,
