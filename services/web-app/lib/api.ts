@@ -58,6 +58,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const url = `${API_BASE}${path}`
   const res = await fetch(url, {
     ...init,
+    // Same-origin hoje (API_BASE = "/api"), mas mantém credentials:'include'
+    // para o caso de NEXT_PUBLIC_API_BASE apontar pro api-gateway diretamente
+    // — combina com `credentials: true` na CORS do gateway.
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...init?.headers,
@@ -92,6 +96,7 @@ export async function lookupCachedAnalysis(
   const params = new URLSearchParams({ chain, address })
   const url = `${API_BASE}/analyze?${params.toString()}`
   const res = await fetch(url, {
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
   })
 
