@@ -185,22 +185,47 @@
   },
   "history": {
     "title": "Histórico",
-    "subtitle": "Todas as suas análises anteriores",
+    "subtitle": "Tudo que você analisou — reasoning versionado e auditável.",
+    "header": {
+      "eyebrow": "HISTÓRICO",
+      "countAnalyses": "{count} {count, plural, one {análise} other {análises}}",
+      "exportCsv": "Exportar CSV",
+      "newAnalysis": "Nova análise",
+      "soon": "em breve"
+    },
     "columns": {
-      "wallet": "Carteira",
-      "network": "Rede",
-      "score": "Score",
-      "date": "Data"
+      "chain": "CHAIN",
+      "wallet": "ENDEREÇO",
+      "score": "SCORE",
+      "verdict": "VERDICT",
+      "date": "ANALISADA",
+      "id": "ID",
+      "network": "Rede"
     },
     "filters": {
-      "searchPlaceholder": "Buscar por endereço ou rede...",
+      "searchPlaceholder": "Buscar por endereço, label ou ID…",
       "allChains": "Todas as redes",
       "allScores": "Todos os scores",
       "high": "Alto (≥70)",
       "mid": "Médio (40-69)",
-      "low": "Baixo (<40)"
+      "low": "Baixo (<40)",
+      "chainLabel": "CHAIN",
+      "rangeLabel": "PERÍODO",
+      "range7d": "7 dias",
+      "range30d": "30 dias",
+      "rangeAll": "Tudo",
+      "sortLabel": "ORDENAR",
+      "sortRecent": "Mais recentes",
+      "sortScoreHigh": "Score alto → baixo",
+      "sortScoreLow": "Score baixo → alto",
+      "sortRisk": "Mais arriscadas"
+    },
+    "active": {
+      "label": "FILTROS ATIVOS:",
+      "clearAll": "Limpar tudo"
     },
     "verdict": {
+      "all": "Todos",
       "trusted": "Confiável",
       "attention": "Atenção",
       "risky": "Risco"
@@ -211,9 +236,23 @@
       "trusted": "Confiáveis",
       "risky": "Alto risco"
     },
+    "expand": {
+      "reasoningTitle": "REASONING",
+      "reasoningDesc": "Abra a análise completa para ver o reasoning versionado e o breakdown de fatores.",
+      "actionsTitle": "AÇÕES",
+      "viewFull": "Ver análise completa",
+      "recalculate": "Recalcular agora",
+      "copy": "Copiar endereço",
+      "copied": "Copiado",
+      "watchlist": "Adicionar à watchlist"
+    },
     "empty": "Nenhuma análise ainda — comece analisando uma carteira!",
-    "noFilter": "Nenhuma análise encontrada para esses filtros.",
-    "showing": "Mostrando {filtered} de {total} análises"
+    "noFilter": "Nenhum resultado. Ajuste os filtros ou limpe a busca.",
+    "showing": "Mostrando {filtered} de {total} análises",
+    "pagination": {
+      "prev": "← Anterior",
+      "next": "Próxima →"
+    }
   },
   "billing": {
     "title": "Planos & Billing",

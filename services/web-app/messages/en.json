@@ -185,22 +185,47 @@
   },
   "history": {
     "title": "History",
-    "subtitle": "All your previous analyses",
+    "subtitle": "Everything you've analyzed — versioned, auditable reasoning.",
+    "header": {
+      "eyebrow": "HISTORY",
+      "countAnalyses": "{count} {count, plural, one {analysis} other {analyses}}",
+      "exportCsv": "Export CSV",
+      "newAnalysis": "New analysis",
+      "soon": "soon"
+    },
     "columns": {
-      "wallet": "Wallet",
-      "network": "Network",
-      "score": "Score",
-      "date": "Date"
+      "chain": "CHAIN",
+      "wallet": "ADDRESS",
+      "score": "SCORE",
+      "verdict": "VERDICT",
+      "date": "ANALYZED",
+      "id": "ID",
+      "network": "Network"
     },
     "filters": {
-      "searchPlaceholder": "Search by address or network...",
+      "searchPlaceholder": "Search by address, label or ID…",
       "allChains": "All networks",
       "allScores": "All scores",
       "high": "High (≥70)",
       "mid": "Medium (40-69)",
-      "low": "Low (<40)"
+      "low": "Low (<40)",
+      "chainLabel": "CHAIN",
+      "rangeLabel": "RANGE",
+      "range7d": "7 days",
+      "range30d": "30 days",
+      "rangeAll": "All",
+      "sortLabel": "SORT",
+      "sortRecent": "Most recent",
+      "sortScoreHigh": "Score high → low",
+      "sortScoreLow": "Score low → high",
+      "sortRisk": "Most risky"
+    },
+    "active": {
+      "label": "ACTIVE FILTERS:",
+      "clearAll": "Clear all"
     },
     "verdict": {
+      "all": "All",
       "trusted": "Trusted",
       "attention": "Caution",
       "risky": "Risky"
@@ -211,9 +236,23 @@
       "trusted": "Trusted",
       "risky": "High risk"
     },
+    "expand": {
+      "reasoningTitle": "REASONING",
+      "reasoningDesc": "Open the full analysis to see versioned reasoning and the factor breakdown.",
+      "actionsTitle": "ACTIONS",
+      "viewFull": "View full analysis",
+      "recalculate": "Recalculate now",
+      "copy": "Copy address",
+      "copied": "Copied",
+      "watchlist": "Add to watchlist"
+    },
     "empty": "No analyses yet — start by analyzing a wallet!",
-    "noFilter": "No analyses found for these filters.",
-    "showing": "Showing {filtered} of {total} analyses"
+    "noFilter": "No results. Adjust filters or clear the search.",
+    "showing": "Showing {filtered} of {total} analyses",
+    "pagination": {
+      "prev": "← Previous",
+      "next": "Next →"
+    }
   },
   "billing": {
     "title": "Plans & Billing",

@@ -185,22 +185,47 @@
   },
   "history": {
     "title": "Historial",
-    "subtitle": "Todos tus análisis anteriores",
+    "subtitle": "Todo lo que has analizado — razonamiento versionado y auditable.",
+    "header": {
+      "eyebrow": "HISTORIAL",
+      "countAnalyses": "{count} {count, plural, one {análisis} other {análisis}}",
+      "exportCsv": "Exportar CSV",
+      "newAnalysis": "Nuevo análisis",
+      "soon": "pronto"
+    },
     "columns": {
-      "wallet": "Wallet",
-      "network": "Red",
-      "score": "Score",
-      "date": "Fecha"
+      "chain": "CHAIN",
+      "wallet": "DIRECCIÓN",
+      "score": "SCORE",
+      "verdict": "VEREDICTO",
+      "date": "ANALIZADA",
+      "id": "ID",
+      "network": "Red"
     },
     "filters": {
-      "searchPlaceholder": "Buscar por dirección o red...",
+      "searchPlaceholder": "Buscar por dirección, label o ID…",
       "allChains": "Todas las redes",
       "allScores": "Todos los scores",
       "high": "Alto (≥70)",
       "mid": "Medio (40-69)",
-      "low": "Bajo (<40)"
+      "low": "Bajo (<40)",
+      "chainLabel": "CHAIN",
+      "rangeLabel": "PERIODO",
+      "range7d": "7 días",
+      "range30d": "30 días",
+      "rangeAll": "Todo",
+      "sortLabel": "ORDENAR",
+      "sortRecent": "Más recientes",
+      "sortScoreHigh": "Score alto → bajo",
+      "sortScoreLow": "Score bajo → alto",
+      "sortRisk": "Más arriesgadas"
+    },
+    "active": {
+      "label": "FILTROS ACTIVOS:",
+      "clearAll": "Limpiar todo"
     },
     "verdict": {
+      "all": "Todos",
       "trusted": "Confiable",
       "attention": "Precaución",
       "risky": "Riesgo"
@@ -211,9 +236,23 @@
       "trusted": "Confiables",
       "risky": "Alto riesgo"
     },
+    "expand": {
+      "reasoningTitle": "RAZONAMIENTO",
+      "reasoningDesc": "Abre el análisis completo para ver el razonamiento versionado y el desglose de factores.",
+      "actionsTitle": "ACCIONES",
+      "viewFull": "Ver análisis completo",
+      "recalculate": "Recalcular ahora",
+      "copy": "Copiar dirección",
+      "copied": "Copiado",
+      "watchlist": "Añadir a watchlist"
+    },
     "empty": "Sin análisis aún — ¡empieza analizando una wallet!",
-    "noFilter": "No se encontraron análisis para estos filtros.",
-    "showing": "Mostrando {filtered} de {total} análisis"
+    "noFilter": "Sin resultados. Ajusta los filtros o limpia la búsqueda.",
+    "showing": "Mostrando {filtered} de {total} análisis",
+    "pagination": {
+      "prev": "← Anterior",
+      "next": "Siguiente →"
+    }
   },
   "billing": {
     "title": "Planes y Facturación",
