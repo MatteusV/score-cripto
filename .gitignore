@@ -22,3 +22,6 @@ keys/
 
 # Beads / Dolt files (added by bd init)
 .beads-credential-key
+
+# Stuck root-owned generated dirs from prior Docker runs (cannot rm without sudo)
+services/*/src/.generated-stuck/
