@@ -11,19 +11,28 @@ primary_region = "iad"
   NODE_ENV = "production"
   PORT     = "3003"
 
-[http_service]
-  internal_port        = 3003
-  force_https          = true
+# Acessível APENAS via Flycast (score-cripto-users.flycast:3003) por outros
+# apps da org Fly. Nenhum tráfego externo entra direto — tudo passa pelo
+# api-gateway, que é o único boundary público da plataforma.
+# Stripe webhooks também chegam pelo api-gateway (passthrough preservando
+# raw body + stripe-signature). Ver epic score-cripto-6se.
+[[services]]
+  internal_port = 3003
+  protocol      = "tcp"
   auto_stop_machines   = false
   auto_start_machines  = true
   min_machines_running = 1
 
-  [http_service.concurrency]
+  [[services.ports]]
+    port     = 3003
+    handlers = ["http"]
+
+  [services.concurrency]
     type       = "requests"
     hard_limit = 150
     soft_limit = 120
 
-  [[http_service.checks]]
+  [[services.http_checks]]
     interval     = "15s"
     timeout      = "5s"
     grace_period = "30s"
