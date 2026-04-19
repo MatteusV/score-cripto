@@ -26,6 +26,10 @@ COPY services/users/src ./services/users/src/
 RUN pnpm --filter @score-cripto/users exec prisma generate
 RUN pnpm --filter @score-cripto/users run build
 
+# tsc skips non-TS assets — copy Prisma query engine binaries into dist/
+RUN find services/users/src/generated/prisma -maxdepth 1 -name "*.so.node" \
+      -exec cp {} services/users/dist/generated/prisma/ \;
+
 RUN pnpm --filter @score-cripto/users deploy --prod /standalone
 RUN cp -rT /workspace/services/users/dist /standalone/dist
 RUN cp -rT /workspace/services/users/prisma /standalone/prisma

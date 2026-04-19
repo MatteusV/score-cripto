@@ -26,6 +26,10 @@ COPY services/process-data-ia/src ./services/process-data-ia/src/
 RUN pnpm --filter @score-cripto/process-data-ia exec prisma generate
 RUN pnpm --filter @score-cripto/process-data-ia run build
 
+# tsc skips non-TS assets — copy Prisma query engine binaries into dist/
+RUN find services/process-data-ia/src/generated/prisma -maxdepth 1 -name "*.so.node" \
+      -exec cp {} services/process-data-ia/dist/generated/prisma/ \;
+
 RUN pnpm --filter @score-cripto/process-data-ia deploy --prod /standalone
 RUN cp -rT /workspace/services/process-data-ia/dist /standalone/dist
 RUN cp -rT /workspace/services/process-data-ia/prisma /standalone/prisma

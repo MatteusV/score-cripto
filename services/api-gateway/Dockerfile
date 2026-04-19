@@ -28,6 +28,10 @@ COPY services/api-gateway/src ./services/api-gateway/src/
 RUN pnpm --filter @score-cripto/api-gateway exec prisma generate
 RUN pnpm --filter @score-cripto/api-gateway run build
 
+# tsc skips non-TS assets — copy Prisma query engine binaries into dist/
+RUN find services/api-gateway/src/generated/prisma -maxdepth 1 -name "*.so.node" \
+      -exec cp {} services/api-gateway/dist/generated/prisma/ \;
+
 # Standalone deploy — prod deps only, resolves workspace:* packages
 RUN pnpm --filter @score-cripto/api-gateway deploy --prod /standalone
 
