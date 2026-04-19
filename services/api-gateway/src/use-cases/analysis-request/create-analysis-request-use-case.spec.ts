@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { AnalysisRequestInMemoryRepository } from "../../repositories/in-memory/analysis-request-in-memory-repository";
-import { CreateAnalysisRequestUseCase } from "./create-analysis-request-use-case";
+import { AnalysisRequestInMemoryRepository } from "../../repositories/in-memory/analysis-request-in-memory-repository.js";
+import { CreateAnalysisRequestUseCase } from "./create-analysis-request-use-case.js";
 
 let repository: AnalysisRequestInMemoryRepository;
 let sut: CreateAnalysisRequestUseCase;

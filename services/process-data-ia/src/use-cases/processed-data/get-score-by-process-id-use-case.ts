@@ -1,6 +1,6 @@
-import type { ProcessedData } from "../../generated/prisma/client";
-import type { ProcessedDataRepository } from "../../repositories/processed-data-repository";
-import { ProcessedDataNotFoundError } from "../errors/processed-data-not-found-error";
+import type { ProcessedData } from "../../generated/prisma/client.js";
+import type { ProcessedDataRepository } from "../../repositories/processed-data-repository.js";
+import { ProcessedDataNotFoundError } from "../errors/processed-data-not-found-error.js";
 
 interface GetScoreByProcessIdUseCaseRequest {
   processId: string;

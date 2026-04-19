@@ -1,4 +1,4 @@
-import type { AnalysisTranslationDTO } from "../domain/analysis-request";
+import type { AnalysisTranslationDTO } from "../domain/analysis-request.js";
 
 export interface UpsertTranslationData {
   analysisId: string;

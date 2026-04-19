@@ -1,9 +1,9 @@
-import type { PrismaClient } from "../../generated/prisma/client";
-import type { SubscriptionUncheckedCreateInput } from "../../generated/prisma/models/Subscription";
+import type { PrismaClient } from "../../generated/prisma/client.js";
+import type { SubscriptionUncheckedCreateInput } from "../../generated/prisma/models/Subscription.js";
 import type {
   SubscriptionRepository,
   SubscriptionUpdateData,
-} from "../subscription-repository";
+} from "../subscription-repository.js";
 
 export class SubscriptionPrismaRepository implements SubscriptionRepository {
   private readonly prisma: PrismaClient;

@@ -1,10 +1,10 @@
 import bcrypt from "bcryptjs";
 import { z } from "zod/v4";
-import type { User } from "../../generated/prisma/client";
-import type { SubscriptionRepository } from "../../repositories/subscription-repository";
-import type { UsageRepository } from "../../repositories/usage-repository";
-import type { UserRepository } from "../../repositories/user-repository";
-import { EmailAlreadyInUseError } from "../errors/email-already-in-use-error";
+import type { User } from "../../generated/prisma/client.js";
+import type { SubscriptionRepository } from "../../repositories/subscription-repository.js";
+import type { UsageRepository } from "../../repositories/usage-repository.js";
+import type { UserRepository } from "../../repositories/user-repository.js";
+import { EmailAlreadyInUseError } from "../errors/email-already-in-use-error.js";
 
 const registerUserSchema = z.object({
   email: z.email(),

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
-import { ProcessedDataInMemoryRepository } from "../../repositories/in-memory/processed-data-in-memory-repository";
-import { PersistScoreUseCase } from "./persist-score-use-case";
+import { ProcessedDataInMemoryRepository } from "../../repositories/in-memory/processed-data-in-memory-repository.js";
+import { PersistScoreUseCase } from "./persist-score-use-case.js";
 
 let repository: ProcessedDataInMemoryRepository;
 let sut: PersistScoreUseCase;

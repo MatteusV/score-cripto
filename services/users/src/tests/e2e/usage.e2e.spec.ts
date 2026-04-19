@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { createHttpServer } from "../../http/server";
-import type { E2EDatabase } from "./helpers/e2e-database";
-import { createE2EDatabase } from "./helpers/e2e-database";
+import { createHttpServer } from "../../http/server.js";
+import type { E2EDatabase } from "./helpers/e2e-database.js";
+import { createE2EDatabase } from "./helpers/e2e-database.js";
 
 async function registerAndGetUserId(app: any, email: string): Promise<string> {
   const res = await app.inject({

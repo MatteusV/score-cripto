@@ -1,4 +1,4 @@
-import type { JwtPayload, JwtService } from "./jwt-service";
+import type { JwtPayload, JwtService } from "./jwt-service.js";
 
 export class FakeJwtService implements JwtService {
   sign(payload: JwtPayload): string {

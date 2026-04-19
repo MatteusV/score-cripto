@@ -1,6 +1,6 @@
-import type { PrismaClient } from "../../generated/prisma/client";
-import type { UserUncheckedCreateInput } from "../../generated/prisma/models/User";
-import type { UserRepository, UserUpdateData } from "../user-repository";
+import type { PrismaClient } from "../../generated/prisma/client.js";
+import type { UserUncheckedCreateInput } from "../../generated/prisma/models/User.js";
+import type { UserRepository, UserUpdateData } from "../user-repository.js";
 
 export class UserPrismaRepository implements UserRepository {
   private readonly prisma: PrismaClient;

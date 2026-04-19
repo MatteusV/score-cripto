@@ -1,9 +1,9 @@
 import { randomBytes } from "node:crypto";
-import type { RefreshTokenRepository } from "../../repositories/refresh-token-repository";
-import type { UserRepository } from "../../repositories/user-repository";
-import type { JwtService } from "../../services/jwt-service";
-import { InvalidRefreshTokenError } from "../errors/invalid-refresh-token-error";
-import { hashRefreshToken } from "./login-user-use-case";
+import type { RefreshTokenRepository } from "../../repositories/refresh-token-repository.js";
+import type { UserRepository } from "../../repositories/user-repository.js";
+import type { JwtService } from "../../services/jwt-service.js";
+import { InvalidRefreshTokenError } from "../errors/invalid-refresh-token-error.js";
+import { hashRefreshToken } from "./login-user-use-case.js";
 
 interface RefreshTokenRequest {
   refreshToken: string;

@@ -1,5 +1,5 @@
-import type { ProcessedData } from "../generated/prisma/browser";
-import type { ProcessedDataUncheckedCreateInput } from "../generated/prisma/models";
+import type { ProcessedData } from "../generated/prisma/browser.js";
+import type { ProcessedDataUncheckedCreateInput } from "../generated/prisma/models.js";
 
 export interface FindCachedScoreData {
   address: string;

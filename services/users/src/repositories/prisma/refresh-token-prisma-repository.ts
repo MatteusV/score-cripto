@@ -1,6 +1,6 @@
-import type { PrismaClient } from "../../generated/prisma/client";
-import type { RefreshTokenUncheckedCreateInput } from "../../generated/prisma/models/RefreshToken";
-import type { RefreshTokenRepository } from "../refresh-token-repository";
+import type { PrismaClient } from "../../generated/prisma/client.js";
+import type { RefreshTokenUncheckedCreateInput } from "../../generated/prisma/models/RefreshToken.js";
+import type { RefreshTokenRepository } from "../refresh-token-repository.js";
 
 export class RefreshTokenPrismaRepository implements RefreshTokenRepository {
   private readonly prisma: PrismaClient;

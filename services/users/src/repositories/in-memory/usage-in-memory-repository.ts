@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import type { UsageRecord } from "../../generated/prisma/client";
-import type { UsageRecordUncheckedCreateInput } from "../../generated/prisma/models/UsageRecord";
-import type { UsageRepository } from "../usage-repository";
+import type { UsageRecord } from "../../generated/prisma/client.js";
+import type { UsageRecordUncheckedCreateInput } from "../../generated/prisma/models/UsageRecord.js";
+import type { UsageRepository } from "../usage-repository.js";
 
 export class UsageInMemoryRepository implements UsageRepository {
   items: UsageRecord[] = [];

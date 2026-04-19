@@ -1,11 +1,11 @@
 import bcrypt from "bcryptjs";
 import { beforeEach, describe, expect, it } from "vitest";
-import { RefreshTokenInMemoryRepository } from "../../repositories/in-memory/refresh-token-in-memory-repository";
-import { UserInMemoryRepository } from "../../repositories/in-memory/user-in-memory-repository";
-import { FakeJwtService } from "../../services/fake-jwt-service";
-import { InvalidRefreshTokenError } from "../errors/invalid-refresh-token-error";
-import { hashRefreshToken, LoginUserUseCase } from "./login-user-use-case";
-import { RefreshTokenUseCase } from "./refresh-token-use-case";
+import { RefreshTokenInMemoryRepository } from "../../repositories/in-memory/refresh-token-in-memory-repository.js";
+import { UserInMemoryRepository } from "../../repositories/in-memory/user-in-memory-repository.js";
+import { FakeJwtService } from "../../services/fake-jwt-service.js";
+import { InvalidRefreshTokenError } from "../errors/invalid-refresh-token-error.js";
+import { hashRefreshToken, LoginUserUseCase } from "./login-user-use-case.js";
+import { RefreshTokenUseCase } from "./refresh-token-use-case.js";
 
 let userRepo: UserInMemoryRepository;
 let refreshTokenRepo: RefreshTokenInMemoryRepository;

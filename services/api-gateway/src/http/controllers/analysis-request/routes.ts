@@ -1,22 +1,22 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
-import type { AnalysisRequestDTO } from "../../../domain/analysis-request";
-import { analysisEventBus } from "../../../events/analysis-event-bus";
-import { publishWalletDataRequested } from "../../../events/publisher";
-import { analysisRequestsCounter } from "../../../observability/metrics";
-import { AnalysisRequestPrismaRepository } from "../../../repositories/prisma/analysis-request-prisma-repository";
-import { AnalysisTranslationPrismaRepository } from "../../../repositories/prisma/analysis-translation-prisma-repository";
-import { prisma } from "../../../services/database";
-import { checkUsage, UsersServiceError } from "../../../services/users-service";
-import { CreateAnalysisRequestUseCase } from "../../../use-cases/analysis-request/create-analysis-request-use-case";
-import { FindActiveAnalysisRequestUseCase } from "../../../use-cases/analysis-request/find-active-analysis-request-use-case";
-import { FindCachedAnalysisUseCase } from "../../../use-cases/analysis-request/find-cached-analysis-use-case";
-import { GetAnalysisByPublicIdUseCase } from "../../../use-cases/analysis-request/get-analysis-by-public-id-use-case";
-import { GetAnalysisRequestUseCase } from "../../../use-cases/analysis-request/get-analysis-request-use-case";
-import { ListAnalysesUseCase } from "../../../use-cases/analysis-request/list-analyses-use-case";
-import { AnalysisRequestNotFoundError } from "../../../use-cases/errors/analysis-request-not-found-error";
-import { authenticate } from "../../middleware/authenticate";
+import type { AnalysisRequestDTO } from "../../../domain/analysis-request.js";
+import { analysisEventBus } from "../../../events/analysis-event-bus.js";
+import { publishWalletDataRequested } from "../../../events/publisher.js";
+import { analysisRequestsCounter } from "../../../observability/metrics.js";
+import { AnalysisRequestPrismaRepository } from "../../../repositories/prisma/analysis-request-prisma-repository.js";
+import { AnalysisTranslationPrismaRepository } from "../../../repositories/prisma/analysis-translation-prisma-repository.js";
+import { prisma } from "../../../services/database.js";
+import { checkUsage, UsersServiceError } from "../../../services/users-service.js";
+import { CreateAnalysisRequestUseCase } from "../../../use-cases/analysis-request/create-analysis-request-use-case.js";
+import { FindActiveAnalysisRequestUseCase } from "../../../use-cases/analysis-request/find-active-analysis-request-use-case.js";
+import { FindCachedAnalysisUseCase } from "../../../use-cases/analysis-request/find-cached-analysis-use-case.js";
+import { GetAnalysisByPublicIdUseCase } from "../../../use-cases/analysis-request/get-analysis-by-public-id-use-case.js";
+import { GetAnalysisRequestUseCase } from "../../../use-cases/analysis-request/get-analysis-request-use-case.js";
+import { ListAnalysesUseCase } from "../../../use-cases/analysis-request/list-analyses-use-case.js";
+import { AnalysisRequestNotFoundError } from "../../../use-cases/errors/analysis-request-not-found-error.js";
+import { authenticate } from "../../middleware/authenticate.js";
 
 const SSE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutos
 

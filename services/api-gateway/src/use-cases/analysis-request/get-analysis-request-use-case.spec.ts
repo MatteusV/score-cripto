@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { AnalysisRequestInMemoryRepository } from "../../repositories/in-memory/analysis-request-in-memory-repository";
-import { AnalysisRequestNotFoundError } from "../errors/analysis-request-not-found-error";
-import { GetAnalysisRequestUseCase } from "./get-analysis-request-use-case";
+import { AnalysisRequestInMemoryRepository } from "../../repositories/in-memory/analysis-request-in-memory-repository.js";
+import { AnalysisRequestNotFoundError } from "../errors/analysis-request-not-found-error.js";
+import { GetAnalysisRequestUseCase } from "./get-analysis-request-use-case.js";
 
 let repository: AnalysisRequestInMemoryRepository;
 let sut: GetAnalysisRequestUseCase;

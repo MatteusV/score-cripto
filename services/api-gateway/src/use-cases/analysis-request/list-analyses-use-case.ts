@@ -1,8 +1,8 @@
 import type {
   AnalysisListItem,
   AnalysisSummary,
-} from "../../domain/analysis-request";
-import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository";
+} from "../../domain/analysis-request.js";
+import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository.js";
 
 export interface ListAnalysesResult {
   data: AnalysisListItem[];

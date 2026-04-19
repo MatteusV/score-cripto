@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { createHttpServer } from "../../http/server";
-import type { E2EDatabase } from "./helpers/e2e-database";
-import { createE2EDatabase } from "./helpers/e2e-database";
+import { createHttpServer } from "../../http/server.js";
+import type { E2EDatabase } from "./helpers/e2e-database.js";
+import { createE2EDatabase } from "./helpers/e2e-database.js";
 
 describe("Auth E2E — register, login, refresh", () => {
   let db: E2EDatabase;

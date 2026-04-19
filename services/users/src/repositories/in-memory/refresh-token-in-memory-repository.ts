@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import type { RefreshToken } from "../../generated/prisma/client";
-import type { RefreshTokenUncheckedCreateInput } from "../../generated/prisma/models/RefreshToken";
-import type { RefreshTokenRepository } from "../refresh-token-repository";
+import type { RefreshToken } from "../../generated/prisma/client.js";
+import type { RefreshTokenUncheckedCreateInput } from "../../generated/prisma/models/RefreshToken.js";
+import type { RefreshTokenRepository } from "../refresh-token-repository.js";
 
 export class RefreshTokenInMemoryRepository implements RefreshTokenRepository {
   items: RefreshToken[] = [];

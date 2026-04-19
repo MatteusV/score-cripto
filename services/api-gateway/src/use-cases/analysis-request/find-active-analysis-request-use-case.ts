@@ -1,5 +1,5 @@
-import type { AnalysisRequestDTO } from "../../domain/analysis-request";
-import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository";
+import type { AnalysisRequestDTO } from "../../domain/analysis-request.js";
+import type { AnalysisRequestRepository } from "../../repositories/analysis-request-repository.js";
 
 interface FindActiveAnalysisRequestUseCaseRequest {
   address: string;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DefaultPlanPolicy } from "./plan-policy";
+import { DefaultPlanPolicy } from "./plan-policy.js";
 
 describe("DefaultPlanPolicy", () => {
   const policy = new DefaultPlanPolicy();

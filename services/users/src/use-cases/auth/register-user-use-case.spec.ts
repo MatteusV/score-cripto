@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { SubscriptionInMemoryRepository } from "../../repositories/in-memory/subscription-in-memory-repository";
-import { UsageInMemoryRepository } from "../../repositories/in-memory/usage-in-memory-repository";
-import { UserInMemoryRepository } from "../../repositories/in-memory/user-in-memory-repository";
-import { EmailAlreadyInUseError } from "../errors/email-already-in-use-error";
-import { RegisterUserUseCase } from "./register-user-use-case";
+import { SubscriptionInMemoryRepository } from "../../repositories/in-memory/subscription-in-memory-repository.js";
+import { UsageInMemoryRepository } from "../../repositories/in-memory/usage-in-memory-repository.js";
+import { UserInMemoryRepository } from "../../repositories/in-memory/user-in-memory-repository.js";
+import { EmailAlreadyInUseError } from "../errors/email-already-in-use-error.js";
+import { RegisterUserUseCase } from "./register-user-use-case.js";
 
 const BCRYPT_HASH_REGEX = /^\$2b\$/;
 

@@ -7,13 +7,13 @@ import {
   it,
   vi,
 } from "vitest";
-import { processWalletDataCachedMessage } from "../../events/consumer";
-import type { WalletContextInput } from "../../schemas/score";
-import type { E2EDatabase } from "./helpers/e2e-database";
-import { createE2EDatabase } from "./helpers/e2e-database";
+import { processWalletDataCachedMessage } from "../../events/consumer.js";
+import type { WalletContextInput } from "../../schemas/score.js";
+import type { E2EDatabase } from "./helpers/e2e-database.js";
+import { createE2EDatabase } from "./helpers/e2e-database.js";
 
 vi.mock("../../services/scoring", async (importOriginal) => {
-  const real = await importOriginal<typeof import("../../services/scoring")>();
+  const real = await importOriginal<typeof import("../../services/scoring.js")>();
   return {
     ...real,
     scoreWithAI: async (input: Parameters<typeof real.scoreWithAI>[0]) => ({

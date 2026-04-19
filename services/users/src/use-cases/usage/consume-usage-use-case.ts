@@ -1,9 +1,9 @@
-import type { PlanPolicy } from "../../domain/plan-policy";
-import type { SubscriptionRepository } from "../../repositories/subscription-repository";
-import type { UsageRepository } from "../../repositories/usage-repository";
-import type { UserRepository } from "../../repositories/user-repository";
-import { UsageLimitExceededError } from "../errors/usage-limit-exceeded-error";
-import { UserNotFoundError } from "../errors/user-not-found-error";
+import type { PlanPolicy } from "../../domain/plan-policy.js";
+import type { SubscriptionRepository } from "../../repositories/subscription-repository.js";
+import type { UsageRepository } from "../../repositories/usage-repository.js";
+import type { UserRepository } from "../../repositories/user-repository.js";
+import { UsageLimitExceededError } from "../errors/usage-limit-exceeded-error.js";
+import { UserNotFoundError } from "../errors/user-not-found-error.js";
 
 interface ConsumeUsageRequest {
   userId: string;

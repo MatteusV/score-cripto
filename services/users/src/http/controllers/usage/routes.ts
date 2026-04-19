@@ -1,15 +1,15 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
-import { DefaultPlanPolicy } from "../../../domain/plan-policy";
-import { SubscriptionPrismaRepository } from "../../../repositories/prisma/subscription-prisma-repository";
-import { UsagePrismaRepository } from "../../../repositories/prisma/usage-prisma-repository";
-import { UserPrismaRepository } from "../../../repositories/prisma/user-prisma-repository";
-import { prisma } from "../../../services/database";
-import { UsageLimitExceededError } from "../../../use-cases/errors/usage-limit-exceeded-error";
-import { UserNotFoundError } from "../../../use-cases/errors/user-not-found-error";
-import { CheckUsageUseCase } from "../../../use-cases/usage/check-usage-use-case";
-import { ConsumeUsageUseCase } from "../../../use-cases/usage/consume-usage-use-case";
+import { DefaultPlanPolicy } from "../../../domain/plan-policy.js";
+import { SubscriptionPrismaRepository } from "../../../repositories/prisma/subscription-prisma-repository.js";
+import { UsagePrismaRepository } from "../../../repositories/prisma/usage-prisma-repository.js";
+import { UserPrismaRepository } from "../../../repositories/prisma/user-prisma-repository.js";
+import { prisma } from "../../../services/database.js";
+import { UsageLimitExceededError } from "../../../use-cases/errors/usage-limit-exceeded-error.js";
+import { UserNotFoundError } from "../../../use-cases/errors/user-not-found-error.js";
+import { CheckUsageUseCase } from "../../../use-cases/usage/check-usage-use-case.js";
+import { ConsumeUsageUseCase } from "../../../use-cases/usage/consume-usage-use-case.js";
 
 const userRepo = new UserPrismaRepository(prisma);
 const usageRepo = new UsagePrismaRepository(prisma);

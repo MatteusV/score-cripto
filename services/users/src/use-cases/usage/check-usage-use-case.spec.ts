@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { DefaultPlanPolicy } from "../../domain/plan-policy";
-import { SubscriptionInMemoryRepository } from "../../repositories/in-memory/subscription-in-memory-repository";
-import { UsageInMemoryRepository } from "../../repositories/in-memory/usage-in-memory-repository";
-import { CheckUsageUseCase } from "./check-usage-use-case";
+import { DefaultPlanPolicy } from "../../domain/plan-policy.js";
+import { SubscriptionInMemoryRepository } from "../../repositories/in-memory/subscription-in-memory-repository.js";
+import { UsageInMemoryRepository } from "../../repositories/in-memory/usage-in-memory-repository.js";
+import { CheckUsageUseCase } from "./check-usage-use-case.js";
 
 let usageRepo: UsageInMemoryRepository;
 let subscriptionRepo: SubscriptionInMemoryRepository;

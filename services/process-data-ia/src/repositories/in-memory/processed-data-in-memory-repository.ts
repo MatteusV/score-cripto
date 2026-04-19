@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import type { ProcessedData } from "../../generated/prisma/client";
-import type { ProcessedDataUncheckedCreateInput } from "../../generated/prisma/models";
-import type { ProcessedDataRepository } from "../processed-data-repository";
+import type { ProcessedData } from "../../generated/prisma/client.js";
+import type { ProcessedDataUncheckedCreateInput } from "../../generated/prisma/models.js";
+import type { ProcessedDataRepository } from "../processed-data-repository.js";
 
 export class ProcessedDataInMemoryRepository
   implements ProcessedDataRepository

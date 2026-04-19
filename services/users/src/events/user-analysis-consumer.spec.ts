@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DefaultPlanPolicy } from "../domain/plan-policy";
-import { SubscriptionInMemoryRepository } from "../repositories/in-memory/subscription-in-memory-repository";
-import { UsageInMemoryRepository } from "../repositories/in-memory/usage-in-memory-repository";
-import { UserInMemoryRepository } from "../repositories/in-memory/user-in-memory-repository";
-import { ConsumeUsageUseCase } from "../use-cases/usage/consume-usage-use-case";
-import { processUserAnalysisConsumedMessage } from "./user-analysis-consumer";
+import { DefaultPlanPolicy } from "../domain/plan-policy.js";
+import { SubscriptionInMemoryRepository } from "../repositories/in-memory/subscription-in-memory-repository.js";
+import { UsageInMemoryRepository } from "../repositories/in-memory/usage-in-memory-repository.js";
+import { UserInMemoryRepository } from "../repositories/in-memory/user-in-memory-repository.js";
+import { ConsumeUsageUseCase } from "../use-cases/usage/consume-usage-use-case.js";
+import { processUserAnalysisConsumedMessage } from "./user-analysis-consumer.js";
 
 // Mocka a factory para injetar repos in-memory
 vi.mock("../use-cases/factories/make-consume-usage-use-case.js", () => ({

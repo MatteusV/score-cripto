@@ -1,9 +1,9 @@
-import type { AnalysisTranslationDTO } from "../../domain/analysis-request";
-import type { PrismaClient } from "../../generated/prisma/client";
+import type { AnalysisTranslationDTO } from "../../domain/analysis-request.js";
+import type { PrismaClient } from "../../generated/prisma/client.js";
 import type {
   AnalysisTranslationRepository,
   UpsertTranslationData,
-} from "../analysis-translation-repository";
+} from "../analysis-translation-repository.js";
 
 function toDTO(record: unknown): AnalysisTranslationDTO {
   return record as AnalysisTranslationDTO;

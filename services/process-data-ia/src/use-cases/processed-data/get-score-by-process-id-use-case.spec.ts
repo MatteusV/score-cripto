@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
-import { ProcessedDataInMemoryRepository } from "../../repositories/in-memory/processed-data-in-memory-repository";
-import { ProcessedDataNotFoundError } from "../errors/processed-data-not-found-error";
-import { GetScoreByProcessIdUseCase } from "./get-score-by-process-id-use-case";
+import { ProcessedDataInMemoryRepository } from "../../repositories/in-memory/processed-data-in-memory-repository.js";
+import { ProcessedDataNotFoundError } from "../errors/processed-data-not-found-error.js";
+import { GetScoreByProcessIdUseCase } from "./get-score-by-process-id-use-case.js";
 
 let repository: ProcessedDataInMemoryRepository;
 let sut: GetScoreByProcessIdUseCase;

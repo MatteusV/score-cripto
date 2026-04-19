@@ -1,10 +1,10 @@
 import bcrypt from "bcryptjs";
 import { beforeEach, describe, expect, it } from "vitest";
-import { RefreshTokenInMemoryRepository } from "../../repositories/in-memory/refresh-token-in-memory-repository";
-import { UserInMemoryRepository } from "../../repositories/in-memory/user-in-memory-repository";
-import { FakeJwtService } from "../../services/fake-jwt-service";
-import { InvalidCredentialsError } from "../errors/invalid-credentials-error";
-import { LoginUserUseCase } from "./login-user-use-case";
+import { RefreshTokenInMemoryRepository } from "../../repositories/in-memory/refresh-token-in-memory-repository.js";
+import { UserInMemoryRepository } from "../../repositories/in-memory/user-in-memory-repository.js";
+import { FakeJwtService } from "../../services/fake-jwt-service.js";
+import { InvalidCredentialsError } from "../errors/invalid-credentials-error.js";
+import { LoginUserUseCase } from "./login-user-use-case.js";
 
 let userRepo: UserInMemoryRepository;
 let refreshTokenRepo: RefreshTokenInMemoryRepository;

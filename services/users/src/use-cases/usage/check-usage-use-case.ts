@@ -1,6 +1,6 @@
-import type { PlanPolicy } from "../../domain/plan-policy";
-import type { SubscriptionRepository } from "../../repositories/subscription-repository";
-import type { UsageRepository } from "../../repositories/usage-repository";
+import type { PlanPolicy } from "../../domain/plan-policy.js";
+import type { SubscriptionRepository } from "../../repositories/subscription-repository.js";
+import type { UsageRepository } from "../../repositories/usage-repository.js";
 
 interface CheckUsageRequest {
   userId: string;

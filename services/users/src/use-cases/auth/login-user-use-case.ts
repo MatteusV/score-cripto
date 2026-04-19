@@ -1,9 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
-import type { RefreshTokenRepository } from "../../repositories/refresh-token-repository";
-import type { UserRepository } from "../../repositories/user-repository";
-import type { JwtService } from "../../services/jwt-service";
-import { InvalidCredentialsError } from "../errors/invalid-credentials-error";
+import type { RefreshTokenRepository } from "../../repositories/refresh-token-repository.js";
+import type { UserRepository } from "../../repositories/user-repository.js";
+import type { JwtService } from "../../services/jwt-service.js";
+import { InvalidCredentialsError } from "../errors/invalid-credentials-error.js";
 
 export function hashRefreshToken(rawToken: string): string {
   return createHash("sha256").update(rawToken).digest("hex");

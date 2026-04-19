@@ -1,9 +1,9 @@
-import { DefaultPlanPolicy } from "../../domain/plan-policy";
-import { SubscriptionPrismaRepository } from "../../repositories/prisma/subscription-prisma-repository";
-import { UsagePrismaRepository } from "../../repositories/prisma/usage-prisma-repository";
-import { UserPrismaRepository } from "../../repositories/prisma/user-prisma-repository";
-import { prisma } from "../../services/database";
-import { ConsumeUsageUseCase } from "../usage/consume-usage-use-case";
+import { DefaultPlanPolicy } from "../../domain/plan-policy.js";
+import { SubscriptionPrismaRepository } from "../../repositories/prisma/subscription-prisma-repository.js";
+import { UsagePrismaRepository } from "../../repositories/prisma/usage-prisma-repository.js";
+import { UserPrismaRepository } from "../../repositories/prisma/user-prisma-repository.js";
+import { prisma } from "../../services/database.js";
+import { ConsumeUsageUseCase } from "../usage/consume-usage-use-case.js";
 
 export function makeConsumeUsageUseCase(): ConsumeUsageUseCase {
   const usageRepo = new UsagePrismaRepository(prisma);

@@ -1,13 +1,13 @@
 import type {
   AnalysisRequestDTO,
   AnalysisSummary,
-} from "../../domain/analysis-request";
-import type { PrismaClient } from "../../generated/prisma/client";
+} from "../../domain/analysis-request.js";
+import type { PrismaClient } from "../../generated/prisma/client.js";
 import type {
   AnalysisRequestRepository,
   CompleteAnalysisRequestData,
   CreateAnalysisRequestData,
-} from "../analysis-request-repository";
+} from "../analysis-request-repository.js";
 
 function toDTO(record: unknown): AnalysisRequestDTO {
   return record as AnalysisRequestDTO;

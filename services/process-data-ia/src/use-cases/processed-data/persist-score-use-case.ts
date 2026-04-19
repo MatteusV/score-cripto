@@ -1,5 +1,5 @@
-import type { ProcessedData } from "../../generated/prisma/client";
-import type { ProcessedDataRepository } from "../../repositories/processed-data-repository";
+import type { ProcessedData } from "../../generated/prisma/client.js";
+import type { ProcessedDataRepository } from "../../repositories/processed-data-repository.js";
 
 interface PersistScoreUseCaseRequest {
   address: string;

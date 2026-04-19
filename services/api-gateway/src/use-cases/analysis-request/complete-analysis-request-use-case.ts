@@ -1,9 +1,9 @@
-import type { AnalysisRequestDTO } from "../../domain/analysis-request";
+import type { AnalysisRequestDTO } from "../../domain/analysis-request.js";
 import type {
   AnalysisRequestRepository,
   CompleteAnalysisRequestData,
-} from "../../repositories/analysis-request-repository";
-import { AnalysisRequestNotFoundError } from "../errors/analysis-request-not-found-error";
+} from "../../repositories/analysis-request-repository.js";
+import { AnalysisRequestNotFoundError } from "../errors/analysis-request-not-found-error.js";
 
 interface CompleteAnalysisRequestUseCaseRequest {
   id: string;

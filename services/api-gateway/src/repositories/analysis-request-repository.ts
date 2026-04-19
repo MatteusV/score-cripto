@@ -1,7 +1,7 @@
 import type {
   AnalysisRequestDTO,
   AnalysisSummary,
-} from "../domain/analysis-request";
+} from "../domain/analysis-request.js";
 
 export interface CreateAnalysisRequestData {
   address: string;

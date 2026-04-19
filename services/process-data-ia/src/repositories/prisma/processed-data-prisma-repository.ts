@@ -1,12 +1,12 @@
 import type {
   PrismaClient,
   ProcessedData,
-} from "../../generated/prisma/client";
-import type { ProcessedDataUncheckedCreateInput } from "../../generated/prisma/models";
+} from "../../generated/prisma/client.js";
+import type { ProcessedDataUncheckedCreateInput } from "../../generated/prisma/models.js";
 import type {
   FindCachedScoreData,
   ProcessedDataRepository,
-} from "../processed-data-repository";
+} from "../processed-data-repository.js";
 
 export class ProcessedDataPrismaRepository implements ProcessedDataRepository {
   private readonly prisma: PrismaClient;

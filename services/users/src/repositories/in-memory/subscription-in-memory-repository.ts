@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
-import type { Subscription } from "../../generated/prisma/client";
-import type { SubscriptionUncheckedCreateInput } from "../../generated/prisma/models/Subscription";
+import type { Subscription } from "../../generated/prisma/client.js";
+import type { SubscriptionUncheckedCreateInput } from "../../generated/prisma/models/Subscription.js";
 import type {
   SubscriptionRepository,
   SubscriptionUpdateData,
-} from "../subscription-repository";
+} from "../subscription-repository.js";
 
 export class SubscriptionInMemoryRepository implements SubscriptionRepository {
   items: Subscription[] = [];

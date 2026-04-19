@@ -1,5 +1,5 @@
-import type { UsageRecord } from "../generated/prisma/browser";
-import type { UsageRecordUncheckedCreateInput } from "../generated/prisma/models/UsageRecord";
+import type { UsageRecord } from "../generated/prisma/browser.js";
+import type { UsageRecordUncheckedCreateInput } from "../generated/prisma/models/UsageRecord.js";
 
 export interface UsageRepository {
   create: (data: UsageRecordUncheckedCreateInput) => Promise<UsageRecord>;

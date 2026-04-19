@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { config } from "../../config";
-import { JwtServiceImpl } from "../../services/jwt-service";
+import { config } from "../../config.js";
+import { JwtServiceImpl } from "../../services/jwt-service.js";
 
 const jwtService = new JwtServiceImpl(
   config.jwtPrivateKey,

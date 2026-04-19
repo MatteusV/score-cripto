@@ -3,7 +3,7 @@ import {
   publishScoreCalculated,
   publishScoreFailed,
 } from "../events/publisher.js";
-import type { ProcessedData } from "../generated/prisma/client";
+import type { ProcessedData } from "../generated/prisma/client.js";
 import { logger } from "../logger.js";
 import { ProcessedDataPrismaRepository } from "../repositories/prisma/processed-data-prisma-repository.js";
 import type { WalletContextInput } from "../schemas/score.js";

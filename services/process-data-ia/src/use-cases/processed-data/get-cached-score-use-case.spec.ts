@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ProcessedDataInMemoryRepository } from "../../repositories/in-memory/processed-data-in-memory-repository";
-import { GetCachedScoreUseCase } from "./get-cached-score-use-case";
+import { ProcessedDataInMemoryRepository } from "../../repositories/in-memory/processed-data-in-memory-repository.js";
+import { GetCachedScoreUseCase } from "./get-cached-score-use-case.js";
 
 let repository: ProcessedDataInMemoryRepository;
 let sut: GetCachedScoreUseCase;

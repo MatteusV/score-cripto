@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
-import type { AnalysisTranslationDTO } from "../../domain/analysis-request";
+import type { AnalysisTranslationDTO } from "../../domain/analysis-request.js";
 import type {
   AnalysisTranslationRepository,
   UpsertTranslationData,
-} from "../analysis-translation-repository";
+} from "../analysis-translation-repository.js";
 
 export class AnalysisTranslationInMemoryRepository
   implements AnalysisTranslationRepository

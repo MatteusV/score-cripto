@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { DefaultPlanPolicy } from "../../domain/plan-policy";
-import { SubscriptionInMemoryRepository } from "../../repositories/in-memory/subscription-in-memory-repository";
-import { UsageInMemoryRepository } from "../../repositories/in-memory/usage-in-memory-repository";
-import { UserInMemoryRepository } from "../../repositories/in-memory/user-in-memory-repository";
-import { UsageLimitExceededError } from "../errors/usage-limit-exceeded-error";
-import { UserNotFoundError } from "../errors/user-not-found-error";
-import { ConsumeUsageUseCase } from "./consume-usage-use-case";
+import { DefaultPlanPolicy } from "../../domain/plan-policy.js";
+import { SubscriptionInMemoryRepository } from "../../repositories/in-memory/subscription-in-memory-repository.js";
+import { UsageInMemoryRepository } from "../../repositories/in-memory/usage-in-memory-repository.js";
+import { UserInMemoryRepository } from "../../repositories/in-memory/user-in-memory-repository.js";
+import { UsageLimitExceededError } from "../errors/usage-limit-exceeded-error.js";
+import { UserNotFoundError } from "../errors/user-not-found-error.js";
+import { ConsumeUsageUseCase } from "./consume-usage-use-case.js";
 
 let usageRepo: UsageInMemoryRepository;
 let subscriptionRepo: SubscriptionInMemoryRepository;
