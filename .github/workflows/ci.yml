@@ -46,11 +46,49 @@ jobs:
               - 'services/data-indexing/**'
 
   # ──────────────────────────────────────────────
+  # Build compartilhado do observability-node
+  # Compila uma única vez e publica dist/ como artifact
+  # consumido pelos jobs Node downstream.
+  # ──────────────────────────────────────────────
+  build-observability:
+    name: "observability-node · build"
+    needs: changes
+    if: |
+      needs.changes.outputs.api-gateway == 'true' ||
+      needs.changes.outputs.process-data-ia == 'true' ||
+      needs.changes.outputs.users == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Instalar dependências (workspace)
+        run: pnpm install --frozen-lockfile
+
+      - name: Compilar observability-node
+        run: pnpm --filter @score-cripto/observability-node run build
+
+      - name: Publicar dist/ como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: observability-node-dist
+          path: packages/observability-node/dist
+          retention-days: 1
+          if-no-files-found: error
+
+  # ──────────────────────────────────────────────
   # api-gateway (Node.js / TypeScript)
   # ──────────────────────────────────────────────
   api-gateway:
     name: "api-gateway · lint + test"
-    needs: changes
+    needs: [changes, build-observability]
     if: needs.changes.outputs.api-gateway == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -67,8 +105,11 @@ jobs:
       - name: Instalar dependências (workspace)
         run: pnpm install --frozen-lockfile
 
-      - name: Compilar observability-node (workspace package)
-        run: pnpm --filter @score-cripto/observability-node run build
+      - name: Baixar dist/ do observability-node
+        uses: actions/download-artifact@v4
+        with:
+          name: observability-node-dist
+          path: packages/observability-node/dist
 
       - name: Lint
         run: pnpm --filter @score-cripto/api-gateway run check
@@ -81,7 +122,7 @@ jobs:
   # ──────────────────────────────────────────────
   process-data-ia:
     name: "process-data-ia · lint + test"
-    needs: changes
+    needs: [changes, build-observability]
     if: needs.changes.outputs.process-data-ia == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -98,8 +139,11 @@ jobs:
       - name: Instalar dependências (workspace)
         run: pnpm install --frozen-lockfile
 
-      - name: Compilar observability-node (workspace package)
-        run: pnpm --filter @score-cripto/observability-node run build
+      - name: Baixar dist/ do observability-node
+        uses: actions/download-artifact@v4
+        with:
+          name: observability-node-dist
+          path: packages/observability-node/dist
 
       - name: Lint
         run: pnpm --filter @score-cripto/process-data-ia run check
@@ -112,7 +156,7 @@ jobs:
   # ──────────────────────────────────────────────
   users:
     name: "users · lint + test"
-    needs: changes
+    needs: [changes, build-observability]
     if: needs.changes.outputs.users == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -129,8 +173,11 @@ jobs:
       - name: Instalar dependências (workspace)
         run: pnpm install --frozen-lockfile
 
-      - name: Compilar observability-node (workspace package)
-        run: pnpm --filter @score-cripto/observability-node run build
+      - name: Baixar dist/ do observability-node
+        uses: actions/download-artifact@v4
+        with:
+          name: observability-node-dist
+          path: packages/observability-node/dist
 
       - name: Lint
         run: pnpm --filter @score-cripto/users run check
