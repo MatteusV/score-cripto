@@ -188,7 +188,7 @@ func (p *EtherscanProvider) doRequest(ctx context.Context, url string) ([]byte, 
 
 		resp, err := p.httpClient.Do(req)
 		if err != nil {
-			return nil, fmt.Errorf("http request: %w", err)
+			return nil, WrapHTTPError("http request", err)
 		}
 
 		body, err := io.ReadAll(resp.Body)

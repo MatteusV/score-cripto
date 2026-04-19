@@ -120,7 +120,7 @@ type heliusTx struct {
 // ---- Helpers ----
 
 func (p *HeliusProvider) fetchBalance(ctx context.Context, address string) (float64, error) {
-	rpcURL := fmt.Sprintf("https://mainnet.helius-rpc.com/?api-key=%s", p.apiKey)
+	const rpcURL = "https://mainnet.helius-rpc.com/"
 	reqBody := heliusRPCRequest{
 		Jsonrpc: "2.0",
 		ID:      1,
@@ -144,17 +144,18 @@ func (p *HeliusProvider) fetchBalance(ctx context.Context, address string) (floa
 }
 
 func (p *HeliusProvider) fetchTransactions(ctx context.Context, address string) ([]heliusTx, error) {
-	url := fmt.Sprintf("https://api.helius.xyz/v0/addresses/%s/transactions?api-key=%s&limit=50", address, p.apiKey)
+	url := fmt.Sprintf("https://api.helius.xyz/v0/addresses/%s/transactions?limit=50", address)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Authorization", "Bearer "+p.apiKey)
 
 	resp, err := p.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("http get: %w", err)
+		return nil, WrapHTTPError("http get", err)
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
@@ -185,10 +186,11 @@ func (p *HeliusProvider) post(ctx context.Context, url string, payload interface
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+p.apiKey)
 
 	resp, err := p.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("http post: %w", err)
+		return nil, WrapHTTPError("http post", err)
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
