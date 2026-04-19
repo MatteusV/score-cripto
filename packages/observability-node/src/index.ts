@@ -1,5 +1,9 @@
 // Logger
-export { createLogger, getLoggerOptions } from "./logger.js";
+export {
+  createLogger,
+  DEFAULT_REDACT_PATHS,
+  getLoggerOptions,
+} from "./logger.js";
 export type { CreateLoggerOptions, Logger } from "./logger.js";
 
 // PII redaction

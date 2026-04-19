@@ -8,6 +8,33 @@ export interface CreateLoggerOptions {
 }
 
 /**
+ * Default redact paths applied to every logger created via this package.
+ * Blocks bearer tokens, session cookies, API keys and common credential
+ * field names from ever reaching the log sink, regardless of how the
+ * object is shaped at the call site.
+ */
+export const DEFAULT_REDACT_PATHS: readonly string[] = [
+  // HTTP headers (request)
+  "req.headers.authorization",
+  "req.headers.cookie",
+  'req.headers["set-cookie"]',
+  'req.headers["x-api-key"]',
+  'req.headers["x-auth-token"]',
+  // HTTP headers (response)
+  'res.headers["set-cookie"]',
+  // Wildcards — match credential-like fields at any depth
+  "*.password",
+  "*.passwordHash",
+  "*.token",
+  "*.accessToken",
+  "*.refreshToken",
+  "*.apiKey",
+  "*.secret",
+  "*.clientSecret",
+  "*.privateKey",
+];
+
+/**
  * Returns pino options suitable for use in Fastify's `logger` config or `pino()` directly.
  * Use this when you need the config object (e.g., Fastify v5 logger option).
  */
@@ -24,10 +51,18 @@ export function getLoggerOptions(opts: CreateLoggerOptions): pino.LoggerOptions 
     version: process.env.SERVICE_VERSION ?? "0.1.0",
   };
 
+  const common: pino.LoggerOptions = {
+    level,
+    base,
+    redact: {
+      paths: [...DEFAULT_REDACT_PATHS],
+      censor: "[REDACTED]",
+    },
+  };
+
   if (pretty) {
     return {
-      level,
-      base,
+      ...common,
       transport: {
         target: "pino-pretty",
         options: { colorize: true, translateTime: "SYS:HH:MM:ss" },
@@ -35,7 +70,7 @@ export function getLoggerOptions(opts: CreateLoggerOptions): pino.LoggerOptions 
     };
   }
 
-  return { level, base };
+  return common;
 }
 
 /**
