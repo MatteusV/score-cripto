@@ -5,6 +5,7 @@ import { getLocale, getMessages } from "next-intl/server"
 import { NextIntlClientProvider } from "next-intl"
 import { AuthProvider } from "@/contexts/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Analytics } from "@vercel/analytics/next"
 
 const orbitron = Orbitron({
   subsets: ["latin"],
@@ -48,6 +49,7 @@ export default async function RootLayout({
       className={`antialiased ${orbitron.variable} ${exo2.variable} ${firaCode.variable}`}
     >
       <body suppressHydrationWarning>
+        <Analytics />
         <ThemeProvider defaultTheme="dark" enableSystem={false}>
           <NextIntlClientProvider messages={messages}>
             <AuthProvider>{children}</AuthProvider>
