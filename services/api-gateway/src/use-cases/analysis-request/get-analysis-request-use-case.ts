@@ -4,6 +4,7 @@ import { AnalysisRequestNotFoundError } from "../errors/analysis-request-not-fou
 
 interface GetAnalysisRequestUseCaseRequest {
   id: string;
+  userId: string;
 }
 
 interface GetAnalysisRequestUseCaseResponse {
@@ -19,10 +20,11 @@ export class GetAnalysisRequestUseCase {
 
   async execute({
     id,
+    userId,
   }: GetAnalysisRequestUseCaseRequest): Promise<GetAnalysisRequestUseCaseResponse> {
     const analysisRequest = await this.repository.findById(id);
 
-    if (!analysisRequest) {
+    if (!analysisRequest || analysisRequest.userId !== userId) {
       throw new AnalysisRequestNotFoundError();
     }
 

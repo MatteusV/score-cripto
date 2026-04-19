@@ -401,6 +401,7 @@ describe("api-gateway HTTP server (Fastify)", () => {
 
       mockFindUnique.mockResolvedValue({
         id: "req-001",
+        userId: "user-test-1",
         status: "PENDING",
         chain: "ethereum",
         address: "0xabc",
@@ -426,6 +427,7 @@ describe("api-gateway HTTP server (Fastify)", () => {
 
       mockFindUnique.mockResolvedValue({
         id: "req-001",
+        userId: "user-test-1",
         status: "COMPLETED",
         chain: "ethereum",
         address: "0xabc",
@@ -458,6 +460,7 @@ describe("api-gateway HTTP server (Fastify)", () => {
 
       mockFindUnique.mockResolvedValue({
         id: "req-001",
+        userId: "user-test-1",
         status: "FAILED",
         chain: "ethereum",
         address: "0xabc",
@@ -474,6 +477,37 @@ describe("api-gateway HTTP server (Fastify)", () => {
       expect(res.statusCode).toBe(200);
       expect(body.status).toBe("failed");
       expect(body.result).toBeUndefined();
+
+      await app.close();
+    });
+
+    it("deve retornar 404 quando a análise pertence a outro usuário (IDOR)", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      mockFindUnique.mockResolvedValue({
+        id: "req-001",
+        userId: "user-owner",
+        status: "COMPLETED",
+        chain: "ethereum",
+        address: "0xabc",
+        score: 85,
+        confidence: 0.9,
+        reasoning: "Wallet trustworthy",
+        positiveFactors: ["Old wallet"],
+        riskFactors: [],
+        modelVersion: "gpt-4o-mini",
+        promptVersion: "v1.0",
+      });
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/analysis/req-001",
+        headers: { authorization: `Bearer ${signToken("user-attacker")}` },
+      });
+
+      expect(res.statusCode).toBe(404);
+      expect(res.json()).toMatchObject({ error: "Analysis request not found" });
 
       await app.close();
     });

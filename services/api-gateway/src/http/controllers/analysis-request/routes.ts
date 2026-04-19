@@ -8,7 +8,10 @@ import { analysisRequestsCounter } from "../../../observability/metrics.js";
 import { AnalysisRequestPrismaRepository } from "../../../repositories/prisma/analysis-request-prisma-repository.js";
 import { AnalysisTranslationPrismaRepository } from "../../../repositories/prisma/analysis-translation-prisma-repository.js";
 import { prisma } from "../../../services/database.js";
-import { checkUsage, UsersServiceError } from "../../../services/users-service.js";
+import {
+  checkUsage,
+  UsersServiceError,
+} from "../../../services/users-service.js";
 import { CreateAnalysisRequestUseCase } from "../../../use-cases/analysis-request/create-analysis-request-use-case.js";
 import { FindActiveAnalysisRequestUseCase } from "../../../use-cases/analysis-request/find-active-analysis-request-use-case.js";
 import { FindCachedAnalysisUseCase } from "../../../use-cases/analysis-request/find-cached-analysis-use-case.js";
@@ -278,7 +281,10 @@ export async function analysisRequestHandler(app: FastifyInstance) {
 
       let analysisRequest: AnalysisRequestDTO;
       try {
-        ({ analysisRequest } = await getUseCase.execute({ id }));
+        ({ analysisRequest } = await getUseCase.execute({
+          id,
+          userId: request.user.id,
+        }));
       } catch (err) {
         if (err instanceof AnalysisRequestNotFoundError) {
           return reply
@@ -328,10 +334,13 @@ export async function analysisRequestHandler(app: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params as { id: string };
 
-      // Verifica se análise existe e já terminou
+      // Verifica se análise existe, é do usuário autenticado e já terminou
       let analysis: AnalysisRequestDTO | null = null;
       try {
-        ({ analysisRequest: analysis } = await getUseCase.execute({ id }));
+        ({ analysisRequest: analysis } = await getUseCase.execute({
+          id,
+          userId: request.user.id,
+        }));
       } catch (err) {
         if (err instanceof AnalysisRequestNotFoundError) {
           return reply
@@ -518,6 +527,15 @@ export async function analysisRequestHandler(app: FastifyInstance) {
     async (request, reply) => {
       const { id, locale } = request.params as { id: string; locale: string };
 
+      try {
+        await getUseCase.execute({ id, userId: request.user.id });
+      } catch (err) {
+        if (err instanceof AnalysisRequestNotFoundError) {
+          return reply.status(404).send({ error: "No translation found" });
+        }
+        throw err;
+      }
+
       const translation = await translationRepository.findTranslation(
         id,
         locale
@@ -563,12 +581,24 @@ export async function analysisRequestHandler(app: FastifyInstance) {
             translatedAt: z.string(),
           }),
           401: z.object({ error: z.string() }),
+          404: z.object({ error: z.string() }),
         },
       },
     },
     async (request, reply) => {
       const { id, locale } = request.params as { id: string; locale: string };
       const { reasoning, positiveFactors, riskFactors } = request.body;
+
+      try {
+        await getUseCase.execute({ id, userId: request.user.id });
+      } catch (err) {
+        if (err instanceof AnalysisRequestNotFoundError) {
+          return reply
+            .status(404)
+            .send({ error: "Analysis request not found" });
+        }
+        throw err;
+      }
 
       const translation = await translationRepository.upsertTranslation({
         analysisId: id,
