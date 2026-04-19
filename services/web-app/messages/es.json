@@ -45,23 +45,68 @@
   "dashboard": {
     "title": "Panel",
     "welcome": "Bienvenido de nuevo, {name}",
+    "greeting": {
+      "hello": "Hola",
+      "subtitleAlerts": "Tienes {alerts} alerta(s) y {recent} análisis recientes.",
+      "subtitleEmpty": "Sin análisis aún — empieza analizando tu primera wallet.",
+      "networksOnline": "{count} redes online",
+      "refresh": "Actualizar",
+      "report": "Reporte mensual",
+      "soon": "pronto"
+    },
     "analyzeCard": {
-      "title": "Analizar nueva wallet",
-      "placeholder": "Pega la dirección de la wallet aquí...",
-      "submit": "Analizar",
-      "usageMonth": "{count} de {limit} análisis este mes",
-      "usageRemaining": "{remaining} restantes"
+      "eyebrow": "ANÁLISIS RÁPIDO",
+      "pipeline": "pipeline activo · IA · <3s",
+      "title": "Pega una dirección y ve el score en segundos",
+      "placeholder": "0x… o bc1… o 9WzD…",
+      "enterHint": "⏎ enter",
+      "networkLabel": "RED",
+      "submit": "Analizar wallet",
+      "usageMonth": "Uso mensual · {count} de {limit} análisis",
+      "usagePct": "{pct}%",
+      "usageRemaining": "{remaining} restantes",
+      "remainingShort": "{remaining} de {limit} restantes",
+      "upgrade": "Mejorar"
     },
     "stats": {
       "total": "Total de análisis",
       "remaining": "Restantes",
       "plan": "Plan actual",
-      "avgScore": "Score promedio"
+      "avgScore": "Score promedio",
+      "trusted": "Confiables",
+      "risky": "Alto riesgo"
     },
     "recentAnalyses": {
       "title": "Análisis recientes",
       "viewAll": "Ver todos",
-      "empty": "Sin análisis aún — ¡empieza ahora!"
+      "empty": "Sin análisis aún — ¡empieza ahora!",
+      "emptyDesc": "Pega una dirección arriba y recibe un score completo en segundos.",
+      "filters": {
+        "all": "Todos",
+        "trusted": "Confiables",
+        "risk": "Riesgo"
+      }
+    },
+    "highlight": {
+      "eyebrow": "DESTACADO",
+      "title": "Mayor score reciente",
+      "empty": "Sin destacados todavía."
+    },
+    "distribution": {
+      "eyebrow": "DISTRIBUCIÓN POR RED",
+      "sample": "muestra: últimos {n}",
+      "empty": "Sin datos suficientes."
+    },
+    "alerts": {
+      "eyebrow": "ALERTAS",
+      "soonTitle": "Alertas próximamente",
+      "soonBody": "Pronto verás aquí caídas de score, refresh de caché y avisos del plan."
+    },
+    "watchlist": {
+      "eyebrow": "WATCHLIST",
+      "soonTitle": "Watchlist próximamente",
+      "soonBody": "Marca wallets para seguir su score a lo largo del tiempo. Disponible en el plan Team.",
+      "addCta": "Añadir wallet"
     },
     "quickActions": {
       "title": "Acciones rápidas",

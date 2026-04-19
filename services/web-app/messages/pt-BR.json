@@ -45,23 +45,68 @@
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Bem-vindo de volta, {name}",
+    "greeting": {
+      "hello": "Olá",
+      "subtitleAlerts": "Você tem {alerts} alerta(s) e {recent} análises recentes.",
+      "subtitleEmpty": "Nenhuma análise ainda — comece analisando sua primeira carteira.",
+      "networksOnline": "{count} redes online",
+      "refresh": "Atualizar",
+      "report": "Relatório mensal",
+      "soon": "em breve"
+    },
     "analyzeCard": {
-      "title": "Analisar nova carteira",
-      "placeholder": "Cole o endereço da carteira aqui...",
-      "submit": "Analisar",
-      "usageMonth": "{count} de {limit} análises este mês",
-      "usageRemaining": "{remaining} restantes"
+      "eyebrow": "ANÁLISE RÁPIDA",
+      "pipeline": "pipeline ativo · IA · <3s",
+      "title": "Cole um endereço e veja o score em segundos",
+      "placeholder": "0x… ou bc1… ou 9WzD…",
+      "enterHint": "⏎ enter",
+      "networkLabel": "REDE",
+      "submit": "Analisar carteira",
+      "usageMonth": "Uso mensal · {count} de {limit} análises",
+      "usagePct": "{pct}%",
+      "usageRemaining": "{remaining} restantes",
+      "remainingShort": "{remaining} de {limit} restantes",
+      "upgrade": "Upgrade"
     },
     "stats": {
       "total": "Análises totais",
       "remaining": "Restantes",
       "plan": "Plano atual",
-      "avgScore": "Score médio"
+      "avgScore": "Score médio",
+      "trusted": "Confiáveis",
+      "risky": "Alto risco"
     },
     "recentAnalyses": {
       "title": "Análises recentes",
       "viewAll": "Ver todas",
-      "empty": "Nenhuma análise ainda — comece agora!"
+      "empty": "Nenhuma análise ainda — comece agora!",
+      "emptyDesc": "Cole um endereço acima e receba um score completo em segundos.",
+      "filters": {
+        "all": "Todas",
+        "trusted": "Confiáveis",
+        "risk": "Risco"
+      }
+    },
+    "highlight": {
+      "eyebrow": "DESTAQUE",
+      "title": "Maior score recente",
+      "empty": "Sem destaques ainda."
+    },
+    "distribution": {
+      "eyebrow": "DISTRIBUIÇÃO POR REDE",
+      "sample": "amostra: últimas {n}",
+      "empty": "Sem dados suficientes."
+    },
+    "alerts": {
+      "eyebrow": "ALERTAS",
+      "soonTitle": "Alertas em breve",
+      "soonBody": "Em breve você verá aqui quedas de score, refreshes em cache e avisos do plano."
+    },
+    "watchlist": {
+      "eyebrow": "WATCHLIST",
+      "soonTitle": "Watchlist em breve",
+      "soonBody": "Marque carteiras para acompanhar o score ao longo do tempo. Disponível no plano Team.",
+      "addCta": "Adicionar carteira"
     },
     "quickActions": {
       "title": "Ações rápidas",

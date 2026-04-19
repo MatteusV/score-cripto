@@ -45,23 +45,68 @@
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome back, {name}",
+    "greeting": {
+      "hello": "Hi",
+      "subtitleAlerts": "You have {alerts} alert(s) and {recent} recent analyses.",
+      "subtitleEmpty": "No analyses yet — start by analyzing your first wallet.",
+      "networksOnline": "{count} networks online",
+      "refresh": "Refresh",
+      "report": "Monthly report",
+      "soon": "soon"
+    },
     "analyzeCard": {
-      "title": "Analyze new wallet",
-      "placeholder": "Paste wallet address here...",
-      "submit": "Analyze",
-      "usageMonth": "{count} of {limit} analyses this month",
-      "usageRemaining": "{remaining} remaining"
+      "eyebrow": "QUICK ANALYSIS",
+      "pipeline": "pipeline live · AI · <3s",
+      "title": "Paste an address and see the score in seconds",
+      "placeholder": "0x… or bc1… or 9WzD…",
+      "enterHint": "⏎ enter",
+      "networkLabel": "NETWORK",
+      "submit": "Analyze wallet",
+      "usageMonth": "Monthly usage · {count} of {limit} analyses",
+      "usagePct": "{pct}%",
+      "usageRemaining": "{remaining} remaining",
+      "remainingShort": "{remaining} of {limit} remaining",
+      "upgrade": "Upgrade"
     },
     "stats": {
       "total": "Total analyses",
       "remaining": "Remaining",
       "plan": "Current plan",
-      "avgScore": "Avg score"
+      "avgScore": "Avg score",
+      "trusted": "Trusted",
+      "risky": "High risk"
     },
     "recentAnalyses": {
       "title": "Recent analyses",
       "viewAll": "View all",
-      "empty": "No analyses yet — start now!"
+      "empty": "No analyses yet — start now!",
+      "emptyDesc": "Paste an address above and get a full score in seconds.",
+      "filters": {
+        "all": "All",
+        "trusted": "Trusted",
+        "risk": "Risk"
+      }
+    },
+    "highlight": {
+      "eyebrow": "HIGHLIGHT",
+      "title": "Top recent score",
+      "empty": "No highlights yet."
+    },
+    "distribution": {
+      "eyebrow": "DISTRIBUTION BY CHAIN",
+      "sample": "sample: last {n}",
+      "empty": "Not enough data."
+    },
+    "alerts": {
+      "eyebrow": "ALERTS",
+      "soonTitle": "Alerts coming soon",
+      "soonBody": "You'll soon see score drops, cache refreshes and plan warnings here."
+    },
+    "watchlist": {
+      "eyebrow": "WATCHLIST",
+      "soonTitle": "Watchlist coming soon",
+      "soonBody": "Bookmark wallets to track their score over time. Available on the Team plan.",
+      "addCta": "Add wallet"
     },
     "quickActions": {
       "title": "Quick actions",
