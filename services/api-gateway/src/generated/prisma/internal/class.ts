@@ -23,7 +23,7 @@ const config: runtime.GetPrismaClientConfig = {
       "value": "prisma-client"
     },
     "output": {
-      "value": "/home/matteus-varlesse/www/score-cripto/services/api-gateway/src/generated/prisma",
+      "value": "/workspace/services/api-gateway/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -33,12 +33,12 @@ const config: runtime.GetPrismaClientConfig = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "debian-openssl-3.0.x",
+        "value": "debian-openssl-1.1.x",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/matteus-varlesse/www/score-cripto/services/api-gateway/prisma/schema.prisma",
+    "sourceFilePath": "/workspace/services/api-gateway/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativePath": "../../../prisma",
