@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
 import { config } from "../../../config.js";
+import { StripeWebhookEventPrismaRepository } from "../../../repositories/prisma/stripe-webhook-event-prisma-repository.js";
 import { SubscriptionPrismaRepository } from "../../../repositories/prisma/subscription-prisma-repository.js";
 import { UserPrismaRepository } from "../../../repositories/prisma/user-prisma-repository.js";
 import { prisma } from "../../../services/database.js";
@@ -17,6 +18,7 @@ import { authenticate } from "../../middleware/authenticate.js";
 
 const userRepo = new UserPrismaRepository(prisma);
 const subscriptionRepo = new SubscriptionPrismaRepository(prisma);
+const webhookEventRepo = new StripeWebhookEventPrismaRepository(prisma);
 const billingService = new StripeBillingService(
   config.stripeSecretKey,
   config.stripeWebhookSecret
@@ -31,6 +33,7 @@ const portalUseCase = new CreatePortalSessionUseCase(userRepo, billingService);
 const webhookUseCase = new HandleStripeWebhookUseCase(
   userRepo,
   subscriptionRepo,
+  webhookEventRepo,
   billingService,
   config.stripeProPriceId
 );

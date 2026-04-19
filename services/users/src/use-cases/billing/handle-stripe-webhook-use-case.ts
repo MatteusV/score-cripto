@@ -1,3 +1,4 @@
+import type { StripeWebhookEventRepository } from "../../repositories/stripe-webhook-event-repository.js";
 import type { SubscriptionRepository } from "../../repositories/subscription-repository.js";
 import type { UserRepository } from "../../repositories/user-repository.js";
 import type { BillingService } from "../../services/billing-service.js";
@@ -10,17 +11,20 @@ interface Input {
 export class HandleStripeWebhookUseCase {
   private readonly userRepo: UserRepository;
   private readonly subscriptionRepo: SubscriptionRepository;
+  private readonly webhookEventRepo: StripeWebhookEventRepository;
   private readonly billingService: BillingService;
   private readonly proPriceId: string;
 
   constructor(
     userRepo: UserRepository,
     subscriptionRepo: SubscriptionRepository,
+    webhookEventRepo: StripeWebhookEventRepository,
     billingService: BillingService,
     proPriceId: string
   ) {
     this.userRepo = userRepo;
     this.subscriptionRepo = subscriptionRepo;
+    this.webhookEventRepo = webhookEventRepo;
     this.billingService = billingService;
     this.proPriceId = proPriceId;
   }
@@ -30,6 +34,12 @@ export class HandleStripeWebhookUseCase {
       input.payload,
       input.signature
     );
+
+    // Idempotência: se o evento já foi processado, ignora sem reaplicar side-effects.
+    const isFirstDelivery = await this.webhookEventRepo.tryRecord(event.id);
+    if (!isFirstDelivery) {
+      return;
+    }
 
     const { type, data } = event;
 

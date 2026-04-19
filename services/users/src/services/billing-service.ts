@@ -7,6 +7,7 @@ export interface CheckoutSessionParams {
 
 export interface WebhookEvent {
   data: WebhookEventData;
+  id: string;
   type: string;
 }
 

@@ -27,6 +27,11 @@ export class FakeBillingService implements BillingService {
     payload: string,
     _signature: string
   ): Promise<WebhookEvent> {
-    return JSON.parse(payload) as WebhookEvent;
+    const parsed = JSON.parse(payload) as Partial<WebhookEvent>;
+    return {
+      id: parsed.id ?? `evt_fake_${Math.random().toString(36).slice(2)}`,
+      type: parsed.type ?? "unknown",
+      data: parsed.data ?? {},
+    };
   }
 }

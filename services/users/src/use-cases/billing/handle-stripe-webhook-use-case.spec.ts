@@ -1,5 +1,6 @@
 import { hashSync } from "bcryptjs";
 import { beforeEach, describe, expect, it } from "vitest";
+import { StripeWebhookEventInMemoryRepository } from "../../repositories/in-memory/stripe-webhook-event-in-memory-repository.js";
 import { SubscriptionInMemoryRepository } from "../../repositories/in-memory/subscription-in-memory-repository.js";
 import { UserInMemoryRepository } from "../../repositories/in-memory/user-in-memory-repository.js";
 import { FakeBillingService } from "../../services/fake-billing-service.js";
@@ -8,16 +9,19 @@ import { HandleStripeWebhookUseCase } from "./handle-stripe-webhook-use-case.js"
 describe("HandleStripeWebhookUseCase", () => {
   let userRepo: UserInMemoryRepository;
   let subscriptionRepo: SubscriptionInMemoryRepository;
+  let webhookEventRepo: StripeWebhookEventInMemoryRepository;
   let billingService: FakeBillingService;
   let sut: HandleStripeWebhookUseCase;
 
   beforeEach(() => {
     userRepo = new UserInMemoryRepository();
     subscriptionRepo = new SubscriptionInMemoryRepository();
+    webhookEventRepo = new StripeWebhookEventInMemoryRepository();
     billingService = new FakeBillingService();
     sut = new HandleStripeWebhookUseCase(
       userRepo,
       subscriptionRepo,
+      webhookEventRepo,
       billingService,
       "price_pro"
     );
@@ -148,6 +152,28 @@ describe("HandleStripeWebhookUseCase", () => {
 
     const updated = subscriptionRepo.items.find((s) => s.id === sub.id);
     expect(updated?.status).toBe("past_due");
+  });
+
+  it("should be idempotent: reprocessing the same event id is a no-op", async () => {
+    const { sub } = await seedUserWithSubscription();
+
+    const payload = JSON.stringify({
+      id: "evt_same_123",
+      type: "customer.subscription.updated",
+      data: {
+        customerId: "cus_123",
+        subscriptionId: "sub_abc",
+        priceId: "price_pro",
+        status: "active",
+      },
+    });
+
+    await sut.execute({ payload, signature: "fake" });
+    await subscriptionRepo.update(sub.id, { plan: "FREE_TIER" });
+    await sut.execute({ payload, signature: "fake" });
+
+    const updated = subscriptionRepo.items.find((s) => s.id === sub.id);
+    expect(updated?.plan).toBe("FREE_TIER");
   });
 
   it("should silently ignore unknown customerId", async () => {

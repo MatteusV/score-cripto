@@ -77,6 +77,13 @@ model Subscription {
   @@map("subscriptions")
 }
 
+model StripeWebhookEvent {
+  id         String   @id
+  receivedAt DateTime @default(now())
+
+  @@map("stripe_webhook_events")
+}
+
 model UsageRecord {
   id            String   @id @default(cuid())
   userId        String

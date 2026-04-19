@@ -69,11 +69,12 @@ export class StripeBillingService implements BillingService {
       this.webhookSecret
     );
 
+    const base = { id: event.id, type: event.type };
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         return {
-          type: event.type,
+          ...base,
           data: {
             customerId: session.customer as string,
             subscriptionId: session.subscription as string,
@@ -89,7 +90,7 @@ export class StripeBillingService implements BillingService {
         const periodStart = item?.current_period_start;
         const periodEnd = item?.current_period_end;
         return {
-          type: event.type,
+          ...base,
           data: {
             customerId: sub.customer as string,
             subscriptionId: sub.id,
@@ -108,7 +109,7 @@ export class StripeBillingService implements BillingService {
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
         return {
-          type: event.type,
+          ...base,
           data: {
             customerId: sub.customer as string,
             subscriptionId: sub.id,
@@ -128,7 +129,7 @@ export class StripeBillingService implements BillingService {
           )?.subscription_details?.subscription ??
           null;
         return {
-          type: event.type,
+          ...base,
           data: {
             customerId: invoice.customer as string,
             subscriptionId: subscriptionId as string,
@@ -137,7 +138,7 @@ export class StripeBillingService implements BillingService {
         };
       }
       default:
-        return { type: event.type, data: {} };
+        return { ...base, data: {} };
     }
   }
 }
