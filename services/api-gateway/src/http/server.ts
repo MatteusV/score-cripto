@@ -14,6 +14,7 @@ import {
   type ZodTypeProvider,
 } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
+import { corsOriginCheck } from "./cors.js";
 import { adminHandler } from "./controllers/admin/routes.js";
 import { analysisRequestHandler } from "./controllers/analysis-request/routes.js";
 import { authHandler, profileHandler } from "./controllers/auth/routes.js";
@@ -36,9 +37,9 @@ export async function createHttpServer() {
   await registerRateLimit(app);
 
   app.register(fastifyCors, {
-    origin: true,
+    origin: corsOriginCheck,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    // credentials: true,
+    credentials: true,
   });
 
   await app.register(fastifySwagger, {
