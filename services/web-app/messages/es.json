@@ -74,7 +74,12 @@
       "plan": "Plan actual",
       "avgScore": "Score promedio",
       "trusted": "Confiables",
-      "risky": "Alto riesgo"
+      "risky": "Alto riesgo",
+      "delta": {
+        "stable": "estable",
+        "window": "7d",
+        "pts": "pts"
+      }
     },
     "recentAnalyses": {
       "title": "Análisis recientes",
