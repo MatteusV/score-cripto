@@ -22,8 +22,8 @@ const envSchema = z.object({
     .number()
     .int()
     .positive()
-    .default(600_000),
-  RECONCILE_INTERVAL_MS: z.coerce.number().int().positive().default(120_000),
+    .default(180_000),
+  RECONCILE_INTERVAL_MS: z.coerce.number().int().positive().default(15_000),
 });
 
 const parsed = envSchema.safeParse(process.env);

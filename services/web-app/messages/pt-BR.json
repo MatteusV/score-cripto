@@ -152,7 +152,20 @@
     },
     "error": {
       "title": "Análise falhou",
-      "notFound": "Análise não encontrada"
+      "notFound": "Análise não encontrada",
+      "technicalDetails": "Detalhes técnicos",
+      "reasons": {
+        "ai_unavailable": "Nosso modelo de IA está temporariamente indisponível. Tente novamente em alguns instantes.",
+        "ai_timeout": "A análise de IA demorou mais do que o esperado. Por favor, tente novamente.",
+        "provider_unavailable": "Não conseguimos consultar os dados on-chain desta carteira no momento. O provedor blockchain pode estar instável — tente novamente em breve.",
+        "provider_config_missing": "O serviço de busca on-chain não está configurado corretamente. Se o problema persistir, entre em contato com o suporte.",
+        "unsupported_chain": "Esta rede blockchain ainda não é suportada.",
+        "invalid_address": "O endereço informado não parece válido para esta rede. Confira e tente novamente.",
+        "rate_limited": "Você atingiu o limite de análises. Aguarde alguns minutos antes de tentar de novo.",
+        "timeout": "A análise demorou demais para completar. Tente novamente.",
+        "upstream_unreachable": "Não conseguimos nos conectar ao serviço de análise. Verifique sua conexão e tente novamente.",
+        "internal_error": "Algo deu errado do nosso lado. Já estamos verificando — tente novamente em instantes."
+      }
     },
     "historical": {
       "loading": "Carregando análise histórica..."

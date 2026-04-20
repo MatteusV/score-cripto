@@ -101,12 +101,54 @@ export async function handleStageChanged(
     return;
   }
 
+  // Estado terminal via stage.failed: marca análise como FAILED e notifica UI.
+  // Sem isso o cliente ficaria preso em "processando" quando a falha acontece
+  // antes do process-data-ia chegar a publicar wallet.score.failed (ex: fetch
+  // on-chain falhou em data-search).
+  if (state === "failed") {
+    const reason = errorMessage ?? `Stage "${stage}" failed`;
+    const terminalCode = errorCodeForStage(stage);
+    await failUseCase.execute({ id: requestId, reason });
+    publishUserAnalysisConsumed({
+      userId: analysisRequest.userId,
+      analysisId: requestId,
+      status: "failed",
+      chain: analysisRequest.chain,
+      address: analysisRequest.address,
+    });
+    analysisEventBus.emit(requestId, {
+      status: "failed",
+      stage,
+      stageState: "failed",
+      error: reason,
+      errorCode: terminalCode,
+    });
+    return;
+  }
+
   analysisEventBus.emit(requestId, {
     status: analysisRequest.status.toLowerCase(),
     stage,
     stageState: state,
     ...(errorMessage ? { errorMessage } : {}),
   });
+}
+
+function errorCodeForStage(stage: string): string {
+  switch (stage) {
+    case "detect":
+      return "unsupported_chain";
+    case "fetch":
+      return "provider_unavailable";
+    case "normalize":
+      return "internal_error";
+    case "ai":
+      return "ai_unavailable";
+    case "score":
+      return "internal_error";
+    default:
+      return "internal_error";
+  }
 }
 
 export async function handleScoreCalculated(
@@ -212,7 +254,25 @@ export async function handleScoreFailed(
     status: "failed",
     stageState: "failed",
     error: reason,
+    errorCode: classifyReason(reason),
   });
+}
+
+function classifyReason(reason: string): string {
+  const r = reason.toLowerCase();
+  if (r.includes("ai scoring failed") || r.includes("gateway")) {
+    return "ai_unavailable";
+  }
+  if (r.includes("timeout")) {
+    return "ai_timeout";
+  }
+  if (r.includes("cache lookup failed")) {
+    return "internal_error";
+  }
+  if (r.includes("publish failure")) {
+    return "internal_error";
+  }
+  return "internal_error";
 }
 
 let connection: ChannelModel | null = null;

@@ -143,8 +143,11 @@ export class AnalysisRequestPrismaRepository
   async markStaleAsFailed(olderThan: Date, reason: string): Promise<number> {
     const result = await this.prisma.analysisRequest.updateMany({
       where: {
-        status: "PENDING",
-        requestedAt: { lt: olderThan },
+        status: { in: ["PENDING", "PROCESSING"] },
+        OR: [
+          { stageUpdatedAt: { lt: olderThan } },
+          { stageUpdatedAt: null, requestedAt: { lt: olderThan } },
+        ],
       },
       data: {
         status: "FAILED",
@@ -153,6 +156,20 @@ export class AnalysisRequestPrismaRepository
       },
     });
     return result.count;
+  }
+
+  async findStaleIds(olderThan: Date): Promise<string[]> {
+    const rows = await this.prisma.analysisRequest.findMany({
+      where: {
+        status: { in: ["PENDING", "PROCESSING"] },
+        OR: [
+          { stageUpdatedAt: { lt: olderThan } },
+          { stageUpdatedAt: null, requestedAt: { lt: olderThan } },
+        ],
+      },
+      select: { id: true },
+    });
+    return rows.map((r) => r.id);
   }
 
   async listByUserId(

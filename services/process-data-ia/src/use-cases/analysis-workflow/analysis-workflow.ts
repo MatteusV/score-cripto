@@ -9,11 +9,7 @@ import { logger } from "../../logger.js";
 import { ProcessedDataPrismaRepository } from "../../repositories/prisma/processed-data-prisma-repository.js";
 import type { WalletContextInput } from "../../schemas/score.js";
 import { prisma } from "../../services/database.js";
-import {
-  type ScoringResult,
-  scoreWithAI,
-  scoreWithHeuristic,
-} from "../../services/scoring.js";
+import { type ScoringResult, scoreWithAI } from "../../services/scoring.js";
 import { GetCachedScoreUseCase } from "../processed-data/get-cached-score-use-case.js";
 import { PersistScoreUseCase } from "../processed-data/persist-score-use-case.js";
 import { hashWalletContext } from "./hash-wallet-context.js";
@@ -115,7 +111,7 @@ export class AnalysisWorkflow {
       return { processedData: cachedScore, cachedResult: true };
     }
 
-    // 2. Cache miss — score com IA, fallback heurístico em caso de erro
+    // 2. Cache miss — score obrigatoriamente via IA. Sem fallback heurístico.
     let scoringResult: ScoringResult;
 
     this.publishStage({ requestId, stage: "ai", state: "started" });
@@ -123,20 +119,18 @@ export class AnalysisWorkflow {
       scoringResult = await this.scoringFn(walletContext);
     } catch (error) {
       const reason = (error as Error).message;
-      logger.warn(
+      logger.error(
         { err: reason },
-        "[AnalysisWorkflow] AI scoring failed, using heuristic"
+        "[AnalysisWorkflow] AI scoring failed — publishing failed event"
       );
-
-      const heuristic = scoreWithHeuristic(walletContext);
-      scoringResult = {
-        output: heuristic,
-        modelVersion: "heuristic-v1",
-        promptVersion: "heuristic",
-        tokensUsed: 0,
-        cost: 0,
-        durationMs: 0,
-      };
+      this.publishStage({
+        requestId,
+        stage: "ai",
+        state: "failed",
+        errorMessage: reason,
+      });
+      this.publishFailed({ requestId, reason: `AI scoring failed: ${reason}` });
+      throw error;
     }
     this.publishStage({ requestId, stage: "ai", state: "completed" });
 

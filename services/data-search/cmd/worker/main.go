@@ -56,14 +56,12 @@ func main() {
 	}
 	defer pub.Close()
 
-	// Blockchain providers.
-	var evmProvider usecase.BlockchainProviderPort
+	// Blockchain providers. Requests must come from real on-chain sources — no mock fallback.
 	if cfg.EtherscanAPIKey == "" {
-		slog.Warn("ETHERSCAN_API_KEY not set — using mock provider (dev only, synthetic data)")
-		evmProvider = infraProvider.NewMockProvider()
-	} else {
-		evmProvider = infraProvider.NewEtherscanProvider(cfg.EtherscanAPIKey, cfg.EtherscanBaseURL)
+		slog.Error("ETHERSCAN_API_KEY is required; refusing to start with mock provider")
+		os.Exit(1)
 	}
+	evmProvider := infraProvider.NewEtherscanProvider(cfg.EtherscanAPIKey, cfg.EtherscanBaseURL)
 
 	// Wire providers map: start with EVM chains.
 	providers := make(map[string]usecase.BlockchainProviderPort)

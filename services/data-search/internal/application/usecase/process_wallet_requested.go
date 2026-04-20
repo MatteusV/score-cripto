@@ -63,8 +63,6 @@ const (
 	stageDetect    = "detect"
 	stageFetch     = "fetch"
 	stageNormalize = "normalize"
-	stageSanctions = "sanctions"
-	stageMixer     = "mixer"
 
 	stageStateStarted   = "started"
 	stageStateCompleted = "completed"
@@ -122,7 +120,7 @@ func (uc *ProcessWalletDataRequested) Execute(ctx context.Context, input Process
 	if cached != nil {
 		telemetry.CacheHits.Add(ctx, 1, metric.WithAttributes(attribute.String("chain", chain)))
 		// Cache hit: publish stage events so UI catches up instantly.
-		for _, s := range []string{stageFetch, stageNormalize, stageSanctions, stageMixer} {
+		for _, s := range []string{stageFetch, stageNormalize} {
 			uc.emitStage(ctx, input.RequestID, s, stageStateStarted, "")
 			uc.emitStage(ctx, input.RequestID, s, stageStateCompleted, "")
 		}
@@ -158,13 +156,6 @@ func (uc *ProcessWalletDataRequested) Execute(ctx context.Context, input Process
 	uc.emitStage(ctx, input.RequestID, stageNormalize, stageStateStarted, "")
 	wc := uc.normalizer(raw)
 	uc.emitStage(ctx, input.RequestID, stageNormalize, stageStateCompleted, "")
-
-	// 4b. Sanctions / mixer checks — no-op observável enquanto as checagens reais não existem.
-	// Mantidos como estágios visíveis no pipeline para a UI.
-	uc.emitStage(ctx, input.RequestID, stageSanctions, stageStateStarted, "")
-	uc.emitStage(ctx, input.RequestID, stageSanctions, stageStateCompleted, "")
-	uc.emitStage(ctx, input.RequestID, stageMixer, stageStateStarted, "")
-	uc.emitStage(ctx, input.RequestID, stageMixer, stageStateCompleted, "")
 
 	// 5. Cache the result (non-fatal).
 	if err := uc.cache.Set(ctx, wc); err != nil {

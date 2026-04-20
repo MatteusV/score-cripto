@@ -21,6 +21,7 @@ export function ResultShell({ chain, address }: ResultShellProps) {
     phase,
     result,
     error,
+    errorCode,
     backendStatus,
     fromCache,
     currentStage,
@@ -79,11 +80,21 @@ export function ResultShell({ chain, address }: ResultShellProps) {
             <div className="flex size-14 items-center justify-center rounded-full bg-destructive/10">
               <AlertCircleIcon className="size-7 text-destructive" />
             </div>
-            <div className="max-w-sm space-y-1 text-center">
+            <div className="max-w-sm space-y-2 text-center">
               <p className="font-heading font-medium text-sm">
                 {t("error.title")}
               </p>
-              <p className="text-muted-foreground text-sm">{error}</p>
+              <p className="text-muted-foreground text-sm">
+                {t(`error.reasons.${errorCode ?? "internal_error"}`)}
+              </p>
+              {error ? (
+                <details className="mt-2 text-left text-muted-foreground/70 text-xs">
+                  <summary className="cursor-pointer select-none">
+                    {t("error.technicalDetails")}
+                  </summary>
+                  <p className="mt-1 break-words font-mono">{error}</p>
+                </details>
+              ) : null}
             </div>
             <div className="flex gap-3">
               <Button

@@ -22,12 +22,6 @@ const STAGES: Stage[] = [
     labelKey: "stageNormalize",
     detailKey: "stageNormalizeDetail",
   },
-  {
-    key: "sanctions",
-    labelKey: "stageSanctions",
-    detailKey: "stageSanctionsDetail",
-  },
-  { key: "mixer", labelKey: "stageMixer", detailKey: "stageMixerDetail" },
   { key: "ai", labelKey: "stageAi", detailKey: "stageAiDetail" },
   { key: "score", labelKey: "stageScore", detailKey: "stageScoreDetail" },
 ];

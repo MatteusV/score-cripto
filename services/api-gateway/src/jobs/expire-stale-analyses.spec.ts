@@ -52,7 +52,7 @@ describe("expireStaleAnalyses", () => {
     expect(count).toBe(1);
     const updated = await repo.findById(oldRequest.id);
     expect(updated?.status).toBe("FAILED");
-    expect(updated?.failureReason).toContain("timed out");
+    expect(updated?.failureReason).toContain("tempo limite");
   });
 
   it("não expira análises PENDING mais recentes que o threshold", async () => {

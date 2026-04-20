@@ -8,11 +8,7 @@ import { logger } from "../logger.js";
 import { ProcessedDataPrismaRepository } from "../repositories/prisma/processed-data-prisma-repository.js";
 import type { WalletContextInput } from "../schemas/score.js";
 import { prisma } from "../services/database.js";
-import {
-  type ScoringResult,
-  scoreWithAI,
-  scoreWithHeuristic,
-} from "../services/scoring.js";
+import { type ScoringResult, scoreWithAI } from "../services/scoring.js";
 import { GetCachedScoreUseCase } from "../use-cases/processed-data/get-cached-score-use-case.js";
 import { PersistScoreUseCase } from "../use-cases/processed-data/persist-score-use-case.js";
 import { hashWalletContext } from "./hash-wallet-context.js";
@@ -83,27 +79,18 @@ export class ProcessWalletCachedEvent {
       return { processedData: cachedScore, cachedResult: true };
     }
 
-    // 2. Score com AI, fallback heurístico
+    // 2. Score via IA (sem fallback — falha se a IA não responder)
     let scoringResult: ScoringResult;
-
     try {
       scoringResult = await this.scoringFn(walletContext);
     } catch (error) {
       const reason = (error as Error).message;
-      logger.warn(
+      logger.error(
         { err: reason },
-        "[ProcessWalletCachedEvent] AI scoring failed, using heuristic"
+        "[ProcessWalletCachedEvent] AI scoring failed — publishing failed event"
       );
-
-      const heuristic = scoreWithHeuristic(walletContext);
-      scoringResult = {
-        output: heuristic,
-        modelVersion: "heuristic-v1",
-        promptVersion: "heuristic",
-        tokensUsed: 0,
-        cost: 0,
-        durationMs: 0,
-      };
+      this.publishFailed({ requestId, reason: `AI scoring failed: ${reason}` });
+      throw error;
     }
 
     // 3. Persiste score

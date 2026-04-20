@@ -55,6 +55,7 @@ export interface AnalysisRequestRepository {
   ) => Promise<AnalysisRequestDTO>;
   markFailed: (id: string, reason: string) => Promise<AnalysisRequestDTO>;
   markStaleAsFailed: (olderThan: Date, reason: string) => Promise<number>;
+  findStaleIds: (olderThan: Date) => Promise<string[]>;
   summarizeByUserId: (userId: string) => Promise<{ summary: AnalysisSummary }>;
   summarizeByUserIdInRange: (
     userId: string,

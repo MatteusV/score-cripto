@@ -23,6 +23,7 @@ export interface WalletScoreState {
   backendStatus: AnalysisStatus | null;
   currentStage: AnalysisStage | null;
   error: string | null;
+  errorCode: string | null;
   fromCache: boolean;
   phase: WalletScorePhase;
   processId: string | null;
@@ -39,6 +40,7 @@ const initialState: WalletScoreState = {
   processId: null,
   result: null,
   error: null,
+  errorCode: null,
   backendStatus: null,
   fromCache: false,
   currentStage: null,
@@ -86,6 +88,7 @@ export function useWalletScore(chain: string, address: string) {
             ...prev,
             phase: "error",
             error: "Timeout: análise não completou a tempo.",
+            errorCode: "timeout",
           }));
           return;
         }
@@ -115,6 +118,7 @@ export function useWalletScore(chain: string, address: string) {
               phase: "error",
               backendStatus: "failed",
               error: response.error ?? "Erro no processamento da análise.",
+              errorCode: "internal_error",
             }));
             return;
           }
@@ -136,6 +140,7 @@ export function useWalletScore(chain: string, address: string) {
             phase: "error",
             error:
               err instanceof Error ? err.message : "Erro ao consultar status",
+            errorCode: "upstream_unreachable",
           }));
         }
       }
@@ -210,6 +215,7 @@ export function useWalletScore(chain: string, address: string) {
             status: "completed" | "failed";
             result?: ScoreResult;
             error?: string;
+            errorCode?: string;
           };
 
           cleanup();
@@ -227,6 +233,7 @@ export function useWalletScore(chain: string, address: string) {
               phase: "error",
               backendStatus: "failed",
               error: data.error ?? "Erro no processamento da análise.",
+              errorCode: data.errorCode ?? "internal_error",
             }));
           }
         } catch {
@@ -283,6 +290,7 @@ export function useWalletScore(chain: string, address: string) {
         processId: null,
         result: null,
         error: null,
+        errorCode: null,
         backendStatus: null,
         fromCache: false,
         currentStage: null,
@@ -304,6 +312,7 @@ export function useWalletScore(chain: string, address: string) {
               processId: cached.processId,
               result: cached.result,
               error: null,
+              errorCode: null,
               backendStatus: "completed",
               fromCache: true,
               currentStage: "score",
@@ -348,6 +357,7 @@ export function useWalletScore(chain: string, address: string) {
           ...prev,
           phase: "error",
           error: err instanceof Error ? err.message : "Erro ao iniciar análise",
+          errorCode: "upstream_unreachable",
         }));
       }
     },

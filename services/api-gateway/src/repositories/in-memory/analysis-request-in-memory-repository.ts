@@ -177,7 +177,7 @@ export class AnalysisRequestInMemoryRepository
   async markStaleAsFailed(olderThan: Date, reason: string): Promise<number> {
     let count = 0;
     for (const item of this.items) {
-      if (item.status === "PENDING" && item.requestedAt < olderThan) {
+      if (this.isStale(item, olderThan)) {
         item.status = "FAILED";
         item.failedAt = new Date();
         item.failureReason = reason;
@@ -185,6 +185,18 @@ export class AnalysisRequestInMemoryRepository
       }
     }
     return count;
+  }
+
+  async findStaleIds(olderThan: Date): Promise<string[]> {
+    return this.items.filter((i) => this.isStale(i, olderThan)).map((i) => i.id);
+  }
+
+  private isStale(item: AnalysisRequestDTO, olderThan: Date): boolean {
+    if (item.status !== "PENDING" && item.status !== "PROCESSING") {
+      return false;
+    }
+    const last = item.stageUpdatedAt ?? item.requestedAt;
+    return last < olderThan;
   }
 
   async listByUserId(

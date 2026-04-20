@@ -152,7 +152,20 @@
     },
     "error": {
       "title": "Analysis failed",
-      "notFound": "Analysis not found"
+      "notFound": "Analysis not found",
+      "technicalDetails": "Technical details",
+      "reasons": {
+        "ai_unavailable": "Our AI model is temporarily unavailable. Please try again in a moment.",
+        "ai_timeout": "The AI analysis took longer than expected. Please try again.",
+        "provider_unavailable": "We couldn't reach the on-chain data for this wallet right now. The blockchain provider may be unstable — try again soon.",
+        "provider_config_missing": "The on-chain data service is not properly configured. If the issue persists, please contact support.",
+        "unsupported_chain": "This blockchain network is not supported yet.",
+        "invalid_address": "The address does not look valid for this network. Double-check and try again.",
+        "rate_limited": "You've reached the analysis limit. Please wait a few minutes before trying again.",
+        "timeout": "The analysis took too long to complete. Please try again.",
+        "upstream_unreachable": "We couldn't connect to the analysis service. Check your connection and try again.",
+        "internal_error": "Something went wrong on our side. We're already looking into it — please try again shortly."
+      }
     },
     "historical": {
       "loading": "Loading historical analysis..."

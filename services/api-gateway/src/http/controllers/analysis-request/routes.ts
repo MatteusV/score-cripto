@@ -465,7 +465,11 @@ export async function analysisRequestHandler(app: FastifyInstance) {
       }
 
       if (analysis.status === "FAILED") {
-        sendEvent("result", { status: "failed", error: "Analysis failed" });
+        sendEvent("result", {
+          status: "failed",
+          error: analysis.failureReason ?? "Analysis failed",
+          errorCode: "internal_error",
+        });
         reply.raw.end();
         return;
       }
@@ -487,6 +491,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
           stageState?: string;
           result?: unknown;
           error?: string;
+          errorCode?: string;
           errorMessage?: string;
         }) => {
           const isTerminal =

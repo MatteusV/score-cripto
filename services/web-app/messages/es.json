@@ -152,7 +152,20 @@
     },
     "error": {
       "title": "Análisis fallido",
-      "notFound": "Análisis no encontrado"
+      "notFound": "Análisis no encontrado",
+      "technicalDetails": "Detalles técnicos",
+      "reasons": {
+        "ai_unavailable": "Nuestro modelo de IA está temporalmente no disponible. Inténtalo de nuevo en unos instantes.",
+        "ai_timeout": "El análisis con IA tardó más de lo esperado. Por favor, inténtalo de nuevo.",
+        "provider_unavailable": "No pudimos consultar los datos on-chain de esta billetera en este momento. El proveedor de blockchain puede estar inestable — inténtalo pronto.",
+        "provider_config_missing": "El servicio de datos on-chain no está configurado correctamente. Si el problema persiste, contacta al soporte.",
+        "unsupported_chain": "Esta red blockchain todavía no es compatible.",
+        "invalid_address": "La dirección no parece válida para esta red. Verifícala e inténtalo de nuevo.",
+        "rate_limited": "Has alcanzado el límite de análisis. Espera unos minutos antes de intentarlo de nuevo.",
+        "timeout": "El análisis tardó demasiado en completarse. Inténtalo de nuevo.",
+        "upstream_unreachable": "No pudimos conectar con el servicio de análisis. Revisa tu conexión e inténtalo de nuevo.",
+        "internal_error": "Algo salió mal de nuestro lado. Ya estamos revisando — inténtalo en unos instantes."
+      }
     },
     "historical": {
       "loading": "Cargando análisis histórico..."
