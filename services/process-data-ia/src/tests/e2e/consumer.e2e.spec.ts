@@ -13,7 +13,8 @@ import type { E2EDatabase } from "./helpers/e2e-database.js";
 import { createE2EDatabase } from "./helpers/e2e-database.js";
 
 vi.mock("../../services/scoring", async (importOriginal) => {
-  const real = await importOriginal<typeof import("../../services/scoring.js")>();
+  const real =
+    await importOriginal<typeof import("../../services/scoring.js")>();
   return {
     ...real,
     scoreWithAI: async (input: Parameters<typeof real.scoreWithAI>[0]) => ({
