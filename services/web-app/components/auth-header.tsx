@@ -19,16 +19,21 @@ export function AuthHeader() {
     );
   }
 
+  const noopTransition = () =>
+    startTransition(() => {
+      // trigger route transition animation only
+    });
+
   if (!user) {
     return (
       <div className="flex items-center gap-2">
         <Button asChild className="cursor-pointer" size="sm" variant="ghost">
-          <Link href="/login" onClick={() => startTransition(() => {})}>
+          <Link href="/login" onClick={noopTransition}>
             Entrar
           </Link>
         </Button>
         <Button asChild className="cursor-pointer" size="sm">
-          <Link href="/register" onClick={() => startTransition(() => {})}>
+          <Link href="/register" onClick={noopTransition}>
             Criar conta
           </Link>
         </Button>
@@ -38,12 +43,14 @@ export function AuthHeader() {
 
   const remaining = user.analysisLimit - user.analysisCount;
   const pct = user.analysisCount / user.analysisLimit;
-  const usageColor =
-    pct >= 0.9
-      ? "text-destructive border-destructive/30"
-      : pct >= 0.7
-        ? "text-chart-1 border-chart-1/30"
-        : "text-primary border-primary/30";
+  let usageColor: string;
+  if (pct >= 0.9) {
+    usageColor = "text-destructive border-destructive/30";
+  } else if (pct >= 0.7) {
+    usageColor = "text-chart-1 border-chart-1/30";
+  } else {
+    usageColor = "text-primary border-primary/30";
+  }
 
   return (
     <div className="flex items-center gap-2">
@@ -62,10 +69,7 @@ export function AuthHeader() {
         size="sm"
         variant="ghost"
       >
-        <Link
-          href="/settings/billing"
-          onClick={() => startTransition(() => {})}
-        >
+        <Link href="/settings/billing" onClick={noopTransition}>
           <CreditCardIcon className="size-4" />
           {user.plan === "PRO" ? "Pro" : "Plano"}
         </Link>
@@ -78,10 +82,7 @@ export function AuthHeader() {
         title={user.email}
         variant="ghost"
       >
-        <Link
-          href="/settings/billing"
-          onClick={() => startTransition(() => {})}
-        >
+        <Link href="/settings/billing" onClick={noopTransition}>
           <UserIcon className="size-4" />
           <span className="hidden max-w-[120px] truncate sm:inline">
             {user.name ?? user.email.split("@")[0]}
@@ -91,7 +92,11 @@ export function AuthHeader() {
 
       <Button
         className="cursor-pointer text-muted-foreground hover:text-destructive"
-        onClick={() => void logout()}
+        onClick={() => {
+          logout().catch(() => {
+            // logout failures are surfaced via auth state
+          });
+        }}
         size="sm"
         title="Sair"
         variant="ghost"

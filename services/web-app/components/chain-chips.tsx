@@ -35,6 +35,7 @@ export function ChainChips({
           )}
           key={chain.id}
           onClick={() => onChange(chain.id)}
+          type="button"
         >
           {chain.label}
         </button>

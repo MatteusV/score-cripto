@@ -81,7 +81,7 @@ describe("fetchWithAuth", () => {
 
     const headers = mockFetch.mock.calls[0][1].headers;
     expect(headers["Content-Type"]).toBe("application/json");
-    expect(headers["Authorization"]).toBe("Bearer my-token");
+    expect(headers.Authorization).toBe("Bearer my-token");
   });
 
   it("should return the response directly on success", async () => {

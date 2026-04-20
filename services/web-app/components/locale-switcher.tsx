@@ -42,6 +42,7 @@ export function LocaleSwitcher() {
         className="flex h-9 items-center gap-1.5 rounded-xl border border-border px-2.5 text-muted-foreground text-xs transition-colors hover:border-foreground/15 hover:text-foreground disabled:opacity-50"
         disabled={pending}
         onClick={() => setOpen((v) => !v)}
+        type="button"
       >
         <GlobeIcon className="size-3.5" strokeWidth={1.75} />
         <span>{current?.short ?? locale}</span>
@@ -49,7 +50,13 @@ export function LocaleSwitcher() {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <button
+            aria-label={t("label")}
+            className="fixed inset-0 z-40 cursor-default"
+            onClick={() => setOpen(false)}
+            tabIndex={-1}
+            type="button"
+          />
           <div className="absolute top-full right-0 z-50 mt-1.5 min-w-[110px] overflow-hidden rounded-xl border border-border bg-card shadow-lg">
             {LOCALES.map((l) => (
               <button
@@ -57,7 +64,12 @@ export function LocaleSwitcher() {
                   l.value === locale ? "text-primary" : "text-foreground/80"
                 }`}
                 key={l.value}
-                onClick={() => void handleSelect(l.value)}
+                onClick={() => {
+                  handleSelect(l.value).catch(() => {
+                    setPending(false);
+                  });
+                }}
+                type="button"
               >
                 <span>{l.flag}</span>
                 <span>{t(l.value as "pt-BR" | "en" | "es")}</span>

@@ -112,13 +112,15 @@ export function ResultPanel({
   const animScore = useCountUp(result.score);
   const animConf = useCountUp(confPct);
 
-  const verdictLabel = t(
-    verdict === "trusted"
-      ? "verdictTrusted"
-      : verdict === "attention"
-        ? "verdictAttention"
-        : "verdictRisk"
-  );
+  let verdictLabelKey: "verdictTrusted" | "verdictAttention" | "verdictRisk";
+  if (verdict === "trusted") {
+    verdictLabelKey = "verdictTrusted";
+  } else if (verdict === "attention") {
+    verdictLabelKey = "verdictAttention";
+  } else {
+    verdictLabelKey = "verdictRisk";
+  }
+  const verdictLabel = t(verdictLabelKey);
 
   function handleCopy() {
     navigator.clipboard.writeText(address).catch(() => undefined);
@@ -307,10 +309,10 @@ export function ResultPanel({
                     {t("factorsPositive")}
                   </p>
                   <div className="flex flex-col gap-2">
-                    {result.positiveFactors.map((f, i) => (
+                    {result.positiveFactors.map((f) => (
                       <div
                         className="rounded-[10px] px-3.5 py-3"
-                        key={i}
+                        key={f}
                         style={{
                           background: "oklch(0.69 0.19 162 / 5%)",
                           border: "1px solid oklch(0.69 0.19 162 / 18%)",
@@ -330,10 +332,10 @@ export function ResultPanel({
                     {t("factorsRisk")}
                   </p>
                   <div className="flex flex-col gap-2">
-                    {result.riskFactors.map((f, i) => (
+                    {result.riskFactors.map((f) => (
                       <div
                         className="rounded-[10px] px-3.5 py-3"
-                        key={i}
+                        key={f}
                         style={{
                           background: "oklch(0.63 0.24 28 / 5%)",
                           border: "1px solid oklch(0.63 0.24 28 / 18%)",
@@ -399,7 +401,10 @@ export function ResultPanel({
             </p>
             <ul className="flex flex-col gap-2.5">
               {STAGE_LABELS.map((label, i) => (
-                <li className="flex items-center gap-2.5 text-[12px]" key={i}>
+                <li
+                  className="flex items-center gap-2.5 text-[12px]"
+                  key={label}
+                >
                   <span
                     aria-hidden
                     className="flex size-[18px] shrink-0 items-center justify-center rounded-full"
@@ -418,6 +423,7 @@ export function ResultPanel({
                       viewBox="0 0 24 24"
                       width="10"
                     >
+                      <title>Done</title>
                       <path d="M20 6 9 17l-5-5" />
                     </svg>
                   </span>
@@ -443,6 +449,7 @@ export function ResultPanel({
                 strokeWidth="2"
                 viewBox="0 0 24 24"
               >
+                <title>Info</title>
                 <circle cx="12" cy="12" r="10" />
                 <path d="M12 8v4" />
                 <path d="M12 16h.01" />

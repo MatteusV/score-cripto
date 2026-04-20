@@ -87,27 +87,42 @@ export function PlanCard({
         ))}
       </ul>
 
-      {current ? (
-        <Button className="w-full cursor-default" disabled variant="outline">
-          Plano atual
-        </Button>
-      ) : onUpgrade ? (
-        <Button
-          className={cn("w-full cursor-pointer", featured && "glow-gold")}
-          onClick={onUpgrade}
-          variant={featured ? "default" : "outline"}
-        >
-          {ctaLabel ?? "Assinar"}
-        </Button>
-      ) : ctaHref ? (
-        <Button
-          asChild
-          className={cn("w-full cursor-pointer", featured && "glow-gold")}
-          variant={featured ? "default" : "outline"}
-        >
-          <Link href={ctaHref}>{ctaLabel ?? "Assinar"}</Link>
-        </Button>
-      ) : null}
+      {(() => {
+        if (current) {
+          return (
+            <Button
+              className="w-full cursor-default"
+              disabled
+              variant="outline"
+            >
+              Plano atual
+            </Button>
+          );
+        }
+        if (onUpgrade) {
+          return (
+            <Button
+              className={cn("w-full cursor-pointer", featured && "glow-gold")}
+              onClick={onUpgrade}
+              variant={featured ? "default" : "outline"}
+            >
+              {ctaLabel ?? "Assinar"}
+            </Button>
+          );
+        }
+        if (ctaHref) {
+          return (
+            <Button
+              asChild
+              className={cn("w-full cursor-pointer", featured && "glow-gold")}
+              variant={featured ? "default" : "outline"}
+            >
+              <Link href={ctaHref}>{ctaLabel ?? "Assinar"}</Link>
+            </Button>
+          );
+        }
+        return null;
+      })()}
     </div>
   );
 }

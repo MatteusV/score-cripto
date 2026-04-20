@@ -64,7 +64,9 @@ export default function LoginPage() {
             <form
               className="space-y-4"
               onSubmit={(e) => {
-                void handleSubmit(e);
+                handleSubmit(e).catch(() => {
+                  // handleSubmit surfaces errors via local state
+                });
               }}
             >
               <Field>
@@ -144,7 +146,11 @@ export default function LoginPage() {
               <Link
                 className="font-medium text-primary underline-offset-4 hover:underline"
                 href="/register"
-                onClick={() => startTransition(() => {})}
+                onClick={() =>
+                  startTransition(() => {
+                    // trigger route transition only
+                  })
+                }
               >
                 {t("createAccount")}
               </Link>

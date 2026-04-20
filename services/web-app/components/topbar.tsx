@@ -48,7 +48,10 @@ export function Topbar({
           </Button>
         )}
 
-        <button className="relative flex size-9 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-foreground/15 hover:text-foreground">
+        <button
+          className="relative flex size-9 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-foreground/15 hover:text-foreground"
+          type="button"
+        >
           <BellIcon className="size-4" strokeWidth={1.75} />
           <span className="absolute -top-0.5 -right-0.5 flex size-2.5 items-center justify-center rounded-full bg-primary font-bold text-[7px] text-primary-foreground">
             2

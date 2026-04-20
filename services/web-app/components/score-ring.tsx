@@ -17,12 +17,14 @@ export function ScoreRing({
   const circumference = 2 * Math.PI * radius;
   const progress = circumference - (score / 100) * circumference;
 
-  const color =
-    score >= 70
-      ? "oklch(0.74 0.19 66)" // gold
-      : score >= 40
-        ? "oklch(0.74 0.16 85)" // amber
-        : "oklch(0.63 0.24 28)"; // red
+  let color: string;
+  if (score >= 70) {
+    color = "oklch(0.74 0.19 66)"; // gold
+  } else if (score >= 40) {
+    color = "oklch(0.74 0.16 85)"; // amber
+  } else {
+    color = "oklch(0.63 0.24 28)"; // red
+  }
 
   return (
     <div
@@ -33,6 +35,7 @@ export function ScoreRing({
       style={{ width: size, height: size }}
     >
       <svg className="-rotate-90" height={size} width={size}>
+        <title>Score ring</title>
         {/* Track */}
         <circle
           cx={size / 2}

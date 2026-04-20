@@ -49,6 +49,21 @@ function formatDate(iso: string | null | undefined) {
   }
 }
 
+function currentPlanLabel(
+  loadingSub: boolean,
+  subStatus: string | undefined,
+  isPro: boolean,
+  t: (key: string) => string
+): string {
+  if (loadingSub) {
+    return "...";
+  }
+  if (subStatus === "active" || isPro) {
+    return t("currentPlan.active");
+  }
+  return "—";
+}
+
 export default function BillingPage() {
   const t = useTranslations("billing");
   const { user, isPro, analysisCount, analysisLimit, analysisRemaining } =
@@ -159,141 +174,19 @@ export default function BillingPage() {
       <Topbar subtitle={t("subtitle")} title={t("title")} />
 
       <div className="flex flex-col gap-6 px-6 pt-6 pb-12 lg:px-7">
-        {/* ── Hero: current plan + mini usage ─────────────────────────── */}
-        <section className="relative overflow-hidden rounded-2xl border border-primary/15 bg-card">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(70% 100% at 0% 0%, oklch(0.74 0.19 66 / 14%), transparent 60%), radial-gradient(60% 90% at 100% 100%, oklch(0.59 0.22 295 / 10%), transparent 60%)",
-            }}
-          />
-          <div className="relative grid gap-7 p-7 lg:grid-cols-[1.4fr_1fr] lg:p-8">
-            <div>
-              <div className="mb-3 flex flex-wrap items-center gap-2.5">
-                <p className="font-bold font-heading text-[10px] text-primary uppercase tracking-[0.3em]">
-                  {t("hero.eyebrow")}
-                </p>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-bold text-[10px] text-primary uppercase tracking-wider">
-                  <span className="dot-pulse size-1.5 rounded-full bg-primary" />
-                  {loadingSub
-                    ? "..."
-                    : subscription?.status === "active"
-                      ? t("currentPlan.active")
-                      : isPro
-                        ? t("currentPlan.active")
-                        : "—"}
-                  {renewDate && subscription?.status === "active"
-                    ? ` · ${t("currentPlan.renewsIn", { date: renewDate })}`
-                    : ""}
-                </span>
-              </div>
-              <div className="mb-1.5 flex items-baseline gap-3">
-                <span className="font-bold font-heading text-5xl text-foreground leading-none">
-                  {isPro ? t("plans.proName") : t("plans.freeName")}
-                </span>
-                <span className="font-bold font-heading text-2xl text-primary">
-                  {isPro ? formatBRL(PLAN_PRICES.pro) : t("plans.freePrice")}
-                  {isPro && (
-                    <span className="ml-1 font-normal text-[13px] text-muted-foreground">
-                      {t("plans.period")}
-                    </span>
-                  )}
-                </span>
-              </div>
-              <p
-                className="mt-2 mb-5 max-w-lg text-muted-foreground text-sm leading-relaxed"
-                dangerouslySetInnerHTML={{
-                  __html: t.markup("hero.remaining", {
-                    remaining: String(analysisRemaining),
-                    strong: (chunks) =>
-                      `<strong class="text-foreground">${chunks}</strong>`,
-                  }),
-                }}
-              />
-              <div className="flex flex-wrap gap-2">
-                {isPro ? (
-                  <>
-                    <Button
-                      className="cursor-pointer gap-1.5"
-                      disabled={redirecting === "portal"}
-                      onClick={() => void handlePortal()}
-                      size="sm"
-                    >
-                      <ExternalLinkIcon
-                        className="size-3.5"
-                        strokeWidth={2.5}
-                      />
-                      {redirecting === "portal"
-                        ? t("openingPortal")
-                        : t("hero.manage")}
-                    </Button>
-                    <Button
-                      className="cursor-pointer text-muted-foreground"
-                      disabled={redirecting === "portal"}
-                      onClick={() => void handlePortal()}
-                      size="sm"
-                      variant="ghost"
-                    >
-                      {t("hero.pause")}
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    className="cursor-pointer gap-1.5"
-                    disabled={redirecting === "checkout"}
-                    onClick={() => void handleCheckout()}
-                    size="sm"
-                  >
-                    <ZapIcon className="size-3.5" strokeWidth={2.5} />
-                    {redirecting === "checkout"
-                      ? t("upgradingStripe")
-                      : t("hero.upgradeTeam")}
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Mini usage panel */}
-            <div className="rounded-xl border border-border bg-card/40 p-5">
-              <div className="mb-3.5 flex items-center justify-between">
-                <p className="font-bold font-heading text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-                  {t("usage.miniTitle")}
-                </p>
-                {renewDate && (
-                  <span className="font-mono text-[10px] text-muted-foreground">
-                    {renewDate}
-                  </span>
-                )}
-              </div>
-              <div>
-                <div className="mb-1 flex items-baseline justify-between text-[11.5px]">
-                  <span className="text-muted-foreground">
-                    {t("usage.analyses")}
-                  </span>
-                  <span className="font-mono text-foreground">
-                    {analysisCount}
-                    <span className="text-muted-foreground">
-                      /{analysisLimit || "—"}
-                    </span>
-                  </span>
-                </div>
-                <div className="h-1 overflow-hidden rounded-full bg-foreground/[0.06]">
-                  <div
-                    className="h-full rounded-full bg-primary shadow-[0_0_6px_oklch(0.74_0.19_66)]"
-                    style={{
-                      width:
-                        analysisLimit > 0
-                          ? `${(analysisCount / analysisLimit) * 100}%`
-                          : "0%",
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <BillingHero
+          analysisCount={analysisCount}
+          analysisLimit={analysisLimit}
+          analysisRemaining={analysisRemaining}
+          isPro={isPro}
+          loadingSub={loadingSub}
+          onCheckout={handleCheckout}
+          onPortal={handlePortal}
+          redirecting={redirecting}
+          renewDate={renewDate}
+          subscription={subscription}
+          t={t}
+        />
 
         {/* ── Plans grid ──────────────────────────────────────────────── */}
         <section>
@@ -413,7 +306,9 @@ export default function BillingPage() {
                   disabled={p.current || p.comingSoon}
                   onClick={() => {
                     if (p.id === "pro" && !p.current) {
-                      void handleCheckout();
+                      handleCheckout().catch(() => {
+                        /* handled via state */
+                      });
                     }
                   }}
                   size="default"
@@ -423,13 +318,13 @@ export default function BillingPage() {
                 </Button>
 
                 <ul className="flex flex-col gap-2.5 border-border border-t pt-5">
-                  {p.features.map((f, i) => (
+                  {p.features.map((f) => (
                     <li
                       className={cn(
                         "flex items-center gap-2.5 text-[12.5px]",
                         f.ok ? "text-foreground" : "text-muted-foreground/60"
                       )}
-                      key={i}
+                      key={f.label}
                     >
                       <span
                         className={cn(
@@ -573,7 +468,11 @@ export default function BillingPage() {
             <Button
               className="mb-5 w-full cursor-pointer gap-1.5"
               disabled={redirecting === "portal" || !isPro}
-              onClick={() => void handlePortal()}
+              onClick={() => {
+                handlePortal().catch(() => {
+                  /* handled via state */
+                });
+              }}
               size="sm"
               variant={isPro ? "default" : "outline"}
             >
@@ -623,10 +522,10 @@ export default function BillingPage() {
             {t("faq.eyebrow")}
           </p>
           <div className="grid gap-3 lg:grid-cols-2">
-            {(t.raw("faq.items") as [string, string][]).map(([q, a], i) => (
+            {(t.raw("faq.items") as [string, string][]).map(([q, a]) => (
               <div
                 className="rounded-2xl border border-border bg-card/60 p-5"
-                key={i}
+                key={q}
               >
                 <p className="mb-1.5 font-semibold text-[13px] text-foreground">
                   {q}
@@ -638,6 +537,219 @@ export default function BillingPage() {
             ))}
           </div>
         </section>
+      </div>
+    </div>
+  );
+}
+
+interface BillingHeroProps {
+  analysisCount: number;
+  analysisLimit: number;
+  analysisRemaining: number;
+  isPro: boolean;
+  loadingSub: boolean;
+  onCheckout: () => Promise<void>;
+  onPortal: () => Promise<void>;
+  redirecting: "checkout" | "portal" | null;
+  renewDate: string | null;
+  subscription: Subscription | null;
+  t: ReturnType<typeof useTranslations>;
+}
+
+function BillingHero({
+  analysisCount,
+  analysisLimit,
+  analysisRemaining,
+  isPro,
+  loadingSub,
+  onCheckout,
+  onPortal,
+  redirecting,
+  renewDate,
+  subscription,
+  t,
+}: BillingHeroProps) {
+  const renewSuffix =
+    renewDate && subscription?.status === "active"
+      ? ` · ${t("currentPlan.renewsIn", { date: renewDate })}`
+      : "";
+  return (
+    <section className="relative overflow-hidden rounded-2xl border border-primary/15 bg-card">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(70% 100% at 0% 0%, oklch(0.74 0.19 66 / 14%), transparent 60%), radial-gradient(60% 90% at 100% 100%, oklch(0.59 0.22 295 / 10%), transparent 60%)",
+        }}
+      />
+      <div className="relative grid gap-7 p-7 lg:grid-cols-[1.4fr_1fr] lg:p-8">
+        <div>
+          <div className="mb-3 flex flex-wrap items-center gap-2.5">
+            <p className="font-bold font-heading text-[10px] text-primary uppercase tracking-[0.3em]">
+              {t("hero.eyebrow")}
+            </p>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-bold text-[10px] text-primary uppercase tracking-wider">
+              <span className="dot-pulse size-1.5 rounded-full bg-primary" />
+              {currentPlanLabel(loadingSub, subscription?.status, isPro, t)}
+              {renewSuffix}
+            </span>
+          </div>
+          <div className="mb-1.5 flex items-baseline gap-3">
+            <span className="font-bold font-heading text-5xl text-foreground leading-none">
+              {isPro ? t("plans.proName") : t("plans.freeName")}
+            </span>
+            <span className="font-bold font-heading text-2xl text-primary">
+              {isPro ? formatBRL(PLAN_PRICES.pro) : t("plans.freePrice")}
+              {isPro && (
+                <span className="ml-1 font-normal text-[13px] text-muted-foreground">
+                  {t("plans.period")}
+                </span>
+              )}
+            </span>
+          </div>
+          <p
+            className="mt-2 mb-5 max-w-lg text-muted-foreground text-sm leading-relaxed"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: markup generated by next-intl t.markup with trusted translation strings only (no user input)
+            dangerouslySetInnerHTML={{
+              __html: t.markup("hero.remaining", {
+                remaining: String(analysisRemaining),
+                strong: (chunks) =>
+                  `<strong class="text-foreground">${chunks}</strong>`,
+              }),
+            }}
+          />
+          <BillingHeroActions
+            isPro={isPro}
+            onCheckout={onCheckout}
+            onPortal={onPortal}
+            redirecting={redirecting}
+            t={t}
+          />
+        </div>
+
+        <BillingHeroUsage
+          analysisCount={analysisCount}
+          analysisLimit={analysisLimit}
+          renewDate={renewDate}
+          t={t}
+        />
+      </div>
+    </section>
+  );
+}
+
+interface BillingHeroActionsProps {
+  isPro: boolean;
+  onCheckout: () => Promise<void>;
+  onPortal: () => Promise<void>;
+  redirecting: "checkout" | "portal" | null;
+  t: ReturnType<typeof useTranslations>;
+}
+
+function BillingHeroActions({
+  isPro,
+  onCheckout,
+  onPortal,
+  redirecting,
+  t,
+}: BillingHeroActionsProps) {
+  if (isPro) {
+    return (
+      <div className="flex flex-wrap gap-2">
+        <Button
+          className="cursor-pointer gap-1.5"
+          disabled={redirecting === "portal"}
+          onClick={() => {
+            onPortal().catch(() => {
+              /* handled via state */
+            });
+          }}
+          size="sm"
+        >
+          <ExternalLinkIcon className="size-3.5" strokeWidth={2.5} />
+          {redirecting === "portal" ? t("openingPortal") : t("hero.manage")}
+        </Button>
+        <Button
+          className="cursor-pointer text-muted-foreground"
+          disabled={redirecting === "portal"}
+          onClick={() => {
+            onPortal().catch(() => {
+              /* handled via state */
+            });
+          }}
+          size="sm"
+          variant="ghost"
+        >
+          {t("hero.pause")}
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button
+        className="cursor-pointer gap-1.5"
+        disabled={redirecting === "checkout"}
+        onClick={() => {
+          onCheckout().catch(() => {
+            /* handled via state */
+          });
+        }}
+        size="sm"
+      >
+        <ZapIcon className="size-3.5" strokeWidth={2.5} />
+        {redirecting === "checkout"
+          ? t("upgradingStripe")
+          : t("hero.upgradeTeam")}
+      </Button>
+    </div>
+  );
+}
+
+interface BillingHeroUsageProps {
+  analysisCount: number;
+  analysisLimit: number;
+  renewDate: string | null;
+  t: ReturnType<typeof useTranslations>;
+}
+
+function BillingHeroUsage({
+  analysisCount,
+  analysisLimit,
+  renewDate,
+  t,
+}: BillingHeroUsageProps) {
+  const usageWidth =
+    analysisLimit > 0 ? `${(analysisCount / analysisLimit) * 100}%` : "0%";
+  return (
+    <div className="rounded-xl border border-border bg-card/40 p-5">
+      <div className="mb-3.5 flex items-center justify-between">
+        <p className="font-bold font-heading text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+          {t("usage.miniTitle")}
+        </p>
+        {renewDate && (
+          <span className="font-mono text-[10px] text-muted-foreground">
+            {renewDate}
+          </span>
+        )}
+      </div>
+      <div>
+        <div className="mb-1 flex items-baseline justify-between text-[11.5px]">
+          <span className="text-muted-foreground">{t("usage.analyses")}</span>
+          <span className="font-mono text-foreground">
+            {analysisCount}
+            <span className="text-muted-foreground">
+              /{analysisLimit || "—"}
+            </span>
+          </span>
+        </div>
+        <div className="h-1 overflow-hidden rounded-full bg-foreground/[0.06]">
+          <div
+            className="h-full rounded-full bg-primary shadow-[0_0_6px_oklch(0.74_0.19_66)]"
+            style={{ width: usageWidth }}
+          />
+        </div>
       </div>
     </div>
   );

@@ -104,6 +104,57 @@ function useCountUp(target: number, duration = 1200) {
   return value;
 }
 
+function computeTopPick(items: AnalysisItem[]): AnalysisItem | null {
+  if (items.length === 0) {
+    return null;
+  }
+  return [...items].sort((a, b) => b.score - a.score)[0] ?? null;
+}
+
+function computeDistribution(
+  items: AnalysisItem[]
+): { chain: string; pct: number; color: string }[] {
+  if (items.length === 0) {
+    return [];
+  }
+  const counts = new Map<string, number>();
+  for (const r of items) {
+    counts.set(r.chain, (counts.get(r.chain) ?? 0) + 1);
+  }
+  const total = items.length;
+  return [...counts.entries()]
+    .map(([c, n]) => ({
+      chain: c,
+      pct: Math.round((n / total) * 100),
+      color: CHAIN_PALETTE[c.toLowerCase()] ?? CHAIN_PALETTE.outros,
+    }))
+    .sort((a, b) => b.pct - a.pct);
+}
+
+function applyDashboardFilter(
+  items: AnalysisItem[],
+  filter: Filter
+): AnalysisItem[] {
+  if (filter === "all") {
+    return items;
+  }
+  if (filter === "trusted") {
+    return items.filter((r) => r.score >= 70);
+  }
+  return items.filter((r) => r.score < 40);
+}
+
+function scoreToVerdict(score: number): "trusted" | "attention" | "risk" {
+  const label = verdict(score);
+  if (label === "Confiável") {
+    return "trusted";
+  }
+  if (label === "Atenção") {
+    return "attention";
+  }
+  return "risk";
+}
+
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
   const locale = useLocale();
@@ -164,40 +215,17 @@ export default function DashboardPage() {
     startTransition(() => setFilter(next));
   }
 
-  const filtered = useMemo(() => {
-    if (filter === "all") {
-      return recent;
-    }
-    if (filter === "trusted") {
-      return recent.filter((r) => r.score >= 70);
-    }
-    return recent.filter((r) => r.score < 40);
-  }, [recent, filter]);
+  const filtered = useMemo(
+    () => applyDashboardFilter(recent, filter),
+    [recent, filter]
+  );
 
-  const topPick = useMemo<AnalysisItem | null>(() => {
-    if (recent.length === 0) {
-      return null;
-    }
-    return [...recent].sort((a, b) => b.score - a.score)[0] ?? null;
-  }, [recent]);
+  const topPick = useMemo<AnalysisItem | null>(
+    () => computeTopPick(recent),
+    [recent]
+  );
 
-  const distribution = useMemo(() => {
-    if (recent.length === 0) {
-      return [] as { chain: string; pct: number; color: string }[];
-    }
-    const counts = new Map<string, number>();
-    for (const r of recent) {
-      counts.set(r.chain, (counts.get(r.chain) ?? 0) + 1);
-    }
-    const total = recent.length;
-    return [...counts.entries()]
-      .map(([c, n]) => ({
-        chain: c,
-        pct: Math.round((n / total) * 100),
-        color: CHAIN_PALETTE[c.toLowerCase()] ?? CHAIN_PALETTE.outros,
-      }))
-      .sort((a, b) => b.pct - a.pct);
-  }, [recent]);
+  const distribution = useMemo(() => computeDistribution(recent), [recent]);
 
   const dateLabel = useMemo(() => {
     try {
@@ -286,140 +314,20 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* ── Hero analyze card ──────────────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-2xl border border-primary/15 bg-card">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(60% 80% at 100% 0%, oklch(0.74 0.19 66 / 12%), transparent 60%), radial-gradient(50% 70% at 0% 100%, oklch(0.59 0.22 295 / 10%), transparent 60%)",
-            }}
-          />
-          <div className="relative p-6 lg:p-7">
-            <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="mb-2 flex items-center gap-2">
-                  <p className="font-bold font-heading text-[10px] text-primary uppercase tracking-[0.3em]">
-                    {t("analyzeCard.eyebrow")}
-                  </p>
-                  <span className="dot-pulse size-1.5 rounded-full bg-primary" />
-                  <span className="font-mono text-[10px] text-muted-foreground">
-                    {t("analyzeCard.pipeline")}
-                  </span>
-                </div>
-                <h2 className="m-0 font-bold font-heading text-foreground text-xl tracking-wide">
-                  {t("analyzeCard.title")}
-                </h2>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 font-bold font-heading text-[10px] text-accent uppercase tracking-wider">
-                  {isPro ? "Pro" : "Free"}
-                </span>
-                {analysisLimit > 0 && (
-                  <span className="text-muted-foreground text-xs">
-                    {t("analyzeCard.remainingShort", {
-                      remaining: analysisRemaining,
-                      limit: analysisLimit,
-                    })}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <form
-              className="flex flex-wrap items-center gap-2.5"
-              onSubmit={handleAnalyze}
-            >
-              <div className="relative min-w-[260px] flex-1">
-                <SearchIcon
-                  className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground/60"
-                  strokeWidth={2}
-                />
-                <input
-                  autoComplete="off"
-                  className="h-13 w-full rounded-xl border border-border bg-input pr-24 pl-11 font-mono text-foreground text-sm placeholder:text-muted-foreground/60 focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder={t("analyzeCard.placeholder")}
-                  spellCheck={false}
-                  value={address}
-                />
-                <span className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
-                  {t("analyzeCard.enterHint")}
-                </span>
-              </div>
-              <Button
-                className="h-13 cursor-pointer gap-2 px-5"
-                disabled={!address.trim()}
-                size="lg"
-                type="submit"
-              >
-                <BrainIcon className="size-4" strokeWidth={2.5} />
-                {t("analyzeCard.submit")}
-              </Button>
-            </form>
-
-            <div className="mt-3.5 flex flex-wrap items-center gap-2">
-              <span className="mr-1 font-bold font-heading text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-                {t("analyzeCard.networkLabel")}
-              </span>
-              <ChainChips
-                chains={[
-                  { id: "ethereum", label: "ETH" },
-                  { id: "bitcoin", label: "BTC" },
-                  { id: "polygon", label: "MATIC" },
-                  { id: "solana", label: "SOL" },
-                  { id: "arbitrum", label: "ARB" },
-                  { id: "optimism", label: "OP" },
-                ]}
-                onChange={setChain}
-                selected={chain}
-              />
-            </div>
-
-            {analysisLimit > 0 && (
-              <div className="mt-5 flex items-center gap-4 border-border border-t pt-3.5">
-                <div className="flex-1">
-                  <div className="mb-1.5 flex justify-between text-[11px] text-muted-foreground">
-                    <span>
-                      {t("analyzeCard.usageMonth", {
-                        count: analysisCount,
-                        limit: analysisLimit,
-                      })}
-                    </span>
-                    <span
-                      className={cn(
-                        "font-mono",
-                        limitReached ? "text-destructive" : "text-primary"
-                      )}
-                    >
-                      {t("analyzeCard.usagePct", { pct: Math.round(usagePct) })}
-                    </span>
-                  </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-foreground/[0.06]">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-primary to-amber-400 shadow-[0_0_12px_oklch(0.74_0.19_66/50%)]"
-                      style={{ width: `${usagePct}%` }}
-                    />
-                  </div>
-                </div>
-                {!isPro && (
-                  <Button
-                    asChild
-                    className="cursor-pointer gap-1.5"
-                    size="sm"
-                    variant="outline"
-                  >
-                    <Link href="/settings/billing">
-                      <ZapIcon className="size-3.5" strokeWidth={2.5} />
-                      {t("analyzeCard.upgrade")}
-                    </Link>
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-        </section>
+        <HeroAnalyzeCard
+          address={address}
+          analysisCount={analysisCount}
+          analysisLimit={analysisLimit}
+          analysisRemaining={analysisRemaining}
+          chain={chain}
+          isPro={isPro}
+          limitReached={limitReached}
+          onAddressChange={setAddress}
+          onChainChange={setChain}
+          onSubmit={handleAnalyze}
+          t={t}
+          usagePct={usagePct}
+        />
 
         {/* ── Delta-window chip (controls all 4 StatTile arrows) ───── */}
         <DeltaWindowChip
@@ -527,175 +435,22 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {deferredLoading ? (
-                <div className="divide-y divide-border">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <div className="flex items-center gap-4 px-5 py-4" key={i}>
-                      <div className="size-8 animate-pulse rounded-lg bg-muted/40" />
-                      <div className="flex-1 space-y-1.5">
-                        <div className="h-2.5 w-40 animate-pulse rounded bg-muted/40" />
-                        <div className="h-2 w-20 animate-pulse rounded bg-muted/40" />
-                      </div>
-                      <div className="h-6 w-12 animate-pulse rounded-full bg-muted/40" />
-                    </div>
-                  ))}
-                </div>
-              ) : filtered.length === 0 ? (
-                <div className="px-6 py-12 text-center">
-                  <div className="mb-3.5 inline-flex size-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-                    <SearchIcon className="size-6" strokeWidth={2} />
-                  </div>
-                  <p className="font-bold font-heading text-foreground text-sm tracking-wider">
-                    {t("recentAnalyses.empty")}
-                  </p>
-                  <p className="mx-auto mt-1.5 max-w-xs text-muted-foreground text-xs">
-                    {t("recentAnalyses.emptyDesc")}
-                  </p>
-                </div>
-              ) : (
-                // Filter swap → cross-fade via key change inside startTransition.
-                <ViewTransition default="none" enter="slide-up" key={filter}>
-                  <ul className="divide-y divide-border">
-                    {filtered.slice(0, 5).map((item) => (
-                      // List identity: animate reorder.
-                      <ViewTransition key={item.id}>
-                        <li>
-                          <Link
-                            className="grid grid-cols-[36px_1fr_auto_auto_16px] items-center gap-3.5 px-5 py-3.5 transition-colors hover:bg-foreground/[0.04]"
-                            href={`/analyze?chain=${item.chain}&address=${item.address}`}
-                          >
-                            <ChainIcon chain={item.chain} size="sm" />
-                            <div className="min-w-0">
-                              <p className="truncate font-mono text-foreground/80 text-xs">
-                                {truncate(item.address, 12, 6)}
-                              </p>
-                              <p className="mt-0.5 text-[10px] text-muted-foreground">
-                                {formatDate(item.completedAt)}
-                              </p>
-                            </div>
-                            {/* Shared element morph into /analyze (peer not yet wired). */}
-                            <ViewTransition
-                              name={`recent-score-${item.id}`}
-                              share="auto"
-                            >
-                              <ScoreBadge score={item.score} />
-                            </ViewTransition>
-                            <StatusBadge
-                              pulse={false}
-                              verdict={
-                                verdict(item.score) === "Confiável"
-                                  ? "trusted"
-                                  : verdict(item.score) === "Atenção"
-                                    ? "attention"
-                                    : "risk"
-                              }
-                            />
-                            <ArrowRightIcon
-                              className="size-4 text-muted-foreground/50"
-                              strokeWidth={2}
-                            />
-                          </Link>
-                        </li>
-                      </ViewTransition>
-                    ))}
-                  </ul>
-                </ViewTransition>
-              )}
+              <RecentAnalysesBody
+                deferredLoading={deferredLoading}
+                filter={filter}
+                filtered={filtered}
+                t={t}
+              />
             </div>
 
             {/* Highlight + distribution row */}
             <div className="grid gap-5 sm:grid-cols-2">
-              <div className="relative overflow-hidden rounded-2xl border border-primary/15 bg-card p-5">
-                <div className="mb-2 flex items-center justify-between">
-                  <p className="font-bold font-heading text-[10px] text-primary uppercase tracking-[0.3em]">
-                    {t("highlight.eyebrow")}
-                  </p>
-                  <EyeIcon
-                    className="size-3.5 text-primary/70"
-                    strokeWidth={2}
-                  />
-                </div>
-                <p className="mb-4 font-bold font-heading text-base text-foreground tracking-wide">
-                  {t("highlight.title")}
-                </p>
-                {topPick ? (
-                  <Link
-                    className="flex items-center gap-4"
-                    href={`/analyze?chain=${topPick.chain}&address=${topPick.address}`}
-                  >
-                    <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 font-bold font-heading text-2xl text-primary">
-                      {topPick.score}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-mono text-foreground/80 text-xs">
-                        {truncate(topPick.address, 10, 6)}
-                      </p>
-                      <p className="mt-1 text-[10px] text-muted-foreground">
-                        {formatDate(topPick.completedAt)}
-                      </p>
-                      <span className="mt-2 inline-flex rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
-                        {topPick.chain}
-                      </span>
-                    </div>
-                  </Link>
-                ) : (
-                  <p className="text-muted-foreground text-xs">
-                    {t("highlight.empty")}
-                  </p>
-                )}
-              </div>
-
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <div className="mb-3.5 flex items-center justify-between">
-                  <p className="font-bold font-heading text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-                    {t("distribution.eyebrow")}
-                  </p>
-                  {recent.length > 0 && (
-                    <span className="font-mono text-[10px] text-muted-foreground">
-                      {t("distribution.sample", { n: recent.length })}
-                    </span>
-                  )}
-                </div>
-                {distribution.length === 0 ? (
-                  <p className="text-muted-foreground text-xs">
-                    {t("distribution.empty")}
-                  </p>
-                ) : (
-                  <>
-                    <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-                      {distribution.map((d) => (
-                        <div
-                          key={d.chain}
-                          style={{
-                            width: `${d.pct}%`,
-                            background: d.color,
-                            boxShadow: `inset 0 0 6px ${d.color}`,
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <div className="mt-3.5 grid grid-cols-2 gap-2">
-                      {distribution.map((d) => (
-                        <div
-                          className="flex items-center gap-2 text-[11px]"
-                          key={d.chain}
-                        >
-                          <span
-                            className="size-2 rounded-sm"
-                            style={{ background: d.color }}
-                          />
-                          <span className="flex-1 font-heading text-[9px] text-muted-foreground uppercase tracking-wider">
-                            {d.chain}
-                          </span>
-                          <span className="font-mono text-[11px] text-foreground">
-                            {d.pct}%
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+              <HighlightCard t={t} topPick={topPick} />
+              <DistributionCard
+                distribution={distribution}
+                recentCount={recent.length}
+                t={t}
+              />
             </div>
           </div>
 
@@ -931,12 +686,22 @@ function StatTile({
   const isFlat = delta != null && delta === 0;
   const good = deltaInverse ? isNegative : isPositive;
   const bad = deltaInverse ? isPositive : isNegative;
-  const arrowColor = good
-    ? "text-green-400"
-    : bad
-      ? "text-destructive"
-      : "text-muted-foreground";
-  const arrowGlyph = isPositive ? "▲" : isNegative ? "▼" : "—";
+  let arrowColor: string;
+  if (good) {
+    arrowColor = "text-green-400";
+  } else if (bad) {
+    arrowColor = "text-destructive";
+  } else {
+    arrowColor = "text-muted-foreground";
+  }
+  let arrowGlyph: string;
+  if (isPositive) {
+    arrowGlyph = "▲";
+  } else if (isNegative) {
+    arrowGlyph = "▼";
+  } else {
+    arrowGlyph = "—";
+  }
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
@@ -986,6 +751,420 @@ function StatTile({
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+function RecentAnalysesBody({
+  deferredLoading,
+  filter,
+  filtered,
+  t,
+}: {
+  deferredLoading: boolean;
+  filter: Filter;
+  filtered: AnalysisItem[];
+  t: (key: string) => string;
+}) {
+  if (deferredLoading) {
+    return (
+      <div className="divide-y divide-border">
+        {["s1", "s2", "s3"].map((key) => (
+          <div className="flex items-center gap-4 px-5 py-4" key={key}>
+            <div className="size-8 animate-pulse rounded-lg bg-muted/40" />
+            <div className="flex-1 space-y-1.5">
+              <div className="h-2.5 w-40 animate-pulse rounded bg-muted/40" />
+              <div className="h-2 w-20 animate-pulse rounded bg-muted/40" />
+            </div>
+            <div className="h-6 w-12 animate-pulse rounded-full bg-muted/40" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (filtered.length === 0) {
+    return (
+      <div className="px-6 py-12 text-center">
+        <div className="mb-3.5 inline-flex size-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+          <SearchIcon className="size-6" strokeWidth={2} />
+        </div>
+        <p className="font-bold font-heading text-foreground text-sm tracking-wider">
+          {t("recentAnalyses.empty")}
+        </p>
+        <p className="mx-auto mt-1.5 max-w-xs text-muted-foreground text-xs">
+          {t("recentAnalyses.emptyDesc")}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <ViewTransition default="none" enter="slide-up" key={filter}>
+      <ul className="divide-y divide-border">
+        {filtered.slice(0, 5).map((item) => (
+          <ViewTransition key={item.id}>
+            <li>
+              <Link
+                className="grid grid-cols-[36px_1fr_auto_auto_16px] items-center gap-3.5 px-5 py-3.5 transition-colors hover:bg-foreground/[0.04]"
+                href={`/analyze?chain=${item.chain}&address=${item.address}`}
+              >
+                <ChainIcon chain={item.chain} size="sm" />
+                <div className="min-w-0">
+                  <p className="truncate font-mono text-foreground/80 text-xs">
+                    {truncate(item.address, 12, 6)}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    {formatDate(item.completedAt)}
+                  </p>
+                </div>
+                <ViewTransition name={`recent-score-${item.id}`} share="auto">
+                  <ScoreBadge score={item.score} />
+                </ViewTransition>
+                <StatusBadge
+                  pulse={false}
+                  verdict={scoreToVerdict(item.score)}
+                />
+                <ArrowRightIcon
+                  className="size-4 text-muted-foreground/50"
+                  strokeWidth={2}
+                />
+              </Link>
+            </li>
+          </ViewTransition>
+        ))}
+      </ul>
+    </ViewTransition>
+  );
+}
+
+interface HeroAnalyzeCardProps {
+  address: string;
+  analysisCount: number;
+  analysisLimit: number;
+  analysisRemaining: number;
+  chain: string;
+  isPro: boolean;
+  limitReached: boolean;
+  onAddressChange: (next: string) => void;
+  onChainChange: (next: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  t: ReturnType<typeof useTranslations>;
+  usagePct: number;
+}
+
+const HERO_CHAINS = [
+  { id: "ethereum", label: "ETH" },
+  { id: "bitcoin", label: "BTC" },
+  { id: "polygon", label: "MATIC" },
+  { id: "solana", label: "SOL" },
+  { id: "arbitrum", label: "ARB" },
+  { id: "optimism", label: "OP" },
+];
+
+function HeroAnalyzeCard({
+  address,
+  analysisCount,
+  analysisLimit,
+  analysisRemaining,
+  chain,
+  isPro,
+  limitReached,
+  onAddressChange,
+  onChainChange,
+  onSubmit,
+  t,
+  usagePct,
+}: HeroAnalyzeCardProps) {
+  const showUsage = analysisLimit > 0;
+  return (
+    <section className="relative overflow-hidden rounded-2xl border border-primary/15 bg-card">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(60% 80% at 100% 0%, oklch(0.74 0.19 66 / 12%), transparent 60%), radial-gradient(50% 70% at 0% 100%, oklch(0.59 0.22 295 / 10%), transparent 60%)",
+        }}
+      />
+      <div className="relative p-6 lg:p-7">
+        <HeroAnalyzeHeader
+          analysisLimit={analysisLimit}
+          analysisRemaining={analysisRemaining}
+          isPro={isPro}
+          t={t}
+        />
+
+        <form
+          className="flex flex-wrap items-center gap-2.5"
+          onSubmit={onSubmit}
+        >
+          <div className="relative min-w-[260px] flex-1">
+            <SearchIcon
+              className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground/60"
+              strokeWidth={2}
+            />
+            <input
+              autoComplete="off"
+              className="h-13 w-full rounded-xl border border-border bg-input pr-24 pl-11 font-mono text-foreground text-sm placeholder:text-muted-foreground/60 focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              onChange={(e) => onAddressChange(e.target.value)}
+              placeholder={t("analyzeCard.placeholder")}
+              spellCheck={false}
+              value={address}
+            />
+            <span className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+              {t("analyzeCard.enterHint")}
+            </span>
+          </div>
+          <Button
+            className="h-13 cursor-pointer gap-2 px-5"
+            disabled={!address.trim()}
+            size="lg"
+            type="submit"
+          >
+            <BrainIcon className="size-4" strokeWidth={2.5} />
+            {t("analyzeCard.submit")}
+          </Button>
+        </form>
+
+        <div className="mt-3.5 flex flex-wrap items-center gap-2">
+          <span className="mr-1 font-bold font-heading text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+            {t("analyzeCard.networkLabel")}
+          </span>
+          <ChainChips
+            chains={HERO_CHAINS}
+            onChange={onChainChange}
+            selected={chain}
+          />
+        </div>
+
+        {showUsage && (
+          <HeroAnalyzeUsage
+            analysisCount={analysisCount}
+            analysisLimit={analysisLimit}
+            isPro={isPro}
+            limitReached={limitReached}
+            t={t}
+            usagePct={usagePct}
+          />
+        )}
+      </div>
+    </section>
+  );
+}
+
+interface HeroAnalyzeHeaderProps {
+  analysisLimit: number;
+  analysisRemaining: number;
+  isPro: boolean;
+  t: ReturnType<typeof useTranslations>;
+}
+
+function HeroAnalyzeHeader({
+  analysisLimit,
+  analysisRemaining,
+  isPro,
+  t,
+}: HeroAnalyzeHeaderProps) {
+  return (
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <div className="mb-2 flex items-center gap-2">
+          <p className="font-bold font-heading text-[10px] text-primary uppercase tracking-[0.3em]">
+            {t("analyzeCard.eyebrow")}
+          </p>
+          <span className="dot-pulse size-1.5 rounded-full bg-primary" />
+          <span className="font-mono text-[10px] text-muted-foreground">
+            {t("analyzeCard.pipeline")}
+          </span>
+        </div>
+        <h2 className="m-0 font-bold font-heading text-foreground text-xl tracking-wide">
+          {t("analyzeCard.title")}
+        </h2>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 font-bold font-heading text-[10px] text-accent uppercase tracking-wider">
+          {isPro ? "Pro" : "Free"}
+        </span>
+        {analysisLimit > 0 && (
+          <span className="text-muted-foreground text-xs">
+            {t("analyzeCard.remainingShort", {
+              remaining: analysisRemaining,
+              limit: analysisLimit,
+            })}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface HeroAnalyzeUsageProps {
+  analysisCount: number;
+  analysisLimit: number;
+  isPro: boolean;
+  limitReached: boolean;
+  t: ReturnType<typeof useTranslations>;
+  usagePct: number;
+}
+
+function HeroAnalyzeUsage({
+  analysisCount,
+  analysisLimit,
+  isPro,
+  limitReached,
+  t,
+  usagePct,
+}: HeroAnalyzeUsageProps) {
+  return (
+    <div className="mt-5 flex items-center gap-4 border-border border-t pt-3.5">
+      <div className="flex-1">
+        <div className="mb-1.5 flex justify-between text-[11px] text-muted-foreground">
+          <span>
+            {t("analyzeCard.usageMonth", {
+              count: analysisCount,
+              limit: analysisLimit,
+            })}
+          </span>
+          <span
+            className={cn(
+              "font-mono",
+              limitReached ? "text-destructive" : "text-primary"
+            )}
+          >
+            {t("analyzeCard.usagePct", { pct: Math.round(usagePct) })}
+          </span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-foreground/[0.06]">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-primary to-amber-400 shadow-[0_0_12px_oklch(0.74_0.19_66/50%)]"
+            style={{ width: `${usagePct}%` }}
+          />
+        </div>
+      </div>
+      {!isPro && (
+        <Button
+          asChild
+          className="cursor-pointer gap-1.5"
+          size="sm"
+          variant="outline"
+        >
+          <Link href="/settings/billing">
+            <ZapIcon className="size-3.5" strokeWidth={2.5} />
+            {t("analyzeCard.upgrade")}
+          </Link>
+        </Button>
+      )}
+    </div>
+  );
+}
+
+interface HighlightCardProps {
+  t: ReturnType<typeof useTranslations>;
+  topPick: AnalysisItem | null;
+}
+
+function HighlightCard({ t, topPick }: HighlightCardProps) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-primary/15 bg-card p-5">
+      <div className="mb-2 flex items-center justify-between">
+        <p className="font-bold font-heading text-[10px] text-primary uppercase tracking-[0.3em]">
+          {t("highlight.eyebrow")}
+        </p>
+        <EyeIcon className="size-3.5 text-primary/70" strokeWidth={2} />
+      </div>
+      <p className="mb-4 font-bold font-heading text-base text-foreground tracking-wide">
+        {t("highlight.title")}
+      </p>
+      {topPick ? (
+        <Link
+          className="flex items-center gap-4"
+          href={`/analyze?chain=${topPick.chain}&address=${topPick.address}`}
+        >
+          <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 font-bold font-heading text-2xl text-primary">
+            {topPick.score}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-mono text-foreground/80 text-xs">
+              {truncate(topPick.address, 10, 6)}
+            </p>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {formatDate(topPick.completedAt)}
+            </p>
+            <span className="mt-2 inline-flex rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+              {topPick.chain}
+            </span>
+          </div>
+        </Link>
+      ) : (
+        <p className="text-muted-foreground text-xs">{t("highlight.empty")}</p>
+      )}
+    </div>
+  );
+}
+
+interface DistributionCardProps {
+  distribution: { chain: string; pct: number; color: string }[];
+  recentCount: number;
+  t: ReturnType<typeof useTranslations>;
+}
+
+function DistributionCard({
+  distribution,
+  recentCount,
+  t,
+}: DistributionCardProps) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="mb-3.5 flex items-center justify-between">
+        <p className="font-bold font-heading text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+          {t("distribution.eyebrow")}
+        </p>
+        {recentCount > 0 && (
+          <span className="font-mono text-[10px] text-muted-foreground">
+            {t("distribution.sample", { n: recentCount })}
+          </span>
+        )}
+      </div>
+      {distribution.length === 0 ? (
+        <p className="text-muted-foreground text-xs">
+          {t("distribution.empty")}
+        </p>
+      ) : (
+        <>
+          <div className="flex h-2 overflow-hidden rounded-full bg-muted">
+            {distribution.map((d) => (
+              <div
+                key={d.chain}
+                style={{
+                  width: `${d.pct}%`,
+                  background: d.color,
+                  boxShadow: `inset 0 0 6px ${d.color}`,
+                }}
+              />
+            ))}
+          </div>
+          <div className="mt-3.5 grid grid-cols-2 gap-2">
+            {distribution.map((d) => (
+              <div
+                className="flex items-center gap-2 text-[11px]"
+                key={d.chain}
+              >
+                <span
+                  className="size-2 rounded-sm"
+                  style={{ background: d.color }}
+                />
+                <span className="flex-1 font-heading text-[9px] text-muted-foreground uppercase tracking-wider">
+                  {d.chain}
+                </span>
+                <span className="font-mono text-[11px] text-foreground">
+                  {d.pct}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

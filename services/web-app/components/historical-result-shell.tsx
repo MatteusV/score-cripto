@@ -113,11 +113,15 @@ export function HistoricalResultShell({
               className="border-border/40 text-[0.65rem] uppercase tracking-[0.2em]"
               variant="outline"
             >
-              {phase === "completed"
-                ? t("status.history")
-                : phase === "error"
-                  ? t("status.error")
-                  : t("status.loading")}
+              {(() => {
+                if (phase === "completed") {
+                  return t("status.history");
+                }
+                if (phase === "error") {
+                  return t("status.error");
+                }
+                return t("status.loading");
+              })()}
             </Badge>
             <Button
               aria-label={t("back")}

@@ -7,9 +7,15 @@ describe("createLogger", () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    consoleInfoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
-    consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    consoleInfoSpy = vi.spyOn(console, "info").mockImplementation(() => {
+      // silence console during tests
+    });
+    consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {
+      // silence console during tests
+    });
+    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
+      // silence console during tests
+    });
   });
 
   afterEach(() => vi.restoreAllMocks());

@@ -78,6 +78,51 @@ export function useWalletScore(chain: string, address: string) {
 
   const pollHTTP = useCallback(
     (processId: string, controller: AbortController) => {
+      const handleResponse = (response: AnalysisResponse): boolean => {
+        if (response.status === "completed" && response.result) {
+          const completedResult = response.result;
+          setState((prev) => ({
+            ...prev,
+            phase: "completed",
+            result: completedResult,
+            backendStatus: "completed",
+          }));
+          return true;
+        }
+
+        if (response.status === "failed") {
+          setState((prev) => ({
+            ...prev,
+            phase: "error",
+            backendStatus: "failed",
+            error: response.error ?? "Erro no processamento da análise.",
+            errorCode: "internal_error",
+          }));
+          return true;
+        }
+
+        setState((prev) => ({
+          ...prev,
+          backendStatus: response.status,
+          currentStage: response.currentStage ?? prev.currentStage,
+          stageState: response.stageState ?? prev.stageState,
+        }));
+        return false;
+      };
+
+      const handleError = (err: unknown) => {
+        if (controller.signal.aborted) {
+          return;
+        }
+        setState((prev) => ({
+          ...prev,
+          phase: "error",
+          error:
+            err instanceof Error ? err.message : "Erro ao consultar status",
+          errorCode: "upstream_unreachable",
+        }));
+      };
+
       async function tick() {
         if (controller.signal.aborted) {
           return;
@@ -102,46 +147,12 @@ export function useWalletScore(chain: string, address: string) {
             return;
           }
 
-          if (response.status === "completed" && response.result) {
-            setState((prev) => ({
-              ...prev,
-              phase: "completed",
-              result: response.result!,
-              backendStatus: "completed",
-            }));
-            return;
+          const done = handleResponse(response);
+          if (!done) {
+            timerRef.current = setTimeout(tick, POLL_INTERVAL_MS);
           }
-
-          if (response.status === "failed") {
-            setState((prev) => ({
-              ...prev,
-              phase: "error",
-              backendStatus: "failed",
-              error: response.error ?? "Erro no processamento da análise.",
-              errorCode: "internal_error",
-            }));
-            return;
-          }
-
-          setState((prev) => ({
-            ...prev,
-            backendStatus: response.status,
-            currentStage: response.currentStage ?? prev.currentStage,
-            stageState: response.stageState ?? prev.stageState,
-          }));
-
-          timerRef.current = setTimeout(tick, POLL_INTERVAL_MS);
         } catch (err) {
-          if (controller.signal.aborted) {
-            return;
-          }
-          setState((prev) => ({
-            ...prev,
-            phase: "error",
-            error:
-              err instanceof Error ? err.message : "Erro ao consultar status",
-            errorCode: "upstream_unreachable",
-          }));
+          handleError(err);
         }
       }
 
@@ -221,10 +232,11 @@ export function useWalletScore(chain: string, address: string) {
           cleanup();
 
           if (data.status === "completed" && data.result) {
+            const completedResult = data.result;
             setState((prev) => ({
               ...prev,
               phase: "completed",
-              result: data.result!,
+              result: completedResult,
               backendStatus: "completed",
             }));
           } else {
@@ -272,6 +284,43 @@ export function useWalletScore(chain: string, address: string) {
     [connectSSE, pollHTTP]
   );
 
+  const handleCached = useCallback(
+    (
+      cached: Awaited<ReturnType<typeof lookupCachedAnalysis>>,
+      controller: AbortController
+    ): boolean => {
+      if (cached?.status === "completed" && cached.result) {
+        setState({
+          phase: "completed",
+          processId: cached.processId,
+          result: cached.result,
+          error: null,
+          errorCode: null,
+          backendStatus: "completed",
+          fromCache: true,
+          currentStage: "score",
+          stageState: "completed",
+        });
+        return true;
+      }
+
+      if (cached?.status === "pending" || cached?.status === "processing") {
+        setState((prev) => ({
+          ...prev,
+          phase: "polling",
+          processId: cached.processId,
+          backendStatus: cached.status as AnalysisStatus,
+          fromCache: false,
+        }));
+        poll(cached.processId, controller);
+        return true;
+      }
+
+      return false;
+    },
+    [poll]
+  );
+
   const submit = useCallback(
     async (opts?: { force?: boolean }) => {
       if (!(chain && address)) {
@@ -306,30 +355,7 @@ export function useWalletScore(chain: string, address: string) {
             return;
           }
 
-          if (cached?.status === "completed" && cached.result) {
-            setState({
-              phase: "completed",
-              processId: cached.processId,
-              result: cached.result,
-              error: null,
-              errorCode: null,
-              backendStatus: "completed",
-              fromCache: true,
-              currentStage: "score",
-              stageState: "completed",
-            });
-            return;
-          }
-
-          if (cached?.status === "pending" || cached?.status === "processing") {
-            setState((prev) => ({
-              ...prev,
-              phase: "polling",
-              processId: cached.processId,
-              backendStatus: cached.status as AnalysisStatus,
-              fromCache: false,
-            }));
-            poll(cached.processId, controller);
+          if (handleCached(cached, controller)) {
             return;
           }
         }
@@ -361,7 +387,7 @@ export function useWalletScore(chain: string, address: string) {
         }));
       }
     },
-    [chain, address, clearTimer, poll]
+    [chain, address, clearTimer, poll, handleCached]
   );
 
   return { ...state, submit, reset };

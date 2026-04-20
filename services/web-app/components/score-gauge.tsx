@@ -77,6 +77,7 @@ export function ScoreGauge({ score, confidence }: ScoreGaugeProps) {
         viewBox="0 0 200 195"
         width="200"
       >
+        <title>{`Score ${score} — ${label}`}</title>
         <defs>
           <filter height="140%" id="scoreGlow" width="140%" x="-20%" y="-20%">
             <feGaussianBlur result="blur" stdDeviation="4" />

@@ -73,6 +73,83 @@ function daysSince(iso: string): number {
   return Math.floor((Date.now() - then) / (1000 * 60 * 60 * 24));
 }
 
+const LEADING_COUNT_RE = /^\d+\s*/;
+
+const HISTORY_SKELETON_KEYS = [
+  "sk-1",
+  "sk-2",
+  "sk-3",
+  "sk-4",
+  "sk-5",
+  "sk-6",
+] as const;
+
+interface FilterPredicateArgs {
+  chain: string;
+  query: string;
+  range: RangeFilter;
+  verdict: VerdictFilter;
+}
+
+function matchesVerdict(item: AnalysisItem, v: VerdictFilter): boolean {
+  return v === "all" || scoreVerdict(item.score) === v;
+}
+
+function matchesChain(item: AnalysisItem, c: string): boolean {
+  return c === "all" || item.chain === c;
+}
+
+function matchesRange(item: AnalysisItem, r: RangeFilter): boolean {
+  if (r === "all") {
+    return true;
+  }
+  const limit = r === "7d" ? 7 : 30;
+  return daysSince(item.completedAt) <= limit;
+}
+
+function matchesQuery(item: AnalysisItem, q: string): boolean {
+  if (!q.trim()) {
+    return true;
+  }
+  const needle = q.toLowerCase();
+  return (
+    item.address.toLowerCase().includes(needle) ||
+    item.id.toLowerCase().includes(needle) ||
+    (item.publicId ? String(item.publicId).includes(needle) : false)
+  );
+}
+
+function buildFiltered(
+  data: AnalysisItem[],
+  args: FilterPredicateArgs,
+  sort: SortKey
+): AnalysisItem[] {
+  const out = data.filter(
+    (r) =>
+      matchesVerdict(r, args.verdict) &&
+      matchesChain(r, args.chain) &&
+      matchesRange(r, args.range) &&
+      matchesQuery(r, args.query)
+  );
+  if (sort === "score-high") {
+    return [...out].sort((a, b) => b.score - a.score);
+  }
+  if (sort === "score-low" || sort === "risk") {
+    return [...out].sort((a, b) => a.score - b.score);
+  }
+  return out;
+}
+
+function rangeLabel(r: RangeFilter, t: (key: string) => string): string {
+  if (r === "7d") {
+    return t("filters.range7d");
+  }
+  if (r === "30d") {
+    return t("filters.range30d");
+  }
+  return t("filters.rangeAll");
+}
+
 export default function HistoryPage() {
   const t = useTranslations("history");
   const { summary, data, loading } = useHistory({ limit: 100 });
@@ -104,42 +181,10 @@ export default function HistoryPage() {
     return out;
   }, [data]);
 
-  const filtered = useMemo(() => {
-    let out = data.filter((r) => {
-      if (verdict !== "all" && scoreVerdict(r.score) !== verdict) {
-        return false;
-      }
-      if (chain !== "all" && r.chain !== chain) {
-        return false;
-      }
-      if (range !== "all") {
-        const days = daysSince(r.completedAt);
-        const limit = range === "7d" ? 7 : 30;
-        if (days > limit) {
-          return false;
-        }
-      }
-      if (query.trim()) {
-        const q = query.toLowerCase();
-        if (
-          !(
-            r.address.toLowerCase().includes(q) ||
-            r.id.toLowerCase().includes(q) ||
-            (r.publicId ? String(r.publicId).includes(q) : false)
-          )
-        ) {
-          return false;
-        }
-      }
-      return true;
-    });
-    if (sort === "score-high") {
-      out = [...out].sort((a, b) => b.score - a.score);
-    } else if (sort === "score-low" || sort === "risk") {
-      out = [...out].sort((a, b) => a.score - b.score);
-    }
-    return out;
-  }, [data, verdict, chain, range, query, sort]);
+  const filtered = useMemo(
+    () => buildFiltered(data, { chain, query, range, verdict }, sort),
+    [data, verdict, chain, range, query, sort]
+  );
 
   function toggleExpand(id: string) {
     startTransition(() => {
@@ -225,7 +270,7 @@ export default function HistoryPage() {
                 {deferredLoading ? "—" : summary.total}
               </span>{" "}
               {t("header.countAnalyses", { count: summary.total }).replace(
-                /^\d+\s*/,
+                LEADING_COUNT_RE,
                 ""
               )}
             </h1>
@@ -349,11 +394,7 @@ export default function HistoryPage() {
                 onClick={() => startTransition(() => setRange(r))}
                 type="button"
               >
-                {r === "7d"
-                  ? t("filters.range7d")
-                  : r === "30d"
-                    ? t("filters.range30d")
-                    : t("filters.rangeAll")}
+                {rangeLabel(r, t)}
               </button>
             ))}
           </div>
@@ -429,63 +470,20 @@ export default function HistoryPage() {
             <span className="text-right">{t("columns.id")}</span>
           </div>
 
-          {deferredLoading ? (
-            <div className="divide-y divide-border">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  className="grid items-center gap-3 px-4 py-3.5"
-                  key={i}
-                  style={{
-                    gridTemplateColumns:
-                      "44px minmax(0,1.6fr) 100px minmax(0,1fr) 110px 110px 60px",
-                  }}
-                >
-                  <div className="size-8 animate-pulse rounded-lg bg-muted/40" />
-                  <div className="space-y-1.5">
-                    <div className="h-2.5 w-48 animate-pulse rounded bg-muted/40" />
-                    <div className="h-2 w-32 animate-pulse rounded bg-muted/40" />
-                  </div>
-                  <div className="h-5 w-12 animate-pulse rounded bg-muted/40" />
-                  <div className="h-1 animate-pulse rounded-full bg-muted/40" />
-                  <div className="h-5 w-20 animate-pulse rounded-full bg-muted/40" />
-                  <div className="h-3 w-16 animate-pulse rounded bg-muted/40" />
-                  <div />
-                </div>
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="px-6 py-14 text-center">
-              <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-                <SearchIcon className="size-6" strokeWidth={2} />
-              </div>
-              <p className="font-bold font-heading text-foreground text-sm tracking-wider">
-                {data.length === 0 ? t("empty") : t("noFilter")}
-              </p>
-            </div>
-          ) : (
-            <ViewTransition
-              default="none"
-              enter="slide-up"
-              key={`${verdict}-${chain}-${range}-${sort}`}
-            >
-              <ul>
-                {filtered.map((row) => (
-                  <ViewTransition key={row.id}>
-                    <li>
-                      <HistoryRow
-                        copiedId={copiedId}
-                        expanded={expanded.has(row.id)}
-                        onCopy={handleCopy}
-                        onToggle={() => toggleExpand(row.id)}
-                        row={row}
-                        t={t}
-                      />
-                    </li>
-                  </ViewTransition>
-                ))}
-              </ul>
-            </ViewTransition>
-          )}
+          <HistoryBody
+            chain={chain}
+            copiedId={copiedId}
+            data={data}
+            deferredLoading={deferredLoading}
+            expanded={expanded}
+            filtered={filtered}
+            onCopy={handleCopy}
+            onToggle={toggleExpand}
+            range={range}
+            sort={sort}
+            t={t}
+            verdict={verdict}
+          />
 
           {/* Footer */}
           {!deferredLoading && filtered.length > 0 && (
@@ -701,5 +699,99 @@ function HistoryRow({
         </ViewTransition>
       )}
     </>
+  );
+}
+
+interface HistoryBodyProps {
+  chain: string;
+  copiedId: string | null;
+  data: AnalysisItem[];
+  deferredLoading: boolean;
+  expanded: Set<string>;
+  filtered: AnalysisItem[];
+  onCopy: (addr: string, id: string) => Promise<void>;
+  onToggle: (id: string) => void;
+  range: RangeFilter;
+  sort: SortKey;
+  t: ReturnType<typeof useTranslations>;
+  verdict: VerdictFilter;
+}
+
+function HistoryBody({
+  chain,
+  copiedId,
+  data,
+  deferredLoading,
+  expanded,
+  filtered,
+  onCopy,
+  onToggle,
+  range,
+  sort,
+  t,
+  verdict,
+}: HistoryBodyProps) {
+  if (deferredLoading) {
+    return (
+      <div className="divide-y divide-border">
+        {HISTORY_SKELETON_KEYS.map((k) => (
+          <div
+            className="grid items-center gap-3 px-4 py-3.5"
+            key={k}
+            style={{
+              gridTemplateColumns:
+                "44px minmax(0,1.6fr) 100px minmax(0,1fr) 110px 110px 60px",
+            }}
+          >
+            <div className="size-8 animate-pulse rounded-lg bg-muted/40" />
+            <div className="space-y-1.5">
+              <div className="h-2.5 w-48 animate-pulse rounded bg-muted/40" />
+              <div className="h-2 w-32 animate-pulse rounded bg-muted/40" />
+            </div>
+            <div className="h-5 w-12 animate-pulse rounded bg-muted/40" />
+            <div className="h-1 animate-pulse rounded-full bg-muted/40" />
+            <div className="h-5 w-20 animate-pulse rounded-full bg-muted/40" />
+            <div className="h-3 w-16 animate-pulse rounded bg-muted/40" />
+            <div />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (filtered.length === 0) {
+    return (
+      <div className="px-6 py-14 text-center">
+        <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+          <SearchIcon className="size-6" strokeWidth={2} />
+        </div>
+        <p className="font-bold font-heading text-foreground text-sm tracking-wider">
+          {data.length === 0 ? t("empty") : t("noFilter")}
+        </p>
+      </div>
+    );
+  }
+  return (
+    <ViewTransition
+      default="none"
+      enter="slide-up"
+      key={`${verdict}-${chain}-${range}-${sort}`}
+    >
+      <ul>
+        {filtered.map((row) => (
+          <ViewTransition key={row.id}>
+            <li>
+              <HistoryRow
+                copiedId={copiedId}
+                expanded={expanded.has(row.id)}
+                onCopy={onCopy}
+                onToggle={() => onToggle(row.id)}
+                row={row}
+                t={t}
+              />
+            </li>
+          </ViewTransition>
+        ))}
+      </ul>
+    </ViewTransition>
   );
 }

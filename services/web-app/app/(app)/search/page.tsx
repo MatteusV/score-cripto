@@ -92,6 +92,7 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
       viewBox={`0 0 ${w} ${h}`}
       width={w}
     >
+      <title>Sparkline</title>
       <polyline
         fill="none"
         points={points}
@@ -316,8 +317,8 @@ export default function SearchPage() {
                   label: t("stats.refresh"),
                   color: "text-green-500",
                 },
-              ].map((stat, i) => (
-                <div key={i}>
+              ].map((stat) => (
+                <div key={stat.label}>
                   <div
                     className={`font-bold font-heading text-2xl ${stat.color}`}
                   >

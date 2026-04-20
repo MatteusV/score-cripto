@@ -99,7 +99,11 @@ export function ResultShell({ chain, address }: ResultShellProps) {
             <div className="flex gap-3">
               <Button
                 className="cursor-pointer"
-                onClick={() => void submit()}
+                onClick={() => {
+                  submit().catch(() => {
+                    // errors surfaced via state
+                  });
+                }}
                 variant="outline"
               >
                 <RefreshCwIcon data-icon="inline-start" />
@@ -124,7 +128,14 @@ export function ResultShell({ chain, address }: ResultShellProps) {
       <Card className="glass-panel animate-fade-up">
         <CardContent className="flex flex-col items-center gap-5 py-12">
           <p className="text-muted-foreground text-sm">{t("readyToStart")}</p>
-          <Button className="cursor-pointer" onClick={() => void submit()}>
+          <Button
+            className="cursor-pointer"
+            onClick={() => {
+              submit().catch(() => {
+                // errors surfaced via state
+              });
+            }}
+          >
             {t("startAnalysis")}
           </Button>
         </CardContent>

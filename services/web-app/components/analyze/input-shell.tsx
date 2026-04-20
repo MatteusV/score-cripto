@@ -193,7 +193,10 @@ export function AnalyzeInputShell() {
 
             {/* Address input */}
             <div className="mt-5">
-              <label className="mb-2 block font-heading text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+              <label
+                className="mb-2 block font-heading text-[10px] text-muted-foreground uppercase tracking-[0.3em]"
+                htmlFor="address-input"
+              >
                 {t("addressLabel")}
               </label>
               <div className="relative">
@@ -209,11 +212,14 @@ export function AnalyzeInputShell() {
                   aria-invalid={Boolean(errorMessage)}
                   autoComplete="off"
                   className="h-[60px] w-full rounded-[14px] border bg-input px-5 pr-20 pl-12 font-mono text-[15px] tracking-[0.01em] outline-none transition-colors focus:border-primary/50"
+                  id="address-input"
                   onBlur={() => setTouched(true)}
                   onChange={(e) => setAddress(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      void handleAnalyze();
+                      handleAnalyze().catch(() => {
+                        // errors surfaced via state
+                      });
                     }
                   }}
                   placeholder={t("addressPlaceholder")}
@@ -228,7 +234,11 @@ export function AnalyzeInputShell() {
                 <button
                   aria-label="Colar endereço"
                   className="absolute top-1/2 right-3.5 -translate-y-1/2 cursor-pointer rounded-[7px] border border-border bg-muted px-2.5 py-1.5 font-mono text-[10px] text-muted-foreground transition-colors hover:text-foreground"
-                  onClick={() => void handlePaste()}
+                  onClick={() => {
+                    handlePaste().catch(() => {
+                      // clipboard unavailable; ignore
+                    });
+                  }}
                   type="button"
                 >
                   {t("paste")}
@@ -247,6 +257,7 @@ export function AnalyzeInputShell() {
                     strokeWidth="2.5"
                     viewBox="0 0 24 24"
                   >
+                    <title>Error</title>
                     <circle cx="12" cy="12" r="10" />
                     <path d="m15 9-6 6M9 9l6 6" />
                   </svg>
@@ -271,6 +282,7 @@ export function AnalyzeInputShell() {
                 role="radiogroup"
               >
                 {SUPPORTED_CHAINS.map((c) => (
+                  // biome-ignore lint/a11y/useSemanticElements: custom styled radio — uses aria-checked on button role=radio
                   <button
                     aria-checked={chain === c.value}
                     className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] px-3 py-1.5 font-semibold text-xs transition-all duration-200"
@@ -333,7 +345,11 @@ export function AnalyzeInputShell() {
               <Button
                 className="h-[52px] cursor-pointer px-7 text-[15px]"
                 disabled={touched && !isValid}
-                onClick={() => void handleAnalyze()}
+                onClick={() => {
+                  handleAnalyze().catch(() => {
+                    // errors surfaced via state
+                  });
+                }}
                 size="lg"
               >
                 <BrainCircuitIcon className="mr-1.5 size-4" />
@@ -379,10 +395,10 @@ export function AnalyzeInputShell() {
             <span className="shrink-0 font-heading text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
               {t("samplesLabel")}
             </span>
-            {SAMPLES.map((s, i) => (
+            {SAMPLES.map((s) => (
               <button
                 className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 font-mono text-[11px] text-foreground transition-colors hover:border-primary/30"
-                key={i}
+                key={`${s.chain}-${s.address}`}
                 onClick={() => {
                   setChain(s.chain);
                   setAddress(s.address);
@@ -418,10 +434,10 @@ export function AnalyzeInputShell() {
               </Badge>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {WHAT_FEATURES.map((f, i) => (
+              {WHAT_FEATURES.map((f) => (
                 <div
                   className="flex gap-3 rounded-[12px] border border-border/40 bg-card/40 p-3.5"
-                  key={i}
+                  key={f.title}
                 >
                   <div className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-primary/10 text-primary">
                     {f.icon}

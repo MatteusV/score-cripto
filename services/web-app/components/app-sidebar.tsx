@@ -53,7 +53,12 @@ export function AppSidebar() {
       <div className="mt-auto">
         <button
           className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-foreground/5"
-          onClick={() => void logout()}
+          onClick={() => {
+            logout().catch(() => {
+              // logout errors are surfaced via auth state
+            });
+          }}
+          type="button"
         >
           <div className="flex size-8 items-center justify-center rounded-lg bg-primary/15 font-bold font-heading text-primary text-xs">
             {initials}
@@ -100,7 +105,7 @@ function NavSection({
       <nav className="flex flex-col gap-0.5">
         {items.map((item) => {
           const active =
-            pathname === item.href || pathname.startsWith(item.href + "/");
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               className={cn(

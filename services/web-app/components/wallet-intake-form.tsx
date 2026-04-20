@@ -83,7 +83,9 @@ export function WalletIntakeForm() {
   return (
     <form
       onSubmit={(e) => {
-        void handleSubmit(e);
+        handleSubmit(e).catch(() => {
+          // handleSubmit already surfaces errors via state
+        });
       }}
     >
       <FieldGroup>

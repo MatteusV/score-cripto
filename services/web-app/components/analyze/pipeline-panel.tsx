@@ -83,6 +83,7 @@ export function PipelinePanel({
                   viewBox="0 0 24 24"
                   width="16"
                 >
+                  <title>Loading</title>
                   <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                 </svg>
               </span>
@@ -114,6 +115,7 @@ export function PipelinePanel({
                 height="200"
                 width="200"
               >
+                <title>Progress ring</title>
                 <circle
                   cx="100"
                   cy="100"
@@ -160,110 +162,149 @@ export function PipelinePanel({
           </div>
 
           {/* Stage list */}
-          <div
-            aria-label="Pipeline stages"
-            aria-live="polite"
-            className="flex flex-col gap-1.5"
-          >
-            {STAGES.map((stage, i) => {
-              const done = i < stageIdx;
-              const active = i === stageIdx - 1 && stageIdx <= STAGES.length;
-              const pending = i >= stageIdx;
-
-              return (
-                <div
-                  className="flex items-center gap-3.5 rounded-[10px] px-3.5 py-2.5 transition-all duration-300"
+          <section aria-label="Pipeline stages" aria-live="polite">
+            <ol className="flex flex-col gap-1.5">
+              {STAGES.map((stage, i) => (
+                <StageRow
+                  index={i}
                   key={stage.key}
-                  style={{
-                    background: active
-                      ? "oklch(0.74 0.19 66 / 8%)"
-                      : "transparent",
-                    border: active
-                      ? "1px solid oklch(0.74 0.19 66 / 30%)"
-                      : "1px solid transparent",
-                    opacity: pending && !active ? 0.4 : 1,
-                  }}
-                >
-                  {/* Stage indicator */}
-                  <span
-                    aria-hidden
-                    className="flex size-5 shrink-0 items-center justify-center rounded-full text-white"
-                    style={{
-                      background: done
-                        ? "oklch(0.69 0.19 162)"
-                        : active
-                          ? "oklch(0.74 0.19 66)"
-                          : "var(--muted, oklch(0.27 0 0))",
-                      color:
-                        done || active ? "white" : "var(--muted-foreground)",
-                    }}
-                  >
-                    {done ? (
-                      <svg
-                        fill="none"
-                        height="11"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="3.5"
-                        viewBox="0 0 24 24"
-                        width="11"
-                      >
-                        <path d="M20 6 9 17l-5-5" />
-                      </svg>
-                    ) : active ? (
-                      <span
-                        className="size-2 rounded-full bg-white"
-                        style={{
-                          animation: "scDotPulse 1s ease-in-out infinite",
-                        }}
-                      />
-                    ) : (
-                      <span className="font-bold font-mono text-[9px] text-muted-foreground">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                    )}
-                  </span>
-
-                  {/* Stage info */}
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className="font-semibold text-[12.5px]"
-                      style={{
-                        color: active
-                          ? "oklch(0.74 0.19 66)"
-                          : done
-                            ? "var(--foreground)"
-                            : "var(--muted-foreground)",
-                      }}
-                    >
-                      {t(stage.labelKey as Parameters<typeof t>[0])}
-                    </p>
-                    <p className="mt-0.5 font-mono text-[10.5px] text-muted-foreground">
-                      {t(stage.detailKey as Parameters<typeof t>[0])}
-                    </p>
-                  </div>
-
-                  {active && (
-                    <span className="font-mono text-[10px] text-primary">
-                      {t("stageActive")}
-                    </span>
-                  )}
-                  {done && (
-                    <span
-                      className="font-mono text-[10px]"
-                      style={{ color: "oklch(0.69 0.19 162)" }}
-                    >
-                      {t("stageDone")}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  stage={stage}
+                  stageIdx={stageIdx}
+                  t={t}
+                />
+              ))}
+            </ol>
+          </section>
         </div>
       </div>
     </div>
+  );
+}
+
+function stageIndicatorBg(done: boolean, active: boolean): string {
+  if (done) {
+    return "oklch(0.69 0.19 162)";
+  }
+  if (active) {
+    return "oklch(0.74 0.19 66)";
+  }
+  return "var(--muted, oklch(0.27 0 0))";
+}
+
+function stageLabelColor(done: boolean, active: boolean): string {
+  if (active) {
+    return "oklch(0.74 0.19 66)";
+  }
+  if (done) {
+    return "var(--foreground)";
+  }
+  return "var(--muted-foreground)";
+}
+
+function StageIcon({
+  done,
+  active,
+  index,
+}: {
+  active: boolean;
+  done: boolean;
+  index: number;
+}) {
+  if (done) {
+    return (
+      <svg
+        fill="none"
+        height="11"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="3.5"
+        viewBox="0 0 24 24"
+        width="11"
+      >
+        <title>Done</title>
+        <path d="M20 6 9 17l-5-5" />
+      </svg>
+    );
+  }
+  if (active) {
+    return (
+      <span
+        className="size-2 rounded-full bg-white"
+        style={{ animation: "scDotPulse 1s ease-in-out infinite" }}
+      />
+    );
+  }
+  return (
+    <span className="font-bold font-mono text-[9px] text-muted-foreground">
+      {String(index + 1).padStart(2, "0")}
+    </span>
+  );
+}
+
+function StageRow({
+  index,
+  stage,
+  stageIdx,
+  t,
+}: {
+  index: number;
+  stage: Stage;
+  stageIdx: number;
+  t: (key: string) => string;
+}) {
+  const done = index < stageIdx;
+  const active = index === stageIdx - 1 && stageIdx <= STAGES.length;
+  const pending = index >= stageIdx;
+
+  return (
+    <li
+      className="flex items-center gap-3.5 rounded-[10px] px-3.5 py-2.5 transition-all duration-300"
+      style={{
+        background: active ? "oklch(0.74 0.19 66 / 8%)" : "transparent",
+        border: active
+          ? "1px solid oklch(0.74 0.19 66 / 30%)"
+          : "1px solid transparent",
+        opacity: pending && !active ? 0.4 : 1,
+      }}
+    >
+      <span
+        aria-hidden
+        className="flex size-5 shrink-0 items-center justify-center rounded-full text-white"
+        style={{
+          background: stageIndicatorBg(done, active),
+          color: done || active ? "white" : "var(--muted-foreground)",
+        }}
+      >
+        <StageIcon active={active} done={done} index={index} />
+      </span>
+
+      <div className="min-w-0 flex-1">
+        <p
+          className="font-semibold text-[12.5px]"
+          style={{ color: stageLabelColor(done, active) }}
+        >
+          {t(stage.labelKey)}
+        </p>
+        <p className="mt-0.5 font-mono text-[10.5px] text-muted-foreground">
+          {t(stage.detailKey)}
+        </p>
+      </div>
+
+      {active && (
+        <span className="font-mono text-[10px] text-primary">
+          {t("stageActive")}
+        </span>
+      )}
+      {done && (
+        <span
+          className="font-mono text-[10px]"
+          style={{ color: "oklch(0.69 0.19 162)" }}
+        >
+          {t("stageDone")}
+        </span>
+      )}
+    </li>
   );
 }
 
