@@ -248,4 +248,35 @@ export class AnalysisRequestInMemoryRepository
 
     return { summary: { total, avgScore, trusted, attention, risky } };
   }
+
+  async summarizeByUserIdInRange(
+    userId: string,
+    from: Date,
+    to: Date
+  ): Promise<{ summary: AnalysisSummary }> {
+    const completed = this.items.filter(
+      (item) =>
+        item.userId === userId &&
+        item.status === "COMPLETED" &&
+        item.completedAt !== null &&
+        item.completedAt >= from &&
+        item.completedAt < to
+    );
+
+    const total = completed.length;
+
+    if (total === 0) {
+      return {
+        summary: { total: 0, avgScore: 0, trusted: 0, attention: 0, risky: 0 },
+      };
+    }
+
+    const scores = completed.map((item) => item.score as number);
+    const avgScore = Math.round(scores.reduce((s, v) => s + v, 0) / total);
+    const trusted = scores.filter((s) => s >= 70).length;
+    const attention = scores.filter((s) => s >= 40 && s < 70).length;
+    const risky = scores.filter((s) => s < 40).length;
+
+    return { summary: { total, avgScore, trusted, attention, risky } };
+  }
 }

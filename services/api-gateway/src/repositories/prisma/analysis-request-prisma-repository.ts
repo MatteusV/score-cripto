@@ -262,4 +262,53 @@ export class AnalysisRequestPrismaRepository
       },
     };
   }
+
+  async summarizeByUserIdInRange(
+    userId: string,
+    from: Date,
+    to: Date
+  ): Promise<{ summary: AnalysisSummary }> {
+    // Range is half-open [from, to) so back-to-back windows do not double-count.
+    const where = {
+      userId,
+      status: "COMPLETED" as const,
+      completedAt: { gte: from, lt: to },
+    };
+
+    const [total, agg] = await Promise.all([
+      this.prisma.analysisRequest.count({ where }),
+      this.prisma.analysisRequest.aggregate({
+        where,
+        _avg: { score: true },
+      }),
+    ]);
+
+    if (total === 0) {
+      return {
+        summary: { total: 0, avgScore: 0, trusted: 0, attention: 0, risky: 0 },
+      };
+    }
+
+    const [trusted, attention, risky] = await Promise.all([
+      this.prisma.analysisRequest.count({
+        where: { ...where, score: { gte: 70 } },
+      }),
+      this.prisma.analysisRequest.count({
+        where: { ...where, score: { gte: 40, lt: 70 } },
+      }),
+      this.prisma.analysisRequest.count({
+        where: { ...where, score: { lt: 40 } },
+      }),
+    ]);
+
+    return {
+      summary: {
+        total,
+        avgScore: Math.round(agg._avg.score ?? 0),
+        trusted,
+        attention,
+        risky,
+      },
+    };
+  }
 }
