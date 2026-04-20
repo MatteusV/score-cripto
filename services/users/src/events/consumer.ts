@@ -1,9 +1,5 @@
 import { withCorrelation } from "@score-cripto/observability-node";
-import amqplib, {
-  type Channel,
-  type ChannelModel,
-  type ConsumeMessage,
-} from "amqplib";
+import amqplib, { type Channel, type ChannelModel, type ConsumeMessage } from "amqplib";
 import { config } from "../config.js";
 import { logger } from "../logger.js";
 import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
@@ -55,7 +51,7 @@ export async function startConsumer(): Promise<void> {
         try {
           const result = await processUserAnalysisConsumedMessage(
             msg.content.toString(),
-            correlationId
+            correlationId,
           );
 
           if (result.outcome === "invalid_payload") {
@@ -70,7 +66,7 @@ export async function startConsumer(): Promise<void> {
         } catch (error) {
           logger.error(
             { correlationId, err: (error as Error).message },
-            "Failed to process event (transient)"
+            "Failed to process event (transient)",
           );
           if (channel) {
             retryOrDeadLetter(channel, msg);
@@ -91,10 +87,7 @@ export async function startConsumer(): Promise<void> {
 
     logger.info({ queue: QUEUE_NAME }, "Consumer started");
   } catch (error) {
-    logger.warn(
-      { err: (error as Error).message },
-      "RabbitMQ consumer failed to connect"
-    );
+    logger.warn({ err: (error as Error).message }, "RabbitMQ consumer failed to connect");
   }
 }
 

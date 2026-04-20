@@ -1,10 +1,7 @@
 import { fastifyCors } from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
 import ScalarApiReference from "@scalar/fastify-api-reference";
-import {
-  getLoggerOptions,
-  observabilityPlugin,
-} from "@score-cripto/observability-node";
+import { getLoggerOptions, observabilityPlugin } from "@score-cripto/observability-node";
 import fastify from "fastify";
 import fastifyRawBody from "fastify-raw-body";
 import {
@@ -95,7 +92,7 @@ export async function createHttpServer() {
     },
     async (_request, reply) => {
       return reply.status(200).send({ status: "ok" });
-    }
+    },
   );
 
   // Scalar precisa ser registrado após as rotas para que fastify.swagger() tenha o spec completo

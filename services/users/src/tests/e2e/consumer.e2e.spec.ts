@@ -16,7 +16,7 @@ async function registerUser(app: any, email: string): Promise<string> {
 function makeConsumedEvent(
   userId: string,
   analysisId = "analysis-e2e-1",
-  status: "completed" | "failed" = "completed"
+  status: "completed" | "failed" = "completed",
 ): string {
   return JSON.stringify({
     event: "user.analysis.consumed",
@@ -53,14 +53,12 @@ describe("Consumer E2E — processUserAnalysisConsumedMessage", () => {
   it("should increment analysisCount when processing completed event", async () => {
     const userId = await registerUser(app, "consumer-ok@example.com");
 
-    const result = await processUserAnalysisConsumedMessage(
-      makeConsumedEvent(userId)
-    );
+    const result = await processUserAnalysisConsumedMessage(makeConsumedEvent(userId));
 
     expect(result.outcome).toBe("processed");
 
     const rows = await db.query(
-      `SELECT "analysisCount" FROM "${db.getSchema()}"."usage_records" WHERE "userId" = '${userId}'`
+      `SELECT "analysisCount" FROM "${db.getSchema()}"."usage_records" WHERE "userId" = '${userId}'`,
     );
     expect(rows.rowCount).toBe(1);
     expect(Number(rows.rows[0].analysisCount)).toBe(1);
@@ -70,13 +68,13 @@ describe("Consumer E2E — processUserAnalysisConsumedMessage", () => {
     const userId = await registerUser(app, "consumer-failed@example.com");
 
     const result = await processUserAnalysisConsumedMessage(
-      makeConsumedEvent(userId, "analysis-fail", "failed")
+      makeConsumedEvent(userId, "analysis-fail", "failed"),
     );
 
     expect(result.outcome).toBe("processed");
 
     const rows = await db.query(
-      `SELECT "analysisCount" FROM "${db.getSchema()}"."usage_records" WHERE "userId" = '${userId}'`
+      `SELECT "analysisCount" FROM "${db.getSchema()}"."usage_records" WHERE "userId" = '${userId}'`,
     );
     // RegisterUserUseCase creates UsageRecord with analysisCount=0
     // Consumer should not have incremented (status=failed is ignored)
@@ -98,7 +96,7 @@ describe("Consumer E2E — processUserAnalysisConsumedMessage", () => {
 
     // Consumer receives one more event — should return limit_exceeded without error
     const result = await processUserAnalysisConsumedMessage(
-      makeConsumedEvent(userId, "analysis-over")
+      makeConsumedEvent(userId, "analysis-over"),
     );
 
     expect(result.outcome).toBe("limit_exceeded");

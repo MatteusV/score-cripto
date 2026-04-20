@@ -21,7 +21,7 @@ export class CheckUsageUseCase {
   constructor(
     usageRepository: UsageRepository,
     subscriptionRepository: SubscriptionRepository,
-    planPolicy: PlanPolicy
+    planPolicy: PlanPolicy,
   ) {
     this.usageRepository = usageRepository;
     this.subscriptionRepository = subscriptionRepository;
@@ -37,11 +37,7 @@ export class CheckUsageUseCase {
     const periodYear = now.getFullYear();
     const periodMonth = now.getMonth() + 1;
 
-    let record = await this.usageRepository.findByUserAndPeriod(
-      userId,
-      periodYear,
-      periodMonth
-    );
+    let record = await this.usageRepository.findByUserAndPeriod(userId, periodYear, periodMonth);
 
     if (!record) {
       const resetAt = new Date(periodYear, periodMonth, 1); // dia 1 do próximo mês

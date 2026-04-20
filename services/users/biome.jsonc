@@ -2,13 +2,13 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/biome/core", "ultracite/biome/vitest"],
   "files": {
-    "includes": ["src/**", "!src/tests/e2e/helpers/globalSetup.ts"]
+    "includes": ["src/**", "!src/tests/e2e/helpers/globalSetup.ts", "!dist/"],
   },
   "linter": {
     "rules": {
       "suspicious": {
-        "useAwait": "off"
-      }
-    }
-  }
+        "useAwait": "off",
+      },
+    },
+  },
 }

@@ -33,7 +33,7 @@ export class E2EDatabase {
   async cleanup(): Promise<void> {
     // Limpa na ordem correta para respeitar FKs
     await this.client.query(
-      `TRUNCATE TABLE "${this.schema}"."usage_records", "${this.schema}"."subscriptions", "${this.schema}"."refresh_tokens", "${this.schema}"."users" CASCADE`
+      `TRUNCATE TABLE "${this.schema}"."usage_records", "${this.schema}"."subscriptions", "${this.schema}"."refresh_tokens", "${this.schema}"."users" CASCADE`,
     );
   }
 
@@ -66,15 +66,11 @@ export function createE2EDatabase(): E2EDatabase {
   e2eDatabaseUrl = e2eDatabaseUrl ?? process.env.E2E_DATABASE_URL;
 
   if (!schema) {
-    throw new Error(
-      "[E2E] E2E_SCHEMA não definido. Certifique-se que globalSetup rodou."
-    );
+    throw new Error("[E2E] E2E_SCHEMA não definido. Certifique-se que globalSetup rodou.");
   }
 
   if (!e2eDatabaseUrl) {
-    throw new Error(
-      "[E2E] E2E_DATABASE_URL não definido. Certifique-se que globalSetup rodou."
-    );
+    throw new Error("[E2E] E2E_DATABASE_URL não definido. Certifique-se que globalSetup rodou.");
   }
 
   const baseUrl = e2eDatabaseUrl.split("?")[0];

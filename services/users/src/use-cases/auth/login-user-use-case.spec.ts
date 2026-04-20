@@ -62,16 +62,16 @@ describe("LoginUserUseCase", () => {
   });
 
   it("should throw InvalidCredentialsError for non-existent email", async () => {
-    await expect(
-      sut.execute({ email: "nao@existe.com", password: "senha1234" })
-    ).rejects.toThrow(InvalidCredentialsError);
+    await expect(sut.execute({ email: "nao@existe.com", password: "senha1234" })).rejects.toThrow(
+      InvalidCredentialsError,
+    );
   });
 
   it("should throw InvalidCredentialsError for incorrect password", async () => {
     await createUser("dave@example.com", "senha1234");
 
     await expect(
-      sut.execute({ email: "dave@example.com", password: "senhaerrada" })
+      sut.execute({ email: "dave@example.com", password: "senhaerrada" }),
     ).rejects.toThrow(InvalidCredentialsError);
   });
 
@@ -82,8 +82,7 @@ describe("LoginUserUseCase", () => {
     await sut.execute({ email: "eve@example.com", password: "senha1234" });
 
     const token = refreshTokenRepo.items[0];
-    const diffDays =
-      (token.expiresAt.getTime() - before.getTime()) / (1000 * 60 * 60 * 24);
+    const diffDays = (token.expiresAt.getTime() - before.getTime()) / (1000 * 60 * 60 * 24);
     expect(diffDays).toBeGreaterThanOrEqual(6.9);
     expect(diffDays).toBeLessThanOrEqual(7.1);
   });

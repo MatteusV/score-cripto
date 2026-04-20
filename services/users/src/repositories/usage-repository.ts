@@ -6,7 +6,7 @@ export interface UsageRepository {
   findByUserAndPeriod: (
     userId: string,
     periodYear: number,
-    periodMonth: number
+    periodMonth: number,
   ) => Promise<UsageRecord | null>;
   increment: (id: string) => Promise<UsageRecord>;
   reset: (id: string, resetAt: Date) => Promise<UsageRecord>;

@@ -22,10 +22,7 @@ export interface WebhookEventData {
 }
 
 export interface BillingService {
-  createBillingPortalSession(
-    customerId: string,
-    returnUrl: string
-  ): Promise<string>;
+  createBillingPortalSession(customerId: string, returnUrl: string): Promise<string>;
   createCheckoutSession(params: CheckoutSessionParams): Promise<string>;
   createCustomer(email: string, name?: string | null): Promise<string>;
   handleWebhookEvent(payload: string, signature: string): Promise<WebhookEvent>;

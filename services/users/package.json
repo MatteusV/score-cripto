@@ -11,8 +11,8 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "test:watch": "vitest",
     "db:generate": "prisma generate",
-    "check": "ultracite check",
-    "fix": "ultracite fix",
+    "check": "biome check .",
+    "fix": "biome check --write .",
     "keys:generate": "tsx src/scripts/generate-keys.ts"
   },
   "dependencies": {

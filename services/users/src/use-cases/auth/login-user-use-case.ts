@@ -33,7 +33,7 @@ export class LoginUserUseCase {
   constructor(
     userRepository: UserRepository,
     refreshTokenRepository: RefreshTokenRepository,
-    jwtService: JwtService
+    jwtService: JwtService,
   ) {
     this.userRepository = userRepository;
     this.refreshTokenRepository = refreshTokenRepository;
@@ -46,10 +46,7 @@ export class LoginUserUseCase {
       throw new InvalidCredentialsError();
     }
 
-    const passwordMatch = await bcrypt.compare(
-      data.password,
-      user.passwordHash
-    );
+    const passwordMatch = await bcrypt.compare(data.password, user.passwordHash);
     if (!passwordMatch) {
       throw new InvalidCredentialsError();
     }

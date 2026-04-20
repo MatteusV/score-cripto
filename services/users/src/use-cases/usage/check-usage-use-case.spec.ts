@@ -29,11 +29,7 @@ describe("CheckUsageUseCase", () => {
   beforeEach(() => {
     usageRepo = new UsageInMemoryRepository();
     subscriptionRepo = new SubscriptionInMemoryRepository();
-    sut = new CheckUsageUseCase(
-      usageRepo,
-      subscriptionRepo,
-      new DefaultPlanPolicy()
-    );
+    sut = new CheckUsageUseCase(usageRepo, subscriptionRepo, new DefaultPlanPolicy());
   });
 
   it("usuário FREE_TIER dentro do limite → allowed=true, remaining correto", async () => {

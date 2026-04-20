@@ -13,11 +13,7 @@ export class UsagePrismaRepository implements UsageRepository {
     return this.prisma.usageRecord.create({ data });
   }
 
-  async findByUserAndPeriod(
-    userId: string,
-    periodYear: number,
-    periodMonth: number
-  ) {
+  async findByUserAndPeriod(userId: string, periodYear: number, periodMonth: number) {
     return this.prisma.usageRecord.findUnique({
       where: {
         userId_periodYear_periodMonth: { userId, periodYear, periodMonth },

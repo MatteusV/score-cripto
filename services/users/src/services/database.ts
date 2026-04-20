@@ -7,8 +7,5 @@ const connectionString = `${process.env.DATABASE_URL}`;
 const schemaMatch = connectionString.match(/[?&]schema=([^&]+)/);
 const schema = schemaMatch?.[1];
 
-const adapter = new PrismaPg(
-  { connectionString },
-  schema ? { schema } : undefined
-);
+const adapter = new PrismaPg({ connectionString }, schema ? { schema } : undefined);
 export const prisma = new PrismaClient({ adapter });

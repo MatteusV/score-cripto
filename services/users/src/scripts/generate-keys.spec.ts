@@ -20,9 +20,7 @@ describe("generateRsaKeyPair", () => {
     const data = "score-cripto-test-payload";
 
     const signature = createSign("SHA256").update(data).sign(privateKey);
-    const valid = createVerify("SHA256")
-      .update(data)
-      .verify(publicKey, signature);
+    const valid = createVerify("SHA256").update(data).verify(publicKey, signature);
 
     expect(valid).toBe(true);
   });
@@ -40,9 +38,7 @@ describe("generateRsaKeyPair", () => {
     const data = "score-cripto-test-payload";
 
     const signature = createSign("SHA256").update(data).sign(privateKey);
-    const valid = createVerify("SHA256")
-      .update(data)
-      .verify(wrongPublicKey, signature);
+    const valid = createVerify("SHA256").update(data).verify(wrongPublicKey, signature);
 
     expect(valid).toBe(false);
   });

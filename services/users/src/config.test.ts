@@ -11,10 +11,8 @@ const envSchema = z.object({
   RABBITMQ_URL: z.string().default("amqp://localhost:5672"),
 });
 
-const VALID_PEM_PRIVATE =
-  "-----BEGIN PRIVATE KEY-----\nMIItest\n-----END PRIVATE KEY-----";
-const VALID_PEM_PUBLIC =
-  "-----BEGIN PUBLIC KEY-----\nMIItest\n-----END PUBLIC KEY-----";
+const VALID_PEM_PRIVATE = "-----BEGIN PRIVATE KEY-----\nMIItest\n-----END PRIVATE KEY-----";
+const VALID_PEM_PUBLIC = "-----BEGIN PUBLIC KEY-----\nMIItest\n-----END PUBLIC KEY-----";
 
 describe("Config schema", () => {
   it("should reject when DATABASE_URL is missing", () => {

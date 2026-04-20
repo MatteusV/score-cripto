@@ -19,22 +19,15 @@ export const UserAnalysisConsumedEventSchema = z.object({
   }),
 });
 
-export type UserAnalysisConsumedEvent = z.infer<
-  typeof UserAnalysisConsumedEventSchema
->;
+export type UserAnalysisConsumedEvent = z.infer<typeof UserAnalysisConsumedEventSchema>;
 
 export interface ProcessMessageResult {
-  outcome:
-    | "processed"
-    | "invalid_payload"
-    | "limit_exceeded"
-    | "user_not_found"
-    | "error";
+  outcome: "processed" | "invalid_payload" | "limit_exceeded" | "user_not_found" | "error";
 }
 
 export async function processUserAnalysisConsumedMessage(
   raw: string,
-  correlationId?: string
+  correlationId?: string,
 ): Promise<ProcessMessageResult> {
   const msgLog = correlationId ? logger.child({ correlationId }) : logger;
 
@@ -48,20 +41,14 @@ export async function processUserAnalysisConsumedMessage(
   }
 
   if (!parsed.success) {
-    msgLog.error(
-      { errors: parsed.error.flatten() },
-      "Invalid user.analysis.consumed payload"
-    );
+    msgLog.error({ errors: parsed.error.flatten() }, "Invalid user.analysis.consumed payload");
     return { outcome: "invalid_payload" };
   }
 
   const { userId, analysisId, status } = parsed.data.data;
 
   if (status !== "completed") {
-    msgLog.info(
-      { analysisId, status },
-      "Skipping non-completed analysis event"
-    );
+    msgLog.info({ analysisId, status }, "Skipping non-completed analysis event");
     return { outcome: "processed" };
   }
 
@@ -81,10 +68,7 @@ export async function processUserAnalysisConsumedMessage(
       msgLog.warn({ userId }, "User not found, skipping orphan event");
       return { outcome: "user_not_found" };
     }
-    msgLog.error(
-      { userId, err: (err as Error).message },
-      "Transient error processing event"
-    );
+    msgLog.error({ userId, err: (err as Error).message }, "Transient error processing event");
     return { outcome: "error" };
   }
 }

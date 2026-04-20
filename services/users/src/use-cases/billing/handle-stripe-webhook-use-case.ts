@@ -20,7 +20,7 @@ export class HandleStripeWebhookUseCase {
     subscriptionRepo: SubscriptionRepository,
     webhookEventRepo: StripeWebhookEventRepository,
     billingService: BillingService,
-    proPriceId: string
+    proPriceId: string,
   ) {
     this.userRepo = userRepo;
     this.subscriptionRepo = subscriptionRepo;
@@ -30,10 +30,7 @@ export class HandleStripeWebhookUseCase {
   }
 
   async execute(input: Input): Promise<void> {
-    const event = await this.billingService.handleWebhookEvent(
-      input.payload,
-      input.signature
-    );
+    const event = await this.billingService.handleWebhookEvent(input.payload, input.signature);
 
     // Idempotência: se o evento já foi processado, ignora sem reaplicar side-effects.
     const isFirstDelivery = await this.webhookEventRepo.tryRecord(event.id);
@@ -74,18 +71,13 @@ export class HandleStripeWebhookUseCase {
         const plan = resolvedPriceId === this.proPriceId ? "PRO" : "FREE_TIER";
         await this.subscriptionRepo.update(subscription.id, {
           plan,
-          stripeSubscriptionId:
-            data.subscriptionId ?? subscription.stripeSubscriptionId,
+          stripeSubscriptionId: data.subscriptionId ?? subscription.stripeSubscriptionId,
           stripePriceId: resolvedPriceId,
           status:
-            (data.status as "active" | "past_due" | "canceled" | "trialing") ??
-            subscription.status,
-          currentPeriodStart:
-            data.currentPeriodStart ?? subscription.currentPeriodStart,
-          currentPeriodEnd:
-            data.currentPeriodEnd ?? subscription.currentPeriodEnd,
-          cancelAtPeriodEnd:
-            data.cancelAtPeriodEnd ?? subscription.cancelAtPeriodEnd,
+            (data.status as "active" | "past_due" | "canceled" | "trialing") ?? subscription.status,
+          currentPeriodStart: data.currentPeriodStart ?? subscription.currentPeriodStart,
+          currentPeriodEnd: data.currentPeriodEnd ?? subscription.currentPeriodEnd,
+          cancelAtPeriodEnd: data.cancelAtPeriodEnd ?? subscription.cancelAtPeriodEnd,
         });
         break;
       }

@@ -5,16 +5,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const TEST_PRIVATE_KEY = process.env.TEST_JWT_PRIVATE_KEY as string;
 
 function signTestToken(userId = "u-1") {
-  return jwt.sign(
-    { sub: userId, email: "test@example.com" },
-    TEST_PRIVATE_KEY,
-    {
-      algorithm: "RS256",
-      expiresIn: "15m",
-      issuer: "score-cripto-users",
-      audience: "score-cripto-api",
-    }
-  );
+  return jwt.sign({ sub: userId, email: "test@example.com" }, TEST_PRIVATE_KEY, {
+    algorithm: "RS256",
+    expiresIn: "15m",
+    issuer: "score-cripto-users",
+    audience: "score-cripto-api",
+  });
 }
 
 // ── mocks ──────────────────────────────────────────────────────────────────────

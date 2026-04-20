@@ -21,7 +21,7 @@ export class CreateCheckoutSessionUseCase {
   constructor(
     userRepo: UserRepository,
     _subscriptionRepo: SubscriptionRepository,
-    billingService: BillingService
+    billingService: BillingService,
   ) {
     this.userRepo = userRepo;
     this.billingService = billingService;
@@ -35,10 +35,7 @@ export class CreateCheckoutSessionUseCase {
 
     let customerId = user.stripeCustomerId;
     if (!customerId) {
-      customerId = await this.billingService.createCustomer(
-        user.email,
-        user.name
-      );
+      customerId = await this.billingService.createCustomer(user.email, user.name);
       await this.userRepo.update(user.id, { stripeCustomerId: customerId });
     }
 

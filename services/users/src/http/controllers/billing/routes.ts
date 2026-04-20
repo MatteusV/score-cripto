@@ -19,15 +19,12 @@ import { authenticate } from "../../middleware/authenticate.js";
 const userRepo = new UserPrismaRepository(prisma);
 const subscriptionRepo = new SubscriptionPrismaRepository(prisma);
 const webhookEventRepo = new StripeWebhookEventPrismaRepository(prisma);
-const billingService = new StripeBillingService(
-  config.stripeSecretKey,
-  config.stripeWebhookSecret
-);
+const billingService = new StripeBillingService(config.stripeSecretKey, config.stripeWebhookSecret);
 
 const checkoutUseCase = new CreateCheckoutSessionUseCase(
   userRepo,
   subscriptionRepo,
-  billingService
+  billingService,
 );
 const portalUseCase = new CreatePortalSessionUseCase(userRepo, billingService);
 const webhookUseCase = new HandleStripeWebhookUseCase(
@@ -35,7 +32,7 @@ const webhookUseCase = new HandleStripeWebhookUseCase(
   subscriptionRepo,
   webhookEventRepo,
   billingService,
-  config.stripeProPriceId
+  config.stripeProPriceId,
 );
 
 export async function billingHandler(app: FastifyInstance) {
@@ -57,9 +54,7 @@ export async function billingHandler(app: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const priceId =
-        (request.query as { priceId?: string }).priceId ??
-        config.stripeProPriceId;
+      const priceId = (request.query as { priceId?: string }).priceId ?? config.stripeProPriceId;
       try {
         const result = await checkoutUseCase.execute({
           userId: request.user.id,
@@ -74,7 +69,7 @@ export async function billingHandler(app: FastifyInstance) {
         }
         throw err;
       }
-    }
+    },
   );
 
   // GET /billing/portal — gera URL do Stripe Customer Portal
@@ -108,7 +103,7 @@ export async function billingHandler(app: FastifyInstance) {
         }
         throw err;
       }
-    }
+    },
   );
 
   // GET /billing/subscription — retorna dados da assinatura atual
@@ -141,7 +136,7 @@ export async function billingHandler(app: FastifyInstance) {
         currentPeriodEnd: sub.currentPeriodEnd?.toISOString() ?? null,
         cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
       });
-    }
+    },
   );
 
   // rawBody não está no tipo base FastifyContextConfig mas é suportado em runtime
@@ -162,13 +157,11 @@ export async function billingHandler(app: FastifyInstance) {
 
   async function handleStripeWebhook(
     request: import("fastify").FastifyRequest,
-    reply: import("fastify").FastifyReply
+    reply: import("fastify").FastifyReply,
   ) {
     const signature = request.headers["stripe-signature"] as string;
     if (!signature) {
-      return reply
-        .status(400)
-        .send({ error: "Missing stripe-signature header" });
+      return reply.status(400).send({ error: "Missing stripe-signature header" });
     }
 
     const payload =

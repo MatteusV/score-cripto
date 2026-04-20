@@ -1,8 +1,6 @@
 import type { StripeWebhookEventRepository } from "../stripe-webhook-event-repository.js";
 
-export class StripeWebhookEventInMemoryRepository
-  implements StripeWebhookEventRepository
-{
+export class StripeWebhookEventInMemoryRepository implements StripeWebhookEventRepository {
   private readonly ids = new Set<string>();
 
   async tryRecord(eventId: string): Promise<boolean> {

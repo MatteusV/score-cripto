@@ -43,12 +43,7 @@ describe("ConsumeUsageUseCase", () => {
     usageRepo = new UsageInMemoryRepository();
     subscriptionRepo = new SubscriptionInMemoryRepository();
     userRepo = new UserInMemoryRepository();
-    sut = new ConsumeUsageUseCase(
-      usageRepo,
-      subscriptionRepo,
-      userRepo,
-      new DefaultPlanPolicy()
-    );
+    sut = new ConsumeUsageUseCase(usageRepo, subscriptionRepo, userRepo, new DefaultPlanPolicy());
   });
 
   it("incrementa analysisCount e retorna remaining correto", async () => {
@@ -79,9 +74,7 @@ describe("ConsumeUsageUseCase", () => {
     await createSubscription("FREE_TIER");
     await createUsageRecord(5);
 
-    await expect(sut.execute({ userId: USER_ID })).rejects.toThrow(
-      UsageLimitExceededError
-    );
+    await expect(sut.execute({ userId: USER_ID })).rejects.toThrow(UsageLimitExceededError);
   });
 
   it("lança UsageLimitExceededError quando usuário PRO atingiu o limite", async () => {
@@ -89,9 +82,7 @@ describe("ConsumeUsageUseCase", () => {
     await createSubscription("PRO");
     await createUsageRecord(15);
 
-    await expect(sut.execute({ userId: USER_ID })).rejects.toThrow(
-      UsageLimitExceededError
-    );
+    await expect(sut.execute({ userId: USER_ID })).rejects.toThrow(UsageLimitExceededError);
   });
 
   it("usuário PRO pode consumir até 15 análises", async () => {
@@ -117,8 +108,6 @@ describe("ConsumeUsageUseCase", () => {
   });
 
   it("lança UserNotFoundError quando usuário não existe", async () => {
-    await expect(sut.execute({ userId: "non-existent" })).rejects.toThrow(
-      UserNotFoundError
-    );
+    await expect(sut.execute({ userId: "non-existent" })).rejects.toThrow(UserNotFoundError);
   });
 });

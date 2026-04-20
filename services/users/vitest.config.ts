@@ -14,8 +14,7 @@ export default defineConfig({
     include: ["src/**/*.test.ts", "src/**/*.spec.ts"],
     exclude: ["src/tests/e2e/**"],
     env: {
-      DATABASE_URL:
-        "postgresql://score_cripto:score_cripto@localhost:5435/score_cripto_users",
+      DATABASE_URL: "postgresql://score_cripto:score_cripto@localhost:5435/score_cripto_users",
       JWT_PRIVATE_KEY: privateKey,
       JWT_PUBLIC_KEY: publicKey,
       TEST_JWT_PRIVATE_KEY: privateKey,

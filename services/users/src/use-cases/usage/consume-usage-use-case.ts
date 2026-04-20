@@ -24,7 +24,7 @@ export class ConsumeUsageUseCase {
     usageRepository: UsageRepository,
     subscriptionRepository: SubscriptionRepository,
     userRepository: UserRepository,
-    planPolicy: PlanPolicy
+    planPolicy: PlanPolicy,
   ) {
     this.usageRepository = usageRepository;
     this.subscriptionRepository = subscriptionRepository;
@@ -32,9 +32,7 @@ export class ConsumeUsageUseCase {
     this.planPolicy = planPolicy;
   }
 
-  async execute({
-    userId,
-  }: ConsumeUsageRequest): Promise<ConsumeUsageResponse> {
+  async execute({ userId }: ConsumeUsageRequest): Promise<ConsumeUsageResponse> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new UserNotFoundError();
@@ -48,11 +46,7 @@ export class ConsumeUsageUseCase {
     const periodYear = now.getFullYear();
     const periodMonth = now.getMonth() + 1;
 
-    let record = await this.usageRepository.findByUserAndPeriod(
-      userId,
-      periodYear,
-      periodMonth
-    );
+    let record = await this.usageRepository.findByUserAndPeriod(userId, periodYear, periodMonth);
 
     if (!record) {
       const resetAt = new Date(periodYear, periodMonth, 1);

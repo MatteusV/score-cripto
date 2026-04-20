@@ -15,9 +15,7 @@ export class UserInMemoryRepository implements UserRepository {
   }
 
   async findByStripeCustomerId(stripeCustomerId: string) {
-    return (
-      this.items.find((u) => u.stripeCustomerId === stripeCustomerId) ?? null
-    );
+    return this.items.find((u) => u.stripeCustomerId === stripeCustomerId) ?? null;
   }
 
   async create(data: UserUncheckedCreateInput) {

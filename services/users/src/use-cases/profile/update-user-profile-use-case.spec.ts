@@ -14,9 +14,9 @@ describe("UpdateUserProfileUseCase", () => {
   });
 
   it("should throw UserNotFoundError for unknown user", async () => {
-    await expect(
-      sut.execute({ userId: "non-existent", name: "New Name" })
-    ).rejects.toThrow(UserNotFoundError);
+    await expect(sut.execute({ userId: "non-existent", name: "New Name" })).rejects.toThrow(
+      UserNotFoundError,
+    );
   });
 
   it("should update user name", async () => {

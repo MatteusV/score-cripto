@@ -1,7 +1,4 @@
-import {
-  getCorrelationId,
-  publishWithCorrelation,
-} from "@score-cripto/observability-node";
+import { getCorrelationId, publishWithCorrelation } from "@score-cripto/observability-node";
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { config } from "../config.js";
 import { logger } from "../logger.js";
@@ -30,10 +27,7 @@ export async function connectRabbitMQ(): Promise<void> {
       logger.error({ err: err.message }, "RabbitMQ publisher connection error");
     });
   } catch (error) {
-    logger.warn(
-      { err: (error as Error).message },
-      "RabbitMQ publisher failed to connect"
-    );
+    logger.warn({ err: (error as Error).message }, "RabbitMQ publisher failed to connect");
   }
 }
 
@@ -73,14 +67,14 @@ function publishEvent(routingKey: string, payload: unknown): boolean {
         contentType: "application/json",
         timestamp: Date.now(),
       },
-      correlationId
+      correlationId,
     );
     logger.info({ routingKey, correlationId }, "Event published");
     return true;
   } catch (error) {
     logger.error(
       { routingKey, correlationId, err: (error as Error).message },
-      "Failed to publish event"
+      "Failed to publish event",
     );
     return false;
   }

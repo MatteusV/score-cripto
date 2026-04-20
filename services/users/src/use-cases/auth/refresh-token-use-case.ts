@@ -22,7 +22,7 @@ export class RefreshTokenUseCase {
   constructor(
     refreshTokenRepository: RefreshTokenRepository,
     userRepository: UserRepository,
-    jwtService: JwtService
+    jwtService: JwtService,
   ) {
     this.refreshTokenRepository = refreshTokenRepository;
     this.userRepository = userRepository;

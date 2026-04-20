@@ -20,7 +20,7 @@ describe("ChangePasswordUseCase", () => {
         userId: "non-existent",
         currentPassword: "any",
         newPassword: "newpass",
-      })
+      }),
     ).rejects.toThrow(UserNotFoundError);
   });
 
@@ -35,7 +35,7 @@ describe("ChangePasswordUseCase", () => {
         userId: user.id,
         currentPassword: "wrong-pass",
         newPassword: "new-password",
-      })
+      }),
     ).rejects.toThrow(InvalidCredentialsError);
   });
 

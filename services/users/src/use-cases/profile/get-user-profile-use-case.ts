@@ -27,7 +27,7 @@ export class GetUserProfileUseCase {
   constructor(
     userRepo: UserRepository,
     subscriptionRepo: SubscriptionRepository,
-    usageRepo: UsageRepository
+    usageRepo: UsageRepository,
   ) {
     this.userRepo = userRepo;
     this.subscriptionRepo = subscriptionRepo;
@@ -47,7 +47,7 @@ export class GetUserProfileUseCase {
     const usage = await this.usageRepo.findByUserAndPeriod(
       userId,
       now.getFullYear(),
-      now.getMonth() + 1
+      now.getMonth() + 1,
     );
 
     return {

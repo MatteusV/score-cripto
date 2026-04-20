@@ -26,7 +26,7 @@ export class RegisterUserUseCase {
   constructor(
     userRepository: UserRepository,
     subscriptionRepository: SubscriptionRepository,
-    usageRepository: UsageRepository
+    usageRepository: UsageRepository,
   ) {
     this.userRepository = userRepository;
     this.subscriptionRepository = subscriptionRepository;

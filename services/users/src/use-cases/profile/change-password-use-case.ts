@@ -22,10 +22,7 @@ export class ChangePasswordUseCase {
       throw new UserNotFoundError();
     }
 
-    const passwordMatches = await compare(
-      input.currentPassword,
-      user.passwordHash
-    );
+    const passwordMatches = await compare(input.currentPassword, user.passwordHash);
     if (!passwordMatches) {
       throw new InvalidCredentialsError();
     }

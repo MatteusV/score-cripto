@@ -38,7 +38,7 @@ export class CreatePortalSessionUseCase {
 
     const portalUrl = await this.billingService.createBillingPortalSession(
       user.stripeCustomerId,
-      input.returnUrl
+      input.returnUrl,
     );
 
     return { portalUrl };

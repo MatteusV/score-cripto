@@ -2,7 +2,6 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
 import { DefaultPlanPolicy } from "../../../domain/plan-policy.js";
-import { authenticate } from "../../middleware/authenticate.js";
 import { SubscriptionPrismaRepository } from "../../../repositories/prisma/subscription-prisma-repository.js";
 import { UsagePrismaRepository } from "../../../repositories/prisma/usage-prisma-repository.js";
 import { UserPrismaRepository } from "../../../repositories/prisma/user-prisma-repository.js";
@@ -11,23 +10,15 @@ import { UsageLimitExceededError } from "../../../use-cases/errors/usage-limit-e
 import { UserNotFoundError } from "../../../use-cases/errors/user-not-found-error.js";
 import { CheckUsageUseCase } from "../../../use-cases/usage/check-usage-use-case.js";
 import { ConsumeUsageUseCase } from "../../../use-cases/usage/consume-usage-use-case.js";
+import { authenticate } from "../../middleware/authenticate.js";
 
 const userRepo = new UserPrismaRepository(prisma);
 const usageRepo = new UsagePrismaRepository(prisma);
 const subscriptionRepo = new SubscriptionPrismaRepository(prisma);
 const planPolicy = new DefaultPlanPolicy();
 
-const checkUseCase = new CheckUsageUseCase(
-  usageRepo,
-  subscriptionRepo,
-  planPolicy
-);
-const consumeUseCase = new ConsumeUsageUseCase(
-  usageRepo,
-  subscriptionRepo,
-  userRepo,
-  planPolicy
-);
+const checkUseCase = new CheckUsageUseCase(usageRepo, subscriptionRepo, planPolicy);
+const consumeUseCase = new ConsumeUsageUseCase(usageRepo, subscriptionRepo, userRepo, planPolicy);
 
 const UsageResponseSchema = z.object({
   allowed: z.boolean(),
@@ -73,7 +64,7 @@ export async function usageHandler(app: FastifyInstance) {
         ...result,
         resetsAt: result.resetsAt.toISOString(),
       });
-    }
+    },
   );
 
   // POST /usage/check
@@ -113,7 +104,7 @@ export async function usageHandler(app: FastifyInstance) {
         ...result,
         resetsAt: result.resetsAt.toISOString(),
       });
-    }
+    },
   );
 
   // POST /usage/consume
@@ -138,15 +129,13 @@ export async function usageHandler(app: FastifyInstance) {
         return reply.status(200).send(result);
       } catch (err) {
         if (err instanceof UsageLimitExceededError) {
-          return reply
-            .status(429)
-            .send({ error: "Monthly analysis limit reached" });
+          return reply.status(429).send({ error: "Monthly analysis limit reached" });
         }
         if (err instanceof UserNotFoundError) {
           return reply.status(404).send({ error: "User not found" });
         }
         throw err;
       }
-    }
+    },
   );
 }

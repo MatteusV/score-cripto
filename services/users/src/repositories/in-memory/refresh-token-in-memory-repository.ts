@@ -12,9 +12,7 @@ export class RefreshTokenInMemoryRepository implements RefreshTokenRepository {
       tokenHash: data.tokenHash,
       userId: data.userId,
       expiresAt: new Date(data.expiresAt as string | Date),
-      revokedAt: data.revokedAt
-        ? new Date(data.revokedAt as string | Date)
-        : null,
+      revokedAt: data.revokedAt ? new Date(data.revokedAt as string | Date) : null,
       createdAt: new Date(),
     };
     this.items.push(token);

@@ -48,9 +48,7 @@ describe("Auth E2E — register, login, refresh", () => {
         payload: { email: "user@example.com", password: "senha1234" },
       });
 
-      const rows = await db.query(
-        `SELECT * FROM "${db.getSchema()}"."subscriptions"`
-      );
+      const rows = await db.query(`SELECT * FROM "${db.getSchema()}"."subscriptions"`);
       expect(rows.rowCount).toBe(1);
       expect(rows.rows[0].plan).toBe("FREE_TIER");
       expect(rows.rows[0].status).toBe("active");

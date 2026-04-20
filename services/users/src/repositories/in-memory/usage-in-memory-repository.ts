@@ -21,17 +21,10 @@ export class UsageInMemoryRepository implements UsageRepository {
     return record;
   }
 
-  async findByUserAndPeriod(
-    userId: string,
-    periodYear: number,
-    periodMonth: number
-  ) {
+  async findByUserAndPeriod(userId: string, periodYear: number, periodMonth: number) {
     return (
       this.items.find(
-        (r) =>
-          r.userId === userId &&
-          r.periodYear === periodYear &&
-          r.periodMonth === periodMonth
+        (r) => r.userId === userId && r.periodYear === periodYear && r.periodMonth === periodMonth,
       ) ?? null
     );
   }

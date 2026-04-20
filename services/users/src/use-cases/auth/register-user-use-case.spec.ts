@@ -53,21 +53,17 @@ describe("RegisterUserUseCase", () => {
   it("should throw EmailAlreadyInUseError if email already exists", async () => {
     await sut.execute({ email: "dup@example.com", password: "senha1234" });
 
-    await expect(
-      sut.execute({ email: "dup@example.com", password: "outrasenha" })
-    ).rejects.toThrow(EmailAlreadyInUseError);
+    await expect(sut.execute({ email: "dup@example.com", password: "outrasenha" })).rejects.toThrow(
+      EmailAlreadyInUseError,
+    );
   });
 
   it("should fail with ZodError if email is invalid", async () => {
-    await expect(
-      sut.execute({ email: "nao-e-email", password: "senha1234" })
-    ).rejects.toThrow();
+    await expect(sut.execute({ email: "nao-e-email", password: "senha1234" })).rejects.toThrow();
   });
 
   it("should fail with ZodError if password has less than 8 characters", async () => {
-    await expect(
-      sut.execute({ email: "valid@example.com", password: "curta" })
-    ).rejects.toThrow();
+    await expect(sut.execute({ email: "valid@example.com", password: "curta" })).rejects.toThrow();
   });
 
   it("should create FREE_TIER Subscription automatically", async () => {
@@ -76,9 +72,7 @@ describe("RegisterUserUseCase", () => {
       password: "senha1234",
     });
 
-    const subscription = subscriptionRepo.items.find(
-      (s) => s.userId === user.id
-    );
+    const subscription = subscriptionRepo.items.find((s) => s.userId === user.id);
     expect(subscription).toBeDefined();
     expect(subscription?.plan).toBe("FREE_TIER");
     expect(subscription?.status).toBe("active");

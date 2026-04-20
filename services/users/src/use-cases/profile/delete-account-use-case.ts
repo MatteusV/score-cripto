@@ -6,10 +6,7 @@ export class DeleteAccountUseCase {
   private readonly userRepo: UserRepository;
   private readonly refreshTokenRepo: RefreshTokenRepository;
 
-  constructor(
-    userRepo: UserRepository,
-    refreshTokenRepo: RefreshTokenRepository
-  ) {
+  constructor(userRepo: UserRepository, refreshTokenRepo: RefreshTokenRepository) {
     this.userRepo = userRepo;
     this.refreshTokenRepo = refreshTokenRepo;
   }

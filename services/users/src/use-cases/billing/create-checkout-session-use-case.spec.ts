@@ -16,11 +16,7 @@ describe("CreateCheckoutSessionUseCase", () => {
     userRepo = new UserInMemoryRepository();
     subscriptionRepo = new SubscriptionInMemoryRepository();
     billingService = new FakeBillingService();
-    sut = new CreateCheckoutSessionUseCase(
-      userRepo,
-      subscriptionRepo,
-      billingService
-    );
+    sut = new CreateCheckoutSessionUseCase(userRepo, subscriptionRepo, billingService);
   });
 
   it("should throw UserNotFoundError for unknown user", async () => {
@@ -30,7 +26,7 @@ describe("CreateCheckoutSessionUseCase", () => {
         priceId: "price_pro",
         successUrl: "http://example.com/success",
         cancelUrl: "http://example.com/cancel",
-      })
+      }),
     ).rejects.toThrow(UserNotFoundError);
   });
 

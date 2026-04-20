@@ -9,10 +9,7 @@ export function dlqArgumentsFor(queueName: string): Record<string, string> {
   };
 }
 
-export async function assertDlqForQueue(
-  channel: Channel,
-  queueName: string
-): Promise<void> {
+export async function assertDlqForQueue(channel: Channel, queueName: string): Promise<void> {
   const dlqName = `${queueName}.dlq`;
   await channel.assertExchange(DLX_NAME, "direct", { durable: true });
   await channel.assertQueue(dlqName, { durable: true });

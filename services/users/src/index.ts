@@ -16,10 +16,7 @@ async function start(): Promise<void> {
 
     await app.listen({ port: config.port, host: "0.0.0.0" });
     logger.info({ port: config.port }, "HTTP server listening");
-    logger.info(
-      { url: `http://localhost:${config.port}/docs` },
-      "Swagger UI available"
-    );
+    logger.info({ url: `http://localhost:${config.port}/docs` }, "Swagger UI available");
   } catch (error) {
     logger.error({ err: error }, "Failed to start users service");
     process.exit(1);

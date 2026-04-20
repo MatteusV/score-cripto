@@ -17,9 +17,7 @@ describe("DeleteAccountUseCase", () => {
   });
 
   it("should throw UserNotFoundError for unknown user", async () => {
-    await expect(sut.execute("non-existent")).rejects.toThrow(
-      UserNotFoundError
-    );
+    await expect(sut.execute("non-existent")).rejects.toThrow(UserNotFoundError);
   });
 
   it("should delete user and revoke all refresh tokens", async () => {

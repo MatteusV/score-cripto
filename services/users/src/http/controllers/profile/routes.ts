@@ -19,17 +19,10 @@ const subscriptionRepo = new SubscriptionPrismaRepository(prisma);
 const usageRepo = new UsagePrismaRepository(prisma);
 const refreshTokenRepo = new RefreshTokenPrismaRepository(prisma);
 
-const getProfileUseCase = new GetUserProfileUseCase(
-  userRepo,
-  subscriptionRepo,
-  usageRepo
-);
+const getProfileUseCase = new GetUserProfileUseCase(userRepo, subscriptionRepo, usageRepo);
 const updateProfileUseCase = new UpdateUserProfileUseCase(userRepo);
 const changePasswordUseCase = new ChangePasswordUseCase(userRepo);
-const deleteAccountUseCase = new DeleteAccountUseCase(
-  userRepo,
-  refreshTokenRepo
-);
+const deleteAccountUseCase = new DeleteAccountUseCase(userRepo, refreshTokenRepo);
 
 export async function profileHandler(app: FastifyInstance) {
   const typed = app.withTypeProvider<ZodTypeProvider>();
@@ -70,7 +63,7 @@ export async function profileHandler(app: FastifyInstance) {
         }
         throw err;
       }
-    }
+    },
   );
 
   // PATCH /profile
@@ -105,7 +98,7 @@ export async function profileHandler(app: FastifyInstance) {
         }
         throw err;
       }
-    }
+    },
   );
 
   // POST /profile/change-password
@@ -137,16 +130,14 @@ export async function profileHandler(app: FastifyInstance) {
         return reply.status(204).send({});
       } catch (err) {
         if (err instanceof InvalidCredentialsError) {
-          return reply
-            .status(401)
-            .send({ error: "Current password is incorrect" });
+          return reply.status(401).send({ error: "Current password is incorrect" });
         }
         if (err instanceof UserNotFoundError) {
           return reply.status(404).send({ error: "User not found" });
         }
         throw err;
       }
-    }
+    },
   );
 
   // DELETE /profile
@@ -173,6 +164,6 @@ export async function profileHandler(app: FastifyInstance) {
         }
         throw err;
       }
-    }
+    },
   );
 }

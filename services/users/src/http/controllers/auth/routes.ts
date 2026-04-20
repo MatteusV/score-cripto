@@ -22,24 +22,12 @@ const refreshTokenRepo = new RefreshTokenPrismaRepository(prisma);
 const jwtService = new JwtServiceImpl(
   config.jwtPrivateKey,
   config.jwtPublicKey,
-  config.jwtExpiresIn
+  config.jwtExpiresIn,
 );
 
-const registerUseCase = new RegisterUserUseCase(
-  userRepo,
-  subscriptionRepo,
-  usageRepo
-);
-const loginUseCase = new LoginUserUseCase(
-  userRepo,
-  refreshTokenRepo,
-  jwtService
-);
-const refreshUseCase = new RefreshTokenUseCase(
-  refreshTokenRepo,
-  userRepo,
-  jwtService
-);
+const registerUseCase = new RegisterUserUseCase(userRepo, subscriptionRepo, usageRepo);
+const loginUseCase = new LoginUserUseCase(userRepo, refreshTokenRepo, jwtService);
+const refreshUseCase = new RefreshTokenUseCase(refreshTokenRepo, userRepo, jwtService);
 
 const UserResponseSchema = z.object({
   id: z.string(),
@@ -89,7 +77,7 @@ export async function authHandler(app: FastifyInstance) {
         }
         throw err;
       }
-    }
+    },
   );
 
   // POST /auth/login
@@ -123,7 +111,7 @@ export async function authHandler(app: FastifyInstance) {
         }
         throw err;
       }
-    }
+    },
   );
 
   // POST /auth/refresh
@@ -146,12 +134,10 @@ export async function authHandler(app: FastifyInstance) {
         return reply.status(200).send(result);
       } catch (err) {
         if (err instanceof InvalidRefreshTokenError) {
-          return reply
-            .status(401)
-            .send({ error: "Invalid or expired refresh token" });
+          return reply.status(401).send({ error: "Invalid or expired refresh token" });
         }
         throw err;
       }
-    }
+    },
   );
 }

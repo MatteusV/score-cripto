@@ -1,9 +1,7 @@
 import type { User } from "../generated/prisma/browser.js";
 import type { UserUncheckedCreateInput } from "../generated/prisma/models/User.js";
 
-export type UserUpdateData = Partial<
-  Omit<User, "id" | "createdAt" | "updatedAt">
->;
+export type UserUpdateData = Partial<Omit<User, "id" | "createdAt" | "updatedAt">>;
 
 export interface UserRepository {
   create: (data: UserUncheckedCreateInput) => Promise<User>;

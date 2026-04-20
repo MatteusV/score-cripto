@@ -20,9 +20,7 @@ describe("GetUserProfileUseCase", () => {
   });
 
   it("should throw UserNotFoundError for unknown user", async () => {
-    await expect(sut.execute("non-existent")).rejects.toThrow(
-      UserNotFoundError
-    );
+    await expect(sut.execute("non-existent")).rejects.toThrow(UserNotFoundError);
   });
 
   it("should return profile with FREE_TIER defaults", async () => {

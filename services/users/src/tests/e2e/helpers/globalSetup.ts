@@ -29,17 +29,13 @@ export async function setup({ provide }: GlobalSetupContext) {
   const databaseUrlWithSchema = `${E2E_DATABASE_URL.split("?")[0]}?schema=${schema}`;
 
   // Roda migrações Prisma no schema E2E
-  await execa(
-    "npx",
-    ["prisma", "migrate", "deploy", "--schema", "prisma/schema.prisma"],
-    {
-      env: {
-        ...process.env,
-        DATABASE_URL: databaseUrlWithSchema,
-      },
-      stdio: "inherit",
-    }
-  );
+  await execa("npx", ["prisma", "migrate", "deploy", "--schema", "prisma/schema.prisma"], {
+    env: {
+      ...process.env,
+      DATABASE_URL: databaseUrlWithSchema,
+    },
+    stdio: "inherit",
+  });
 
   // Disponibiliza para os testes via arquivo (processo separado)
   const config = {

@@ -40,7 +40,7 @@ describe("processUserAnalysisConsumedMessage", () => {
       usageRepo,
       subscriptionRepo,
       userRepo,
-      new DefaultPlanPolicy()
+      new DefaultPlanPolicy(),
     );
     vi.clearAllMocks();
   });
@@ -113,9 +113,7 @@ describe("processUserAnalysisConsumedMessage", () => {
       status: "active",
     });
 
-    const result = await processUserAnalysisConsumedMessage(
-      makeValidEvent({ status: "failed" })
-    );
+    const result = await processUserAnalysisConsumedMessage(makeValidEvent({ status: "failed" }));
 
     expect(result.outcome).toBe("processed");
     expect(usageRepo.items).toHaveLength(0); // não consumiu

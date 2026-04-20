@@ -4,9 +4,7 @@ import { generateKeyPairSync } from "node:crypto";
 
 const e2eUrl = process.env.E2E_DATABASE_URL;
 if (!e2eUrl) {
-  throw new Error(
-    "[E2E] E2E_DATABASE_URL não definido. Certifique-se que globalSetup rodou."
-  );
+  throw new Error("[E2E] E2E_DATABASE_URL não definido. Certifique-se que globalSetup rodou.");
 }
 
 process.env.DATABASE_URL = e2eUrl;

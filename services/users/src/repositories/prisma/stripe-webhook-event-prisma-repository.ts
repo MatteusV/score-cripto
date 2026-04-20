@@ -1,9 +1,7 @@
 import type { PrismaClient } from "../../generated/prisma/client.js";
 import type { StripeWebhookEventRepository } from "../stripe-webhook-event-repository.js";
 
-export class StripeWebhookEventPrismaRepository
-  implements StripeWebhookEventRepository
-{
+export class StripeWebhookEventPrismaRepository implements StripeWebhookEventRepository {
   private readonly prisma: PrismaClient;
 
   constructor(prisma: PrismaClient) {

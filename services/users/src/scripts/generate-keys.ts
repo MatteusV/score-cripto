@@ -29,9 +29,7 @@ if (process.argv[1]?.includes("generate-keys")) {
   }
 
   if (!force && existsSync(privateKeyPath)) {
-    console.error(
-      "⚠️  keys/private.pem já existe. Use --force para sobrescrever."
-    );
+    console.error("⚠️  keys/private.pem já existe. Use --force para sobrescrever.");
     process.exit(1);
   }
 

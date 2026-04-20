@@ -23,7 +23,7 @@ describe("HandleStripeWebhookUseCase", () => {
       subscriptionRepo,
       webhookEventRepo,
       billingService,
-      "price_pro"
+      "price_pro",
     );
   });
 
@@ -182,8 +182,6 @@ describe("HandleStripeWebhookUseCase", () => {
       data: { customerId: "cus_unknown", subscriptionId: "sub_xyz" },
     });
 
-    await expect(
-      sut.execute({ payload, signature: "fake" })
-    ).resolves.toBeUndefined();
+    await expect(sut.execute({ payload, signature: "fake" })).resolves.toBeUndefined();
   });
 });

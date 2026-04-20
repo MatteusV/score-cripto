@@ -7,7 +7,7 @@ function makeService(overrides?: { privateKey?: string; publicKey?: string }) {
   return new JwtServiceImpl(
     overrides?.privateKey ?? privateKey,
     overrides?.publicKey ?? publicKey,
-    "15m"
+    "15m",
   );
 }
 
@@ -17,9 +17,7 @@ describe("JwtServiceImpl (RS256)", () => {
     const token = svc.sign({ sub: "user-123", email: "alice@example.com" });
 
     const [, payloadB64] = token.split(".");
-    const header = JSON.parse(
-      Buffer.from(token.split(".")[0], "base64url").toString()
-    );
+    const header = JSON.parse(Buffer.from(token.split(".")[0], "base64url").toString());
     expect(header.alg).toBe("RS256");
     expect(payloadB64).toBeTruthy();
   });

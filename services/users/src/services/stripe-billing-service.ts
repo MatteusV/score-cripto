@@ -1,9 +1,5 @@
 import Stripe from "stripe";
-import type {
-  BillingService,
-  CheckoutSessionParams,
-  WebhookEvent,
-} from "./billing-service.js";
+import type { BillingService, CheckoutSessionParams, WebhookEvent } from "./billing-service.js";
 
 export class StripeBillingService implements BillingService {
   private _stripe: Stripe | null = null;
@@ -48,10 +44,7 @@ export class StripeBillingService implements BillingService {
     return session.url;
   }
 
-  async createBillingPortalSession(
-    customerId: string,
-    returnUrl: string
-  ): Promise<string> {
+  async createBillingPortalSession(customerId: string, returnUrl: string): Promise<string> {
     const session = await this.stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: returnUrl,
@@ -59,15 +52,8 @@ export class StripeBillingService implements BillingService {
     return session.url;
   }
 
-  async handleWebhookEvent(
-    payload: string,
-    signature: string
-  ): Promise<WebhookEvent> {
-    const event = this.stripe.webhooks.constructEvent(
-      payload,
-      signature,
-      this.webhookSecret
-    );
+  async handleWebhookEvent(payload: string, signature: string): Promise<WebhookEvent> {
+    const event = this.stripe.webhooks.constructEvent(payload, signature, this.webhookSecret);
 
     const base = { id: event.id, type: event.type };
     switch (event.type) {
@@ -96,12 +82,8 @@ export class StripeBillingService implements BillingService {
             subscriptionId: sub.id,
             priceId,
             status: sub.status,
-            currentPeriodStart: periodStart
-              ? new Date(periodStart * 1000)
-              : undefined,
-            currentPeriodEnd: periodEnd
-              ? new Date(periodEnd * 1000)
-              : undefined,
+            currentPeriodStart: periodStart ? new Date(periodStart * 1000) : undefined,
+            currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : undefined,
             cancelAtPeriodEnd: sub.cancel_at_period_end,
           },
         };

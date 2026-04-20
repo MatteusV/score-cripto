@@ -5,18 +5,13 @@ import { JwtServiceImpl } from "../../services/jwt-service.js";
 const jwtService = new JwtServiceImpl(
   config.jwtPrivateKey,
   config.jwtPublicKey,
-  config.jwtExpiresIn
+  config.jwtExpiresIn,
 );
 
-export async function authenticate(
-  request: FastifyRequest,
-  reply: FastifyReply
-) {
+export async function authenticate(request: FastifyRequest, reply: FastifyReply) {
   const authHeader = request.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
-    return reply
-      .status(401)
-      .send({ error: "Missing or invalid authorization header" });
+    return reply.status(401).send({ error: "Missing or invalid authorization header" });
   }
 
   const token = authHeader.slice(7);

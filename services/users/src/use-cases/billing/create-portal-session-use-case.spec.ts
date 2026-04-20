@@ -21,7 +21,7 @@ describe("CreatePortalSessionUseCase", () => {
 
   it("should throw UserNotFoundError for unknown user", async () => {
     await expect(
-      sut.execute({ userId: "non-existent", returnUrl: "http://example.com" })
+      sut.execute({ userId: "non-existent", returnUrl: "http://example.com" }),
     ).rejects.toThrow(UserNotFoundError);
   });
 
@@ -31,9 +31,9 @@ describe("CreatePortalSessionUseCase", () => {
       passwordHash: hashSync("password", 6),
     });
 
-    await expect(
-      sut.execute({ userId: user.id, returnUrl: "http://example.com" })
-    ).rejects.toThrow(NoBillingAccountError);
+    await expect(sut.execute({ userId: user.id, returnUrl: "http://example.com" })).rejects.toThrow(
+      NoBillingAccountError,
+    );
   });
 
   it("should return portal URL for user with stripeCustomerId", async () => {

@@ -18,7 +18,7 @@ export async function assertRetryQueueFor(
   channel: Channel,
   sourceQueue: string,
   sourceExchange: string,
-  sourceRoutingKey: string
+  sourceRoutingKey: string,
 ): Promise<void> {
   const retryQueue = `${sourceQueue}.retry`;
   await channel.assertQueue(retryQueue, {
@@ -35,11 +35,7 @@ export async function assertRetryQueueFor(
  * Retorna true se o retry foi agendado; false se max retries esgotadas
  * (o caller deve rotear para DLQ via nack).
  */
-export function scheduleRetry(
-  channel: Channel,
-  msg: ConsumeMessage,
-  sourceQueue: string
-): boolean {
+export function scheduleRetry(channel: Channel, msg: ConsumeMessage, sourceQueue: string): boolean {
   const currentCount = getRetryCount(msg);
   if (currentCount >= MAX_RETRIES) {
     return false;

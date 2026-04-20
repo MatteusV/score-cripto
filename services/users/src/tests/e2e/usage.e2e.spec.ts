@@ -5,7 +5,7 @@ import { createE2EDatabase } from "./helpers/e2e-database.js";
 
 async function registerAndLogin(
   app: any,
-  email: string
+  email: string,
 ): Promise<{ userId: string; authHeader: string }> {
   const reg = await app.inject({
     method: "POST",
@@ -45,10 +45,7 @@ describe("Usage E2E — check, consume e limites mensais", () => {
 
   describe("GET /usage/:userId", () => {
     it("should return initial usage with 5 remaining for FREE_TIER", async () => {
-      const { userId, authHeader } = await registerAndLogin(
-        app,
-        "usage-get@example.com"
-      );
+      const { userId, authHeader } = await registerAndLogin(app, "usage-get@example.com");
 
       const res = await app.inject({
         method: "GET",
@@ -76,14 +73,8 @@ describe("Usage E2E — check, consume e limites mensais", () => {
     });
 
     it("should return 404 when querying another user's id (no ownership leak)", async () => {
-      const { authHeader } = await registerAndLogin(
-        app,
-        "usage-viewer@example.com"
-      );
-      const { userId: targetId } = await registerAndLogin(
-        app,
-        "usage-target@example.com"
-      );
+      const { authHeader } = await registerAndLogin(app, "usage-viewer@example.com");
+      const { userId: targetId } = await registerAndLogin(app, "usage-target@example.com");
 
       const res = await app.inject({
         method: "GET",
@@ -102,10 +93,7 @@ describe("Usage E2E — check, consume e limites mensais", () => {
     });
 
     it("should return 200 with allowed=true when within limit", async () => {
-      const { authHeader } = await registerAndLogin(
-        app,
-        "check-ok@example.com"
-      );
+      const { authHeader } = await registerAndLogin(app, "check-ok@example.com");
 
       const res = await app.inject({
         method: "POST",
@@ -118,10 +106,7 @@ describe("Usage E2E — check, consume e limites mensais", () => {
     });
 
     it("should return 429 when limit reached", async () => {
-      const { authHeader } = await registerAndLogin(
-        app,
-        "check-limit@example.com"
-      );
+      const { authHeader } = await registerAndLogin(app, "check-limit@example.com");
 
       for (let i = 0; i < 5; i++) {
         await app.inject({
@@ -151,18 +136,14 @@ describe("Usage E2E — check, consume e limites mensais", () => {
     });
 
     it("should decrement remaining after consumption", async () => {
-      const { userId, authHeader } = await registerAndLogin(
-        app,
-        "consume-dec@example.com"
-      );
+      const { userId, authHeader } = await registerAndLogin(app, "consume-dec@example.com");
 
       const before = await app.inject({
         method: "GET",
         url: `/usage/${userId}`,
         headers: { authorization: authHeader },
       });
-      const beforeRemaining = (before.json() as { remaining: number })
-        .remaining;
+      const beforeRemaining = (before.json() as { remaining: number }).remaining;
 
       await app.inject({
         method: "POST",
@@ -181,10 +162,7 @@ describe("Usage E2E — check, consume e limites mensais", () => {
     });
 
     it("should return 429 when exceeding limit of 5 analyses", async () => {
-      const { authHeader } = await registerAndLogin(
-        app,
-        "consume-limit@example.com"
-      );
+      const { authHeader } = await registerAndLogin(app, "consume-limit@example.com");
 
       for (let i = 0; i < 5; i++) {
         const res = await app.inject({
@@ -205,10 +183,7 @@ describe("Usage E2E — check, consume e limites mensais", () => {
     });
 
     it("should persist count in the database", async () => {
-      const { userId, authHeader } = await registerAndLogin(
-        app,
-        "consume-db@example.com"
-      );
+      const { userId, authHeader } = await registerAndLogin(app, "consume-db@example.com");
 
       await app.inject({
         method: "POST",
@@ -222,7 +197,7 @@ describe("Usage E2E — check, consume e limites mensais", () => {
       });
 
       const rows = await db.query(
-        `SELECT "analysisCount" FROM "${db.getSchema()}"."usage_records" WHERE "userId" = '${userId}'`
+        `SELECT "analysisCount" FROM "${db.getSchema()}"."usage_records" WHERE "userId" = '${userId}'`,
       );
       expect(rows.rowCount).toBe(1);
       expect(Number(rows.rows[0].analysisCount)).toBe(2);
