@@ -3,19 +3,17 @@ import { corsOriginCheck, isOriginAllowed } from "./cors.js";
 
 describe("isOriginAllowed", () => {
   it("aceita o domínio prod do web-app", () => {
-    expect(isOriginAllowed("https://score-cripto-web-app.vercel.app")).toBe(true);
+    expect(isOriginAllowed("https://score-cripto-web-app.vercel.app")).toBe(
+      true
+    );
   });
 
   it("aceita previews Vercel com padrão score-cripto-web-{hash}-matteus-v", () => {
     expect(
-      isOriginAllowed(
-        "https://score-cripto-web-irl70epar-matteus-v.vercel.app"
-      )
+      isOriginAllowed("https://score-cripto-web-irl70epar-matteus-v.vercel.app")
     ).toBe(true);
     expect(
-      isOriginAllowed(
-        "https://score-cripto-web-fzar0nap0-matteus-v.vercel.app"
-      )
+      isOriginAllowed("https://score-cripto-web-fzar0nap0-matteus-v.vercel.app")
     ).toBe(true);
   });
 
@@ -37,7 +35,9 @@ describe("isOriginAllowed", () => {
   });
 
   it("rejeita HTTP no domínio prod (downgrade attack)", () => {
-    expect(isOriginAllowed("http://score-cripto-web-app.vercel.app")).toBe(false);
+    expect(isOriginAllowed("http://score-cripto-web-app.vercel.app")).toBe(
+      false
+    );
   });
 
   it("rejeita subdomínio aleatório de vercel.app", () => {

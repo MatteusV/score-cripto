@@ -104,7 +104,6 @@ export async function authHandler(app: FastifyInstance) {
       }
     }
   );
-
 }
 
 /**

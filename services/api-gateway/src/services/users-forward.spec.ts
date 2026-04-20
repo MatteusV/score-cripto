@@ -19,7 +19,8 @@ function makeResponse(
   status: number,
   body: object | string | null = null
 ): Response {
-  const text = body === null ? "" : typeof body === "string" ? body : JSON.stringify(body);
+  const text =
+    body === null ? "" : typeof body === "string" ? body : JSON.stringify(body);
   return new Response(text, {
     status,
     headers: { "Content-Type": "application/json" },
@@ -57,9 +58,7 @@ describe("forwardToUsers", () => {
   });
 
   it("forwards POST with JSON body and sets Content-Type", async () => {
-    mockFetch.mockResolvedValueOnce(
-      makeResponse(200, { accessToken: "jwt" })
-    );
+    mockFetch.mockResolvedValueOnce(makeResponse(200, { accessToken: "jwt" }));
 
     const result = await forwardToUsers({
       method: "POST",
@@ -122,7 +121,9 @@ describe("forwardToUsers", () => {
     });
 
     const [url] = mockFetch.mock.calls[0] as [string, unknown];
-    expect(url).toBe("http://users-mock:3003/billing/checkout?priceId=price_123");
+    expect(url).toBe(
+      "http://users-mock:3003/billing/checkout?priceId=price_123"
+    );
   });
 
   it("throws UsersForwardError 504 on AbortError", async () => {
@@ -133,7 +134,11 @@ describe("forwardToUsers", () => {
     });
 
     await expect(
-      forwardToUsers({ method: "GET", path: "/profile", authHeader: "Bearer x" })
+      forwardToUsers({
+        method: "GET",
+        path: "/profile",
+        authHeader: "Bearer x",
+      })
     ).rejects.toMatchObject({
       name: "UsersForwardError",
       statusCode: 504,
@@ -144,7 +149,11 @@ describe("forwardToUsers", () => {
     mockFetch.mockRejectedValueOnce(new Error("ECONNREFUSED"));
 
     await expect(
-      forwardToUsers({ method: "GET", path: "/profile", authHeader: "Bearer x" })
+      forwardToUsers({
+        method: "GET",
+        path: "/profile",
+        authHeader: "Bearer x",
+      })
     ).rejects.toMatchObject({
       name: "UsersForwardError",
       statusCode: 503,

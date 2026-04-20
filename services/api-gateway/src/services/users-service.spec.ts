@@ -147,21 +147,25 @@ describe("checkUsage", () => {
 
     // Com threshold=50% e minimumRps=1, precisamos de falhas suficientes para abrir.
     // Neste teste, simulamos diretamente o BrokenCircuitError no fetch.
-    await expect(checkUsage("Bearer token-user-breaker")).rejects.toMatchObject({
-      name: "UsersServiceError",
-      statusCode: 503,
-      message: "users service circuit open",
-    });
+    await expect(checkUsage("Bearer token-user-breaker")).rejects.toMatchObject(
+      {
+        name: "UsersServiceError",
+        statusCode: 503,
+        message: "users service circuit open",
+      }
+    );
   });
 
   it("lança UsersServiceError(504) quando TaskCancelledError é lançado pelo timeout", async () => {
     // Simula timeout lançando TaskCancelledError diretamente
     mockFetch.mockRejectedValue(new TaskCancelledError());
 
-    await expect(checkUsage("Bearer token-user-timeout")).rejects.toMatchObject({
-      name: "UsersServiceError",
-      statusCode: 504,
-      message: "users service timeout",
-    });
+    await expect(checkUsage("Bearer token-user-timeout")).rejects.toMatchObject(
+      {
+        name: "UsersServiceError",
+        statusCode: 504,
+        message: "users service timeout",
+      }
+    );
   });
 });

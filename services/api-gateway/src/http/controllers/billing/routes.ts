@@ -123,10 +123,7 @@ export async function billingHandler(app: FastifyInstance) {
         summary: "Stripe webhook (passthrough para users via Flycast)",
       },
     },
-    async (
-      request: FastifyRequest & { rawBody?: Buffer | string },
-      reply
-    ) => {
+    async (request: FastifyRequest & { rawBody?: Buffer | string }, reply) => {
       const rawBody = request.rawBody;
       if (rawBody === undefined) {
         return reply

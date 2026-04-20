@@ -2,18 +2,18 @@ import { getCorrelationId } from "@score-cripto/observability-node";
 import { config } from "../config.js";
 
 export interface ForwardOptions {
+  authHeader?: string;
+  body?: unknown;
+  extraHeaders?: Record<string, string>;
   method: "GET" | "POST" | "PUT" | "DELETE";
   path: string;
-  body?: unknown;
-  rawBody?: Buffer | string;
-  authHeader?: string;
-  extraHeaders?: Record<string, string>;
   queryString?: string;
+  rawBody?: Buffer | string;
 }
 
 export interface ForwardResult {
-  status: number;
   data: unknown;
+  status: number;
 }
 
 export class UsersForwardError extends Error {

@@ -8,11 +8,7 @@ let sut: GetAnalysisDeltaUseCase;
 const NOW = new Date("2026-04-19T12:00:00.000Z");
 const DAY = 24 * 60 * 60 * 1000;
 
-async function seedCompleted(
-  userId: string,
-  score: number,
-  completedAt: Date
-) {
+async function seedCompleted(userId: string, score: number, completedAt: Date) {
   const item = await repo.create({
     userId,
     chain: "ethereum",
