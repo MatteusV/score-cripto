@@ -14,11 +14,12 @@ import {
   type ZodTypeProvider,
 } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
-import { corsOriginCheck } from "./cors.js";
 import { adminHandler } from "./controllers/admin/routes.js";
 import { analysisRequestHandler } from "./controllers/analysis-request/routes.js";
 import { authHandler, profileHandler } from "./controllers/auth/routes.js";
 import { billingHandler } from "./controllers/billing/routes.js";
+import { exploreHandler } from "./controllers/explore/routes.js";
+import { corsOriginCheck } from "./cors.js";
 import { registerRateLimit } from "./plugins/rate-limit.js";
 
 export async function createHttpServer() {
@@ -68,6 +69,10 @@ export async function createHttpServer() {
           name: "admin",
           description: "Operações administrativas (role=ADMIN)",
         },
+        {
+          name: "explore",
+          description: "Descoberta de carteiras (trending, risk, leaderboard)",
+        },
         { name: "system", description: "Status e saúde do serviço" },
       ],
     },
@@ -98,6 +103,7 @@ export async function createHttpServer() {
   await app.register(profileHandler);
   await app.register(billingHandler, { prefix: "/billing" });
   await app.register(adminHandler, { prefix: "/admin" });
+  await app.register(exploreHandler, { prefix: "/explore" });
 
   // GET /health
   app.withTypeProvider<ZodTypeProvider>().get(

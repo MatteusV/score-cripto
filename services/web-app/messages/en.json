@@ -397,7 +397,73 @@
   "explore": {
     "title": "Explore wallets",
     "subtitle": "Search indexed wallets with AI scores and on-chain data",
-    "searchPlaceholder": "Search by address or term...",
+    "searchPlaceholder": "Search by address, label, ENS, domain, category…",
+    "nav": "Explore",
+    "hero": {
+      "eyebrow": "Explore",
+      "heading": "Discover wallets,",
+      "headingHighlight": "entities",
+      "headingRest": "and on-chain patterns",
+      "description": "{count} addresses indexed across {chains} networks. Search by label, address, category, or find what's trending in the community.",
+      "searchCta": "Search",
+      "suggested": "Suggested"
+    },
+    "stats": {
+      "indexed": "indexed addresses",
+      "chains": "blockchains",
+      "risky": "risky wallets",
+      "refresh": "continuous refresh"
+    },
+    "categoriesLabel": "Categories · Browse by entity",
+    "categoriesTotal": "{total} addresses",
+    "categories": {
+      "exchange": { "label": "Exchanges", "desc": "Custodial CEX · verified hot & cold wallets" },
+      "defi": { "label": "DeFi", "desc": "Audited protocols · vaults · routers" },
+      "mixer": { "label": "Mixers", "desc": "Tornado · Wasabi · Samourai · proxies" },
+      "sanctions": { "label": "Sanctions", "desc": "OFAC · UK HMT · EU consolidated" },
+      "bridge": { "label": "Bridges", "desc": "Wormhole · Across · Stargate · LayerZero" },
+      "nft": { "label": "NFT", "desc": "Marketplaces · creator contracts · royalty splitters" },
+      "stablecoin": { "label": "Stablecoins", "desc": "USDC · USDT · DAI · PYUSD · issuers" },
+      "whale": { "label": "Whales", "desc": "Wallets with large annual movement" }
+    },
+    "tabs": {
+      "trending": "Trending",
+      "risk": "Risk list",
+      "leaderboard": "Top score"
+    },
+    "chainFilter": { "all": "All" },
+    "verdict": {
+      "trusted": "Trusted",
+      "attention": "Attention",
+      "risk": "High risk"
+    },
+    "trending": {
+      "scoreLabel": "score",
+      "lookupsLabel": "lookups 7d",
+      "view": "View",
+      "empty": "No trending activity in the last 7 days."
+    },
+    "risk": {
+      "heading": "Risky wallets on the rise",
+      "highRisk": "High risk",
+      "report": "Report",
+      "investigate": "Investigate",
+      "empty": "No risky wallets identified."
+    },
+    "leaderboard": {
+      "heading": "Top scores · Wallets and protocols",
+      "details": "Details",
+      "empty": "No wallets on the leaderboard."
+    },
+    "sidebar": {
+      "recentTitle": "Recent searches",
+      "recentEmpty": "No recent analyses.",
+      "recentClear": "Clear history →",
+      "chainDistribution": "Distribution by chain",
+      "proEyebrow": "Explore + Pro",
+      "proDescription": "Advanced filters, real-time alerts by category, list export and API.",
+      "proCta": "Learn about Pro plan"
+    },
     "filters": {
       "allChains": "All networks",
       "minScore": "Min score",
@@ -414,20 +480,22 @@
       "riskFlags": "Flags",
       "indexedAt": "Indexed"
     },
-    "stats": {
+    "resultsStats": {
       "results": "{total} results",
       "processingTime": "{ms}ms"
     },
     "empty": "No wallets found. Try adjusting the filters.",
     "emptyInitial": "Use the filters above to search indexed wallets.",
-    "error": "Failed to fetch wallets. The service may be unavailable.",
-    "loading": "Searching...",
+    "error": "Failed to fetch data. The service may be unavailable.",
+    "loading": "Loading…",
+    "activeFilter": "Filtering by",
+    "clearFilter": "Clear filter",
+    "noMatches": "No analyses match this filter.",
     "noRiskFlags": "None",
     "pagination": {
       "prev": "Previous",
       "next": "Next",
       "page": "Page {page} of {total}"
-    },
-    "nav": "Explore"
+    }
   }
 }

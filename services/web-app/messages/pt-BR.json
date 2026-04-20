@@ -397,7 +397,73 @@
   "explore": {
     "title": "Explorar carteiras",
     "subtitle": "Pesquise carteiras indexadas com score e dados on-chain",
-    "searchPlaceholder": "Buscar por endereço ou termo...",
+    "searchPlaceholder": "Buscar por endereço, label, ENS, domain, categoria…",
+    "nav": "Explorar",
+    "hero": {
+      "eyebrow": "Explorar",
+      "heading": "Descubra carteiras,",
+      "headingHighlight": "entidades",
+      "headingRest": "e padrões on-chain",
+      "description": "{count} endereços indexados em {chains} redes. Busque por label, endereço, categoria ou descubra o que está em alta na comunidade.",
+      "searchCta": "Buscar",
+      "suggested": "Sugeridos"
+    },
+    "stats": {
+      "indexed": "endereços indexados",
+      "chains": "blockchains",
+      "risky": "carteiras de risco",
+      "refresh": "refresh contínuo"
+    },
+    "categoriesLabel": "Categorias · Navegar por entidade",
+    "categoriesTotal": "{total} endereços",
+    "categories": {
+      "exchange": { "label": "Exchanges", "desc": "CEX custodiais · hot & cold wallets verificadas" },
+      "defi": { "label": "DeFi", "desc": "Protocolos auditados · vaults · routers" },
+      "mixer": { "label": "Mixers", "desc": "Tornado · Wasabi · Samourai · proxies" },
+      "sanctions": { "label": "Sanções", "desc": "OFAC · UK HMT · EU consolidated" },
+      "bridge": { "label": "Bridges", "desc": "Wormhole · Across · Stargate · LayerZero" },
+      "nft": { "label": "NFT", "desc": "Marketplaces · creator contracts · royalty splitters" },
+      "stablecoin": { "label": "Stablecoins", "desc": "USDC · USDT · DAI · PYUSD · issuers" },
+      "whale": { "label": "Whales", "desc": "Carteiras com grande movimentação anual" }
+    },
+    "tabs": {
+      "trending": "Trending",
+      "risk": "Risk list",
+      "leaderboard": "Top score"
+    },
+    "chainFilter": { "all": "Todas" },
+    "verdict": {
+      "trusted": "Confiável",
+      "attention": "Atenção",
+      "risk": "Risco Alto"
+    },
+    "trending": {
+      "scoreLabel": "score",
+      "lookupsLabel": "consultas 7d",
+      "view": "Ver",
+      "empty": "Sem atividade de trending nos últimos 7 dias."
+    },
+    "risk": {
+      "heading": "Carteiras de risco em alta",
+      "highRisk": "Alto risco",
+      "report": "Reportar",
+      "investigate": "Investigar",
+      "empty": "Nenhuma carteira de risco identificada."
+    },
+    "leaderboard": {
+      "heading": "Top scores · Carteiras e protocolos",
+      "details": "Detalhes",
+      "empty": "Sem carteiras no leaderboard."
+    },
+    "sidebar": {
+      "recentTitle": "Buscas recentes",
+      "recentEmpty": "Nenhuma análise recente.",
+      "recentClear": "Limpar histórico →",
+      "chainDistribution": "Distribuição por chain",
+      "proEyebrow": "Explorar + Pro",
+      "proDescription": "Filtros avançados, alertas em tempo real por categoria, exportação de listas e API.",
+      "proCta": "Conhecer plano Pro"
+    },
     "filters": {
       "allChains": "Todas as redes",
       "minScore": "Score mín.",
@@ -414,20 +480,22 @@
       "riskFlags": "Flags",
       "indexedAt": "Indexado"
     },
-    "stats": {
+    "resultsStats": {
       "results": "{total} resultados",
       "processingTime": "{ms}ms"
     },
     "empty": "Nenhuma carteira encontrada. Tente ajustar os filtros.",
     "emptyInitial": "Use os filtros acima para buscar carteiras indexadas.",
-    "error": "Falha ao buscar carteiras. O serviço pode estar indisponível.",
-    "loading": "Buscando...",
+    "error": "Falha ao buscar dados. O serviço pode estar indisponível.",
+    "loading": "Carregando…",
+    "activeFilter": "Filtrando por",
+    "clearFilter": "Limpar filtro",
+    "noMatches": "Nenhuma análise encontrada para este filtro.",
     "noRiskFlags": "Nenhuma",
     "pagination": {
       "prev": "Anterior",
       "next": "Próxima",
       "page": "Página {page} de {total}"
-    },
-    "nav": "Explorar"
+    }
   }
 }
