@@ -367,6 +367,121 @@ describe("api-gateway HTTP server (Fastify)", () => {
     });
   });
 
+  describe("GET /analysis/delta", () => {
+    it("deve retornar 401 sem token de autenticação", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      const res = await app.inject({ method: "GET", url: "/analysis/delta" });
+
+      expect(res.statusCode).toBe(401);
+      await app.close();
+    });
+
+    it("deve retornar 400 quando days está fora do intervalo [1, 180]", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/analysis/delta?days=999",
+        headers: { authorization: `Bearer ${signToken()}` },
+      });
+
+      expect(res.statusCode).toBe(400);
+      await app.close();
+    });
+
+    it("deve usar days=3 por padrão e retornar window/current/previous/delta", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      // O use case lança as duas janelas em paralelo via Promise.all, então os
+      // dois count(total) iniciais são chamados antes dos counts de score buckets.
+      // Ordem real: current.total, previous.total, depois para cada window
+      // (current primeiro porque seu microtask fica na fila antes), os 3 buckets.
+      // Current: total=2, trusted=2, attention=0, risky=0
+      // Previous: total=1, trusted=0, attention=1, risky=0
+      mockCount
+        .mockResolvedValueOnce(2) // current.total
+        .mockResolvedValueOnce(1) // previous.total
+        .mockResolvedValueOnce(2) // current.trusted
+        .mockResolvedValueOnce(0) // current.attention
+        .mockResolvedValueOnce(0) // current.risky
+        .mockResolvedValueOnce(0) // previous.trusted
+        .mockResolvedValueOnce(1) // previous.attention
+        .mockResolvedValueOnce(0); // previous.risky
+      mockAggregate
+        .mockResolvedValueOnce({ _avg: { score: 80 }, _count: { _all: 2 } })
+        .mockResolvedValueOnce({ _avg: { score: 50 }, _count: { _all: 1 } });
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/analysis/delta",
+        headers: { authorization: `Bearer ${signToken()}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.window.days).toBe(3);
+      expect(body.current).toEqual({
+        total: 2,
+        avgScore: 80,
+        trusted: 2,
+        attention: 0,
+        risky: 0,
+      });
+      expect(body.previous).toEqual({
+        total: 1,
+        avgScore: 50,
+        trusted: 0,
+        attention: 1,
+        risky: 0,
+      });
+      expect(body.delta).toEqual({
+        total: 1,
+        avgScore: 30,
+        trusted: 2,
+        attention: -1,
+        risky: 0,
+      });
+
+      await app.close();
+    });
+
+    it("deve aceitar ?days=30 e refletir no window.days", async () => {
+      const { createHttpServer } = await import("./server.js");
+      const app = await createHttpServer();
+
+      mockCount.mockResolvedValue(0);
+      mockAggregate.mockResolvedValue({
+        _avg: { score: null },
+        _count: { _all: 0 },
+      });
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/analysis/delta?days=30",
+        headers: { authorization: `Bearer ${signToken()}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.window.days).toBe(30);
+      // Janelas devem cobrir 30 dias cada e ser contíguas.
+      const cFrom = new Date(body.window.current.from).getTime();
+      const cTo = new Date(body.window.current.to).getTime();
+      const pFrom = new Date(body.window.previous.from).getTime();
+      const pTo = new Date(body.window.previous.to).getTime();
+      const day = 24 * 60 * 60 * 1000;
+      expect(Math.round((cTo - cFrom) / day)).toBe(30);
+      expect(Math.round((pTo - pFrom) / day)).toBe(30);
+      expect(pTo).toBe(cFrom);
+
+      await app.close();
+    });
+  });
+
   describe("GET /analysis/:id", () => {
     it("deve retornar 401 sem token de autenticação", async () => {
       const { createHttpServer } = await import("./server.js");

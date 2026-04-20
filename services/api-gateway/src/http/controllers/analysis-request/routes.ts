@@ -16,6 +16,7 @@ import { CreateAnalysisRequestUseCase } from "../../../use-cases/analysis-reques
 import { FindActiveAnalysisRequestUseCase } from "../../../use-cases/analysis-request/find-active-analysis-request-use-case.js";
 import { FindCachedAnalysisUseCase } from "../../../use-cases/analysis-request/find-cached-analysis-use-case.js";
 import { GetAnalysisByPublicIdUseCase } from "../../../use-cases/analysis-request/get-analysis-by-public-id-use-case.js";
+import { GetAnalysisDeltaUseCase } from "../../../use-cases/analysis-request/get-analysis-delta-use-case.js";
 import { GetAnalysisRequestUseCase } from "../../../use-cases/analysis-request/get-analysis-request-use-case.js";
 import { ListAnalysesUseCase } from "../../../use-cases/analysis-request/list-analyses-use-case.js";
 import { AnalysisRequestNotFoundError } from "../../../use-cases/errors/analysis-request-not-found-error.js";
@@ -31,6 +32,7 @@ const findCachedUseCase = new FindCachedAnalysisUseCase(repository);
 const getByPublicIdUseCase = new GetAnalysisByPublicIdUseCase(repository);
 const getUseCase = new GetAnalysisRequestUseCase(repository);
 const listUseCase = new ListAnalysesUseCase(repository);
+const deltaUseCase = new GetAnalysisDeltaUseCase(repository);
 
 const ScoreResultSchema = z
   .object({
@@ -238,6 +240,78 @@ export async function analysisRequestHandler(app: FastifyInstance) {
           completedAt: item.completedAt.toISOString(),
         })),
         pagination: result.pagination,
+      });
+    }
+  );
+
+  // GET /delta — variação de métricas entre janelas [now-N, now) e [now-2N, now-N).
+  // Literal path declared before parametric `/:id` so Fastify routes it correctly
+  // even though the framework already prioritises literals.
+  const SummarySchema = z.object({
+    total: z.number().int(),
+    avgScore: z.number().int(),
+    trusted: z.number().int(),
+    attention: z.number().int(),
+    risky: z.number().int(),
+  });
+  const DeltaSchema = z.object({
+    total: z.number().int(),
+    avgScore: z.number().int(),
+    trusted: z.number().int(),
+    attention: z.number().int(),
+    risky: z.number().int(),
+  });
+
+  typed.get(
+    "/delta",
+    {
+      preHandler: [authenticate],
+      schema: {
+        tags: ["analysis"],
+        summary:
+          "Variação de métricas entre a janela atual e a janela anterior",
+        description:
+          "Compara métricas (total, avgScore, trusted, attention, risky) entre `[now - days, now)` (current) e `[now - 2*days, now - days)` (previous). `delta = current - previous`. Janelas half-open evitam dupla-contagem na fronteira. Padrão `days=3`, máximo `days=180`. Requer autenticação JWT RS256.",
+        security: [{ bearerAuth: [] }],
+        querystring: z.object({
+          days: z.coerce.number().int().min(1).max(180).default(3),
+        }),
+        response: {
+          200: z.object({
+            window: z.object({
+              days: z.number().int(),
+              current: z.object({ from: z.string(), to: z.string() }),
+              previous: z.object({ from: z.string(), to: z.string() }),
+            }),
+            current: SummarySchema,
+            previous: SummarySchema,
+            delta: DeltaSchema,
+          }),
+          401: z.object({ error: z.string() }),
+        },
+      },
+    },
+    async (request, reply) => {
+      const { days } = request.query as { days: number };
+      const userId = request.user.id;
+
+      const result = await deltaUseCase.execute({ userId, days });
+
+      return reply.status(200).send({
+        window: {
+          days: result.window.days,
+          current: {
+            from: result.window.current.from.toISOString(),
+            to: result.window.current.to.toISOString(),
+          },
+          previous: {
+            from: result.window.previous.from.toISOString(),
+            to: result.window.previous.to.toISOString(),
+          },
+        },
+        current: result.current,
+        previous: result.previous,
+        delta: result.delta,
       });
     }
   );
