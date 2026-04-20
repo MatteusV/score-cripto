@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { useUser } from "@/hooks/use-user"
+import { useAnalysisDelta } from "@/hooks/use-analysis-delta"
 import { formatDate, useHistory, verdict, type AnalysisItem } from "@/hooks/use-history"
 import { ChainChips } from "@/components/chain-chips"
 import { ChainIcon } from "@/components/chain-icon"
@@ -51,6 +52,21 @@ const CHAIN_PALETTE: Record<string, string> = {
 function truncate(addr: string, head = 10, tail = 6) {
   if (addr.length <= head + tail + 1) return addr
   return `${addr.slice(0, head)}…${addr.slice(-tail)}`
+}
+
+const DELTA_DAYS_PRESETS = [3, 7, 14, 30, 90] as const
+const DELTA_DAYS_MIN = 1
+const DELTA_DAYS_MAX = 180
+const DELTA_DAYS_DEFAULT = 3
+const DELTA_DAYS_SESSION_KEY = "dashboard.deltaDays"
+
+function readSessionDeltaDays(): number {
+  if (typeof window === "undefined") return DELTA_DAYS_DEFAULT
+  const raw = window.sessionStorage.getItem(DELTA_DAYS_SESSION_KEY)
+  if (!raw) return DELTA_DAYS_DEFAULT
+  const parsed = Number.parseInt(raw, 10)
+  if (!Number.isFinite(parsed)) return DELTA_DAYS_DEFAULT
+  return Math.min(DELTA_DAYS_MAX, Math.max(DELTA_DAYS_MIN, parsed))
 }
 
 function useCountUp(target: number, duration = 1200) {
@@ -86,6 +102,29 @@ export default function DashboardPage() {
     limitReached,
   } = useUser()
   const { summary, data: recent, loading, refetch } = useHistory({ limit: 8 })
+
+  // Delta window: persisted in sessionStorage so it survives navigation but
+  // resets when the tab closes. Server renders the default (no
+  // sessionStorage available); client hydrates with the stored value on mount.
+  // The setState-in-effect is intentional: it's the React-recommended pattern
+  // for reading browser-only storage without a hydration mismatch.
+  const [deltaDays, setDeltaDays] = useState<number>(DELTA_DAYS_DEFAULT)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-only mount read from sessionStorage; canonical SSR-safe pattern
+    setDeltaDays(readSessionDeltaDays())
+  }, [])
+  const { data: deltaData } = useAnalysisDelta(deltaDays)
+
+  function commitDeltaDays(next: number) {
+    const clamped = Math.min(
+      DELTA_DAYS_MAX,
+      Math.max(DELTA_DAYS_MIN, Math.round(next)),
+    )
+    setDeltaDays(clamped)
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(DELTA_DAYS_SESSION_KEY, String(clamped))
+    }
+  }
 
   const [chain, setChain] = useState("ethereum")
   const [address, setAddress] = useState("")
@@ -145,6 +184,17 @@ export default function DashboardPage() {
   const avgCount = useCountUp(deferredLoading ? 0 : summary.avgScore)
   const trustedCount = useCountUp(deferredLoading ? 0 : summary.trusted)
   const riskyCount = useCountUp(deferredLoading ? 0 : summary.risky)
+
+  // Derived from server-side delta endpoint. `hasBaseline` lets tiles hide
+  // the arrow row when previous-window data is missing or not loaded yet.
+  const deltas = {
+    total: deltaData?.delta.total ?? 0,
+    avg: deltaData?.delta.avgScore ?? 0,
+    trusted: deltaData?.delta.trusted ?? 0,
+    risky: deltaData?.delta.risky ?? 0,
+    hasBaseline:
+      deltaData != null && deltaData.previous.total + deltaData.current.total > 0,
+  }
 
   return (
     <div className="flex flex-col">
@@ -328,6 +378,15 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        {/* ── Delta-window chip (controls all 4 StatTile arrows) ───── */}
+        <DeltaWindowChip
+          days={deltaDays}
+          onChange={commitDeltaDays}
+          presets={DELTA_DAYS_PRESETS}
+          min={DELTA_DAYS_MIN}
+          max={DELTA_DAYS_MAX}
+        />
+
         {/* ── Stat tiles (suspense-style reveal via deferred loading) ── */}
         <ViewTransition enter="slide-up" default="none">
           <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -337,14 +396,21 @@ export default function DashboardPage() {
               icon={ActivityIcon}
               color="primary"
               loading={deferredLoading}
+              delta={deltas.hasBaseline ? deltas.total : null}
+              days={deltaDays}
+              t={t}
             />
             <StatTile
               label={t("stats.avgScore")}
-              value={avgCount || (deferredLoading ? 0 : 0)}
+              value={avgCount}
               suffix={summary.avgScore > 0 ? "/100" : ""}
               icon={BrainIcon}
               color="accent"
               loading={deferredLoading}
+              delta={deltas.hasBaseline ? deltas.avg : null}
+              deltaUnit="pts"
+              days={deltaDays}
+              t={t}
             />
             <StatTile
               label={t("stats.trusted")}
@@ -353,6 +419,9 @@ export default function DashboardPage() {
               icon={ShieldCheckIcon}
               color="green"
               loading={deferredLoading}
+              delta={deltas.hasBaseline ? deltas.trusted : null}
+              days={deltaDays}
+              t={t}
             />
             <StatTile
               label={t("stats.risky")}
@@ -361,6 +430,10 @@ export default function DashboardPage() {
               icon={AlertTriangleIcon}
               color="destructive"
               loading={deferredLoading}
+              delta={deltas.hasBaseline ? deltas.risky : null}
+              deltaInverse
+              days={deltaDays}
+              t={t}
             />
           </section>
         </ViewTransition>
@@ -631,6 +704,124 @@ export default function DashboardPage() {
   )
 }
 
+interface DeltaWindowChipProps {
+  days: number
+  max: number
+  min: number
+  onChange: (next: number) => void
+  presets: readonly number[]
+}
+
+function DeltaWindowChip({
+  days,
+  onChange,
+  presets,
+  min,
+  max,
+}: DeltaWindowChipProps) {
+  const [open, setOpen] = useState(false)
+  const [draft, setDraft] = useState(String(days))
+
+  useEffect(() => {
+    setDraft(String(days))
+  }, [days])
+
+  function commitDraft() {
+    const parsed = Number.parseInt(draft, 10)
+    if (Number.isFinite(parsed)) onChange(parsed)
+    setOpen(false)
+  }
+
+  return (
+    <div className="relative flex items-center gap-2">
+      <span className="font-heading text-[10px] font-bold tracking-[0.3em] text-muted-foreground uppercase">
+        Janela
+      </span>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 py-1 font-mono text-[11px] font-semibold transition-colors",
+          open
+            ? "border-primary/40 bg-primary/10 text-primary"
+            : "border-border bg-card text-foreground hover:border-foreground/15",
+        )}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+      >
+        {days}d
+        <span className="text-muted-foreground">▾</span>
+      </button>
+
+      {open && (
+        <>
+          {/* click-out catcher */}
+          <button
+            type="button"
+            aria-label="Fechar"
+            className="fixed inset-0 z-40 cursor-default"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            className="absolute top-full left-0 z-50 mt-2 w-56 rounded-xl border border-border bg-card p-3 shadow-[0_20px_60px_-20px_oklch(0.74_0.19_66/30%)]"
+            role="dialog"
+          >
+            <p className="mb-2 font-heading text-[9px] font-bold tracking-[0.3em] text-muted-foreground uppercase">
+              Presets
+            </p>
+            <div className="mb-3 flex flex-wrap gap-1">
+              {presets.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => {
+                    onChange(p)
+                    setOpen(false)
+                  }}
+                  className={cn(
+                    "cursor-pointer rounded-md border px-2 py-1 font-mono text-[11px] transition-colors",
+                    p === days
+                      ? "border-primary/40 bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {p}d
+                </button>
+              ))}
+            </div>
+            <p className="mb-1.5 font-heading text-[9px] font-bold tracking-[0.3em] text-muted-foreground uppercase">
+              Custom ({min}–{max})
+            </p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                commitDraft()
+              }}
+              className="flex gap-1.5"
+            >
+              <input
+                type="number"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                min={min}
+                max={max}
+                className="h-8 flex-1 rounded-md border border-border bg-input px-2 font-mono text-xs text-foreground focus:border-primary/40 focus:outline-none"
+                autoFocus
+              />
+              <button
+                type="submit"
+                className="cursor-pointer rounded-md border border-primary/30 bg-primary/10 px-3 font-heading text-[10px] font-bold tracking-wider text-primary uppercase"
+              >
+                Aplicar
+              </button>
+            </form>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 interface StatTileProps {
   label: string
   value: number
@@ -638,9 +829,30 @@ interface StatTileProps {
   icon: React.ElementType
   color: "primary" | "accent" | "green" | "destructive"
   loading?: boolean
+  /** Window-vs-prev-window delta. `null` = no baseline yet (hide arrow row). */
+  delta?: number | null
+  /** Append unit (e.g. "pts") after magnitude, like the design does for Score médio. */
+  deltaUnit?: string
+  /** When true, negative deltas are good (green) — used by "Alto risco". */
+  deltaInverse?: boolean
+  /** Window length in days, drives the dynamic "{n}d" suffix. */
+  days: number
+  t: ReturnType<typeof useTranslations<"dashboard">>
 }
 
-function StatTile({ label, value, suffix, icon: Icon, color, loading }: StatTileProps) {
+function StatTile({
+  label,
+  value,
+  suffix,
+  icon: Icon,
+  color,
+  loading,
+  delta,
+  deltaUnit,
+  deltaInverse,
+  days,
+  t,
+}: StatTileProps) {
   const palette = {
     primary: { tile: "bg-primary/10 text-primary", text: "text-primary" },
     accent: { tile: "bg-accent/10 text-accent", text: "text-accent" },
@@ -650,6 +862,19 @@ function StatTile({ label, value, suffix, icon: Icon, color, loading }: StatTile
       text: "text-destructive",
     },
   }[color]
+
+  // Direction is "good" when sign matches the inverse flag.
+  const isPositive = delta != null && delta > 0
+  const isNegative = delta != null && delta < 0
+  const isFlat = delta != null && delta === 0
+  const good = deltaInverse ? isNegative : isPositive
+  const bad = deltaInverse ? isPositive : isNegative
+  const arrowColor = good
+    ? "text-green-400"
+    : bad
+      ? "text-destructive"
+      : "text-muted-foreground"
+  const arrowGlyph = isPositive ? "▲" : isNegative ? "▼" : "—"
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
@@ -679,7 +904,24 @@ function StatTile({ label, value, suffix, icon: Icon, color, loading }: StatTile
           <span className="font-mono text-xs text-muted-foreground">{suffix}</span>
         )}
       </div>
-      <div className="mt-2.5 h-3 text-[10px] text-muted-foreground">{/* delta slot — no time-series yet */}</div>
+      <div className="mt-2.5 flex h-4 items-center gap-1 font-mono text-[11px] font-semibold">
+        {!loading && delta != null && (
+          <span className={cn("inline-flex items-center gap-1", arrowColor)}>
+            <span className="text-[10px] leading-none">{arrowGlyph}</span>
+            {isFlat ? (
+              <span>{t("stats.delta.stable")}</span>
+            ) : (
+              <span className="tabular-nums">
+                {Math.abs(delta)}
+                {deltaUnit ? ` ${t("stats.delta.pts")}` : ""}
+              </span>
+            )}
+            <span className="ml-0.5 font-normal text-muted-foreground">
+              {`${days}d`}
+            </span>
+          </span>
+        )}
+      </div>
     </div>
   )
 }
