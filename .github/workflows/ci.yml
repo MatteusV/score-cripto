@@ -112,7 +112,7 @@ jobs:
           path: packages/observability-node/dist
 
       - name: Lint
-        run: pnpm --filter @score-cripto/api-gateway run check
+        run: pnpm check
 
       - name: Testes
         run: pnpm --filter @score-cripto/api-gateway run test
@@ -209,7 +209,7 @@ jobs:
         working-directory: services/web-app
 
       - name: Lint
-        run: pnpm lint
+        run: pnpm check
         working-directory: services/web-app
 
       - name: Typecheck
@@ -269,7 +269,8 @@ jobs:
           path: |
             services/data-indexing/deps
             services/data-indexing/_build
-          key: data-indexing-${{ runner.os }}-${{ hashFiles('services/data-indexing/mix.lock') }}
+          key: data-indexing-${{ runner.os }}-${{
+            hashFiles('services/data-indexing/mix.lock') }}
           restore-keys: |
             data-indexing-${{ runner.os }}-
 

@@ -39,6 +39,7 @@ export interface AnalysisRequestRepository {
     userId: string,
     publicId: number
   ) => Promise<AnalysisRequestDTO | null>;
+  findStaleIds: (olderThan: Date) => Promise<string[]>;
   listAll: (
     page: number,
     limit: number,
@@ -55,7 +56,6 @@ export interface AnalysisRequestRepository {
   ) => Promise<AnalysisRequestDTO>;
   markFailed: (id: string, reason: string) => Promise<AnalysisRequestDTO>;
   markStaleAsFailed: (olderThan: Date, reason: string) => Promise<number>;
-  findStaleIds: (olderThan: Date) => Promise<string[]>;
   summarizeByUserId: (userId: string) => Promise<{ summary: AnalysisSummary }>;
   summarizeByUserIdInRange: (
     userId: string,

@@ -188,7 +188,9 @@ export class AnalysisRequestInMemoryRepository
   }
 
   async findStaleIds(olderThan: Date): Promise<string[]> {
-    return this.items.filter((i) => this.isStale(i, olderThan)).map((i) => i.id);
+    return this.items
+      .filter((i) => this.isStale(i, olderThan))
+      .map((i) => i.id);
   }
 
   private isStale(item: AnalysisRequestDTO, olderThan: Date): boolean {
