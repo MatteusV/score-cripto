@@ -1,40 +1,40 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  ApiError,
-  startAnalysis,
-  pollAnalysis,
   type AnalysisResponse,
+  ApiError,
+  pollAnalysis,
   type StartAnalysisResponse,
-} from "./api"
+  startAnalysis,
+} from "./api";
 
-const mockFetch = vi.fn()
+const mockFetch = vi.fn();
 
 beforeEach(() => {
-  vi.stubGlobal("fetch", mockFetch)
-})
+  vi.stubGlobal("fetch", mockFetch);
+});
 
 afterEach(() => {
-  vi.restoreAllMocks()
-})
+  vi.restoreAllMocks();
+});
 
 function jsonResponse<T>(data: T, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: { "Content-Type": "application/json" },
-  })
+  });
 }
 
 describe("startAnalysis", () => {
   it("POSTs chain and address and returns processId", async () => {
-    const body: StartAnalysisResponse = { processId: "proc-abc-123" }
-    mockFetch.mockResolvedValueOnce(jsonResponse(body))
+    const body: StartAnalysisResponse = { processId: "proc-abc-123" };
+    mockFetch.mockResolvedValueOnce(jsonResponse(body));
 
     const result = await startAnalysis({
       chain: "ethereum",
       address: "0x1234567890abcdef1234567890abcdef12345678",
-    })
+    });
 
-    expect(result).toEqual(body)
+    expect(result).toEqual(body);
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/analyze",
       expect.objectContaining({
@@ -44,27 +44,27 @@ describe("startAnalysis", () => {
           address: "0x1234567890abcdef1234567890abcdef12345678",
         }),
       })
-    )
-  })
+    );
+  });
 
   it("throws ApiError on non-ok response", async () => {
     mockFetch.mockResolvedValueOnce(
       new Response("rate limited", { status: 429 })
-    )
+    );
 
     await expect(
       startAnalysis({ chain: "ethereum", address: "0xabc" })
-    ).rejects.toThrow(ApiError)
+    ).rejects.toThrow(ApiError);
 
     await expect(
       startAnalysis({ chain: "ethereum", address: "0xabc" }).catch((e) => {
-        expect(e).toBeInstanceOf(ApiError)
-        expect((e as ApiError).status).toBe(429)
-        throw e
+        expect(e).toBeInstanceOf(ApiError);
+        expect((e as ApiError).status).toBe(429);
+        throw e;
       })
-    ).rejects.toThrow()
-  })
-})
+    ).rejects.toThrow();
+  });
+});
 
 describe("pollAnalysis", () => {
   it("GETs the process status by id", async () => {
@@ -85,12 +85,12 @@ describe("pollAnalysis", () => {
         modelVersion: "gpt-4o-2024-08",
         promptVersion: "v2.1.0",
       },
-    }
-    mockFetch.mockResolvedValueOnce(jsonResponse(body))
+    };
+    mockFetch.mockResolvedValueOnce(jsonResponse(body));
 
-    const result = await pollAnalysis("proc-abc-123")
+    const result = await pollAnalysis("proc-abc-123");
 
-    expect(result).toEqual(body)
+    expect(result).toEqual(body);
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/analyze/proc-abc-123",
       expect.objectContaining({
@@ -98,8 +98,8 @@ describe("pollAnalysis", () => {
           "Content-Type": "application/json",
         }),
       })
-    )
-  })
+    );
+  });
 
   it("returns pending status when analysis is still running", async () => {
     const body: AnalysisResponse = {
@@ -107,13 +107,13 @@ describe("pollAnalysis", () => {
       processId: "proc-abc-123",
       chain: "ethereum",
       address: "0xabc",
-    }
-    mockFetch.mockResolvedValueOnce(jsonResponse(body))
+    };
+    mockFetch.mockResolvedValueOnce(jsonResponse(body));
 
-    const result = await pollAnalysis("proc-abc-123")
-    expect(result.status).toBe("processing")
-    expect(result.result).toBeUndefined()
-  })
+    const result = await pollAnalysis("proc-abc-123");
+    expect(result.status).toBe("processing");
+    expect(result.result).toBeUndefined();
+  });
 
   it("encodes processId in URL", async () => {
     mockFetch.mockResolvedValueOnce(
@@ -123,12 +123,12 @@ describe("pollAnalysis", () => {
         chain: "ethereum",
         address: "",
       })
-    )
+    );
 
-    await pollAnalysis("a/b c")
+    await pollAnalysis("a/b c");
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/analyze/a%2Fb%20c",
       expect.anything()
-    )
-  })
-})
+    );
+  });
+});

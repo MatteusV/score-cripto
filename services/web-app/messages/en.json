@@ -186,6 +186,80 @@
     "observation": {
       "title": "What to look for",
       "body": "A high score indicates trust, but check risk factors, mixers and excessive concentration before deciding."
+    },
+    "input": {
+      "title": "New analysis",
+      "subtitle": "Paste an address and get an auditable score",
+      "heroHeading": "Paste an address and get an auditable score",
+      "heroSubtext": "Our pipeline collects on-chain data, checks sanctions and mixers, and generates full AI reasoning in under 3 seconds.",
+      "addressLabel": "Wallet address",
+      "addressPlaceholder": "0x742d35Cc6634C0532925a3b844Bc9e7595f4e2bc",
+      "paste": "paste",
+      "chainLabel": "Network",
+      "chainAutodetect": "(auto-detection available)",
+      "analyzeBtn": "Analyze with AI",
+      "clearBtn": "Clear",
+      "pipelineOnline": "pipeline online",
+      "remaining": "{count}/{limit} remaining",
+      "samplesLabel": "Try an example",
+      "whatTitle": "WHAT THE AI ANALYZES",
+      "whatSignals": "42 signals",
+      "recentTitle": "RECENT ANALYSES",
+      "viewAll": "View all",
+      "tipsTitle": "TIPS",
+      "tip0": "20-min cache returns immediately and schedules a background refresh.",
+      "tip1": "Reasoning is versioned — you can audit the AI response in the future.",
+      "tip2": "Recalculate forces a new run ignoring the cache.",
+      "errors": {
+        "empty": "Address is required.",
+        "invalidEvm": "Invalid address. Use 0x format with 40 hex characters."
+      }
+    },
+    "pipeline": {
+      "title": "ANALYZING",
+      "cancel": "Cancel",
+      "processing": "processing",
+      "stageDetect": "Detecting network",
+      "stageDetectDetail": "Identifying chain from address format",
+      "stageFetch": "Collecting on-chain",
+      "stageFetchDetail": "transactions, counterparties, age, volume",
+      "stageNormalize": "Normalization",
+      "stageNormalizeDetail": "aggregating signals into structured features",
+      "stageSanctions": "Checking sanctions",
+      "stageSanctionsDetail": "OFAC + community lists",
+      "stageMixer": "Detecting mixers",
+      "stageMixerDetail": "Tornado Cash, Wasabi, Samourai",
+      "stageAi": "AI Reasoning",
+      "stageAiDetail": "model · versioned prompt",
+      "stageScore": "Final score",
+      "stageScoreDetail": "validated confidence",
+      "stageActive": "in progress…",
+      "stageDone": "ok"
+    },
+    "result": {
+      "back": "New analysis",
+      "share": "Share",
+      "export": "Export PDF",
+      "addressLabel": "Analyzed wallet",
+      "reasoningTitle": "AI REASONING",
+      "factorsTitle": "DETECTED FACTORS",
+      "factorsPositive": "✓ POSITIVE FACTORS",
+      "factorsRisk": "△ RISK FACTORS",
+      "factorsCount": "{pos} positive · {neg} risks",
+      "factorsDescription": "Concrete signals the AI pipeline extracted from on-chain data.",
+      "observeTitle": "WHAT TO LOOK FOR",
+      "observeBody": "A high score indicates overall trust, but always check risk factors, mixer history and concentration before large transactions.",
+      "pipelineTitle": "PIPELINE",
+      "metaScore": "Score",
+      "metaConfidence": "Confidence",
+      "metaVerdict": "Verdict",
+      "metaChain": "Network",
+      "verdictTrusted": "Trusted",
+      "verdictAttention": "Attention",
+      "verdictRisk": "High risk",
+      "cached": "CACHED",
+      "completed": "COMPLETED",
+      "copied": "Copied!"
     }
   },
   "history": {
@@ -362,10 +436,22 @@
     "faq": {
       "eyebrow": "FREQUENTLY ASKED",
       "items": [
-        ["Can I cancel anytime?", "Yes. Cancellation is immediate and you keep access until the end of the paid cycle. No fees."],
-        ["How does upgrading work?", "We charge pro-rata for the remaining period. The switch is immediate and new limits apply right away."],
-        ["Do you store my addresses?", "Only the ones you analyze. We never collect wallets automatically. You can erase your history any time."],
-        ["Do I need a tax invoice?", "We issue NFS-e automatically for Brazil customers. Just add your CNPJ in Manage subscription."]
+        [
+          "Can I cancel anytime?",
+          "Yes. Cancellation is immediate and you keep access until the end of the paid cycle. No fees."
+        ],
+        [
+          "How does upgrading work?",
+          "We charge pro-rata for the remaining period. The switch is immediate and new limits apply right away."
+        ],
+        [
+          "Do you store my addresses?",
+          "Only the ones you analyze. We never collect wallets automatically. You can erase your history any time."
+        ],
+        [
+          "Do I need a tax invoice?",
+          "We issue NFS-e automatically for Brazil customers. Just add your CNPJ in Manage subscription."
+        ]
       ]
     },
     "account": "Account"
@@ -422,14 +508,38 @@
     "categoriesLabel": "Categories · Browse by entity",
     "categoriesTotal": "{total} addresses",
     "categories": {
-      "exchange": { "label": "Exchanges", "desc": "Custodial CEX · verified hot & cold wallets" },
-      "defi": { "label": "DeFi", "desc": "Audited protocols · vaults · routers" },
-      "mixer": { "label": "Mixers", "desc": "Tornado · Wasabi · Samourai · proxies" },
-      "sanctions": { "label": "Sanctions", "desc": "OFAC · UK HMT · EU consolidated" },
-      "bridge": { "label": "Bridges", "desc": "Wormhole · Across · Stargate · LayerZero" },
-      "nft": { "label": "NFT", "desc": "Marketplaces · creator contracts · royalty splitters" },
-      "stablecoin": { "label": "Stablecoins", "desc": "USDC · USDT · DAI · PYUSD · issuers" },
-      "whale": { "label": "Whales", "desc": "Wallets with large annual movement" }
+      "exchange": {
+        "label": "Exchanges",
+        "desc": "Custodial CEX · verified hot & cold wallets"
+      },
+      "defi": {
+        "label": "DeFi",
+        "desc": "Audited protocols · vaults · routers"
+      },
+      "mixer": {
+        "label": "Mixers",
+        "desc": "Tornado · Wasabi · Samourai · proxies"
+      },
+      "sanctions": {
+        "label": "Sanctions",
+        "desc": "OFAC · UK HMT · EU consolidated"
+      },
+      "bridge": {
+        "label": "Bridges",
+        "desc": "Wormhole · Across · Stargate · LayerZero"
+      },
+      "nft": {
+        "label": "NFT",
+        "desc": "Marketplaces · creator contracts · royalty splitters"
+      },
+      "stablecoin": {
+        "label": "Stablecoins",
+        "desc": "USDC · USDT · DAI · PYUSD · issuers"
+      },
+      "whale": {
+        "label": "Whales",
+        "desc": "Wallets with large annual movement"
+      }
     },
     "tabs": {
       "trending": "Trending",

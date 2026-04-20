@@ -1,9 +1,9 @@
-import { cookies } from "next/headers"
+import { cookies } from "next/headers";
 
 export interface FetchWithAuthResult<T> {
-  data: T
-  status: number
-  ok: boolean
+  data: T;
+  ok: boolean;
+  status: number;
 }
 
 /**
@@ -14,18 +14,18 @@ export async function fetchWithAuth(
   url: string,
   options: RequestInit
 ): Promise<Response> {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("access-token")?.value
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access-token")?.value;
 
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string> | undefined),
-  }
+  };
 
   if (token) {
-    headers.Authorization = `Bearer ${token}`
+    headers.Authorization = `Bearer ${token}`;
   }
 
-  return fetch(url, { ...options, headers })
+  return fetch(url, { ...options, headers });
 }
 
 /**
@@ -35,7 +35,7 @@ export async function fetchWithAuthJson<T>(
   url: string,
   options: RequestInit
 ): Promise<FetchWithAuthResult<T>> {
-  const res = await fetchWithAuth(url, options)
-  const data = (await res.json()) as T
-  return { data, status: res.status, ok: res.ok }
+  const res = await fetchWithAuth(url, options);
+  const data = (await res.json()) as T;
+  return { data, status: res.status, ok: res.ok };
 }

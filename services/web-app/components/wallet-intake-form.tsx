@@ -1,23 +1,28 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useTranslations } from "next-intl"
-import { ArrowRightIcon, ArrowUpRightIcon, WalletIcon, ZapOffIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import {
+  ArrowRightIcon,
+  ArrowUpRightIcon,
+  WalletIcon,
+  ZapOffIcon,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field"
+} from "@/components/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/components/ui/input-group"
+} from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -25,62 +30,76 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { SUPPORTED_CHAINS, normalizeChainInput } from "@/lib/query"
+} from "@/components/ui/select";
+import { normalizeChainInput, SUPPORTED_CHAINS } from "@/lib/query";
 
-const evmAddressPattern = /^0x[a-fA-F0-9]{40}$/
+const evmAddressPattern = /^0x[a-fA-F0-9]{40}$/;
 
 export function WalletIntakeForm() {
-  const t = useTranslations("walletForm")
-  const router = useRouter()
-  const [chain, setChain] = useState("ethereum")
-  const [address, setAddress] = useState("")
-  const [touched, setTouched] = useState(false)
-  const [limitReached, setLimitReached] = useState(false)
+  const t = useTranslations("walletForm");
+  const router = useRouter();
+  const [chain, setChain] = useState("ethereum");
+  const [address, setAddress] = useState("");
+  const [touched, setTouched] = useState(false);
+  const [limitReached, setLimitReached] = useState(false);
 
   const errorMessage = useMemo(() => {
-    if (!touched) return null
-    if (!address.trim()) return t("errors.empty")
-    if (!evmAddressPattern.test(address.trim())) return t("errors.invalid")
-    return null
-  }, [address, touched, t])
+    if (!touched) {
+      return null;
+    }
+    if (!address.trim()) {
+      return t("errors.empty");
+    }
+    if (!evmAddressPattern.test(address.trim())) {
+      return t("errors.invalid");
+    }
+    return null;
+  }, [address, touched, t]);
 
-  const isValid = address.trim() && evmAddressPattern.test(address.trim())
+  const isValid = address.trim() && evmAddressPattern.test(address.trim());
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setTouched(true)
-    setLimitReached(false)
+    event.preventDefault();
+    setTouched(true);
+    setLimitReached(false);
 
-    if (!isValid) return
-
-    // Pre-check usage before navigating
-    const checkRes = await fetch("/api/billing/usage-check", { method: "POST" }).catch(() => null)
-    if (checkRes?.status === 429) {
-      setLimitReached(true)
-      return
+    if (!isValid) {
+      return;
     }
 
-    const href = `/analyze?chain=${normalizeChainInput(chain)}&address=${address.trim()}`
-    router.push(href)
+    // Pre-check usage before navigating
+    const checkRes = await fetch("/api/billing/usage-check", {
+      method: "POST",
+    }).catch(() => null);
+    if (checkRes?.status === 429) {
+      setLimitReached(true);
+      return;
+    }
+
+    const href = `/analyze?chain=${normalizeChainInput(chain)}&address=${address.trim()}`;
+    router.push(href);
   }
 
   return (
-    <form onSubmit={(e) => { void handleSubmit(e) }}>
+    <form
+      onSubmit={(e) => {
+        void handleSubmit(e);
+      }}
+    >
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="chain">{t("network")}</FieldLabel>
-          <Select value={chain} onValueChange={setChain}>
-            <SelectTrigger id="chain" className="w-full cursor-pointer">
+          <Select onValueChange={setChain} value={chain}>
+            <SelectTrigger className="w-full cursor-pointer" id="chain">
               <SelectValue placeholder={t("networkPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 {SUPPORTED_CHAINS.map((option) => (
                   <SelectItem
+                    className="cursor-pointer"
                     key={option.value}
                     value={option.value}
-                    className="cursor-pointer"
                   >
                     {option.label}
                   </SelectItem>
@@ -98,15 +117,15 @@ export function WalletIntakeForm() {
               <WalletIcon className="size-4 text-primary/60" />
             </InputGroupAddon>
             <InputGroupInput
-              id="address"
               aria-invalid={Boolean(errorMessage)}
-              value={address}
-              onChange={(event) => setAddress(event.target.value)}
-              onBlur={() => setTouched(true)}
-              placeholder="0x1234...abcd"
-              spellCheck={false}
               autoComplete="off"
               className="font-mono text-sm"
+              id="address"
+              onBlur={() => setTouched(true)}
+              onChange={(event) => setAddress(event.target.value)}
+              placeholder="0x1234...abcd"
+              spellCheck={false}
+              value={address}
             />
           </InputGroup>
           {errorMessage && <FieldError>{errorMessage}</FieldError>}
@@ -115,13 +134,15 @@ export function WalletIntakeForm() {
         {limitReached && (
           <div className="flex items-start gap-3 rounded-xl border border-destructive/25 bg-destructive/5 px-4 py-3">
             <ZapOffIcon className="mt-0.5 size-4 shrink-0 text-destructive" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-destructive">{t("limitReached.title")}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+            <div className="min-w-0 flex-1">
+              <p className="font-medium text-destructive text-sm">
+                {t("limitReached.title")}
+              </p>
+              <p className="mt-0.5 text-muted-foreground text-xs">
                 {t("limitReached.desc")}{" "}
                 <Link
+                  className="inline-flex items-center gap-0.5 font-medium text-primary underline-offset-2 hover:underline"
                   href="/settings/billing"
-                  className="font-medium text-primary hover:underline underline-offset-2 inline-flex items-center gap-0.5"
                 >
                   {t("limitReached.upgrade")}
                   <ArrowUpRightIcon className="size-3" />
@@ -132,15 +153,15 @@ export function WalletIntakeForm() {
         )}
 
         <Button
-          type="submit"
-          size="lg"
           className="w-full cursor-pointer transition-all md:w-fit"
           disabled={touched && !isValid}
+          size="lg"
+          type="submit"
         >
           <ArrowRightIcon data-icon="inline-end" />
           {t("analyze")}
         </Button>
       </FieldGroup>
     </form>
-  )
+  );
 }

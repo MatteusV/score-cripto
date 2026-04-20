@@ -1,53 +1,53 @@
-"use client"
+"use client";
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react";
 
 export interface ExploreWallet {
-  chain: string
-  address: string
-  score: number
-  confidence: number | null
-  lookups: number
-  lastAnalyzedAt: string
-  reasoning: string | null
-  riskFactors: string[]
+  address: string;
+  chain: string;
+  confidence: number | null;
+  lastAnalyzedAt: string;
+  lookups: number;
+  reasoning: string | null;
+  riskFactors: string[];
+  score: number;
 }
 
 export interface ExploreRecent {
-  id: string
-  publicId: number | null
-  chain: string
-  address: string
-  score: number | null
-  requestedAt: string
+  address: string;
+  chain: string;
+  id: string;
+  publicId: number | null;
+  requestedAt: string;
+  score: number | null;
 }
 
 export interface ExploreChainDistribution {
-  chain: string
-  pct: number
-  count: number
+  chain: string;
+  count: number;
+  pct: number;
 }
 
 export interface ExploreStats {
-  totalAnalyses: number
-  uniqueAddresses: number
-  chains: number
-  risky: number
+  chains: number;
+  risky: number;
+  totalAnalyses: number;
+  uniqueAddresses: number;
 }
 
 export interface ExploreCategory {
-  id: string
-  count: number
+  count: number;
+  id: string;
 }
 
 export interface ExploreData {
-  trending: ExploreWallet[]
-  risk: ExploreWallet[]
-  leaderboard: ExploreWallet[]
-  recent: ExploreRecent[]
-  chainDistribution: ExploreChainDistribution[]
-  categories: ExploreCategory[]
-  stats: ExploreStats
+  categories: ExploreCategory[];
+  chainDistribution: ExploreChainDistribution[];
+  leaderboard: ExploreWallet[];
+  recent: ExploreRecent[];
+  risk: ExploreWallet[];
+  stats: ExploreStats;
+  trending: ExploreWallet[];
 }
 
 const EMPTY: ExploreData = {
@@ -58,35 +58,37 @@ const EMPTY: ExploreData = {
   chainDistribution: [],
   categories: [],
   stats: { totalAnalyses: 0, uniqueAddresses: 0, chains: 0, risky: 0 },
-}
+};
 
 export function useExplore() {
-  const [data, setData] = useState<ExploreData>(EMPTY)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<ExploreData>(EMPTY);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetch_ = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const res = await fetch("/api/explore")
+      const res = await fetch("/api/explore");
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        setError((body as { error?: string }).error ?? "Erro ao carregar dados")
-        return
+        const body = await res.json().catch(() => ({}));
+        setError(
+          (body as { error?: string }).error ?? "Erro ao carregar dados"
+        );
+        return;
       }
-      const body = (await res.json()) as ExploreData
-      setData(body)
+      const body = (await res.json()) as ExploreData;
+      setData(body);
     } catch {
-      setError("Erro ao carregar dados")
+      setError("Erro ao carregar dados");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    fetch_()
-  }, [fetch_])
+    fetch_();
+  }, [fetch_]);
 
-  return { data, loading, error, refetch: fetch_ }
+  return { data, loading, error, refetch: fetch_ };
 }

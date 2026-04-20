@@ -1,7 +1,5 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
 import {
   AlertCircleIcon,
   ArrowRightIcon,
@@ -10,16 +8,18 @@ import {
   SearchIcon,
   ShieldCheckIcon,
   ZapIcon,
-} from "lucide-react"
-import { useTranslations } from "next-intl"
-import { Topbar } from "@/components/topbar"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
+import { Topbar } from "@/components/topbar";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
-  useExplore,
   type ExploreRecent,
   type ExploreWallet,
-} from "@/hooks/use-explore"
+  useExplore,
+} from "@/hooks/use-explore";
 
 const CATEGORY_IDS = [
   "exchange",
@@ -30,7 +30,7 @@ const CATEGORY_IDS = [
   "nft",
   "stablecoin",
   "whale",
-] as const
+] as const;
 
 const CATEGORY_ICONS: Record<(typeof CATEGORY_IDS)[number], string> = {
   exchange: "💳",
@@ -41,41 +41,67 @@ const CATEGORY_ICONS: Record<(typeof CATEGORY_IDS)[number], string> = {
   nft: "🧭",
   stablecoin: "🛡️",
   whale: "💼",
-}
+};
 
-const TAGS = ["Tornado Cash", "Binance", "Coinbase", "Lido", "Uniswap v4", "Aave", "Curve"]
+const TAGS = [
+  "Tornado Cash",
+  "Binance",
+  "Coinbase",
+  "Lido",
+  "Uniswap v4",
+  "Aave",
+  "Curve",
+];
 
-type Verdict = "trusted" | "attention" | "risk"
+type Verdict = "trusted" | "attention" | "risk";
 
 function verdictOf(score: number): Verdict {
-  if (score >= 70) return "trusted"
-  if (score >= 40) return "attention"
-  return "risk"
+  if (score >= 70) {
+    return "trusted";
+  }
+  if (score >= 40) {
+    return "attention";
+  }
+  return "risk";
 }
 
 function truncate(addr: string, chars = 6) {
-  if (addr.length <= 20) return addr
-  return `${addr.slice(0, chars)}...${addr.slice(-chars)}`
+  if (addr.length <= 20) {
+    return addr;
+  }
+  return `${addr.slice(0, chars)}...${addr.slice(-chars)}`;
 }
 
 function Sparkline({ values, color }: { values: number[]; color: string }) {
-  const max = Math.max(...values)
-  const min = Math.min(...values)
-  const range = max - min || 1
-  const w = 60
-  const h = 22
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const range = max - min || 1;
+  const w = 60;
+  const h = 22;
   const points = values
     .map((v, i) => {
-      const x = (i / (values.length - 1)) * w
-      const y = h - ((v - min) / range) * h
-      return `${x.toFixed(1)},${y.toFixed(1)}`
+      const x = (i / (values.length - 1)) * w;
+      const y = h - ((v - min) / range) * h;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
     })
-    .join(" L")
+    .join(" L");
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="flex-shrink-0">
-      <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      className="flex-shrink-0"
+      height={h}
+      viewBox={`0 0 ${w} ${h}`}
+      width={w}
+    >
+      <polyline
+        fill="none"
+        points={points}
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
     </svg>
-  )
+  );
 }
 
 function VerdictBadge({ verdict, label }: { verdict: Verdict; label: string }) {
@@ -83,156 +109,184 @@ function VerdictBadge({ verdict, label }: { verdict: Verdict; label: string }) {
     trusted: { bg: "bg-green-500/10", text: "text-green-600" },
     attention: { bg: "bg-amber-500/10", text: "text-amber-600" },
     risk: { bg: "bg-red-500/10", text: "text-red-600" },
-  }
-  const cfg = config[verdict]
+  };
+  const cfg = config[verdict];
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text}`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-medium text-xs ${cfg.bg} ${cfg.text}`}
+    >
+      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
       {label}
     </span>
-  )
+  );
 }
 
 function formatRelative(iso: string, locale: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime()
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" })
-  const minutes = Math.round(diffMs / 60000)
-  if (minutes < 60) return rtf.format(-minutes, "minute")
-  const hours = Math.round(minutes / 60)
-  if (hours < 24) return rtf.format(-hours, "hour")
-  const days = Math.round(hours / 24)
-  return rtf.format(-days, "day")
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  const minutes = Math.round(diffMs / 60_000);
+  if (minutes < 60) {
+    return rtf.format(-minutes, "minute");
+  }
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) {
+    return rtf.format(-hours, "hour");
+  }
+  const days = Math.round(hours / 24);
+  return rtf.format(-days, "day");
 }
 
 export default function SearchPage() {
-  const t = useTranslations("explore")
-  const router = useRouter()
-  const [q, setQ] = useState("")
-  const [tab, setTab] = useState<"trending" | "risk" | "leaderboard">("trending")
-  const [chainFilter, setChainFilter] = useState("all")
+  const t = useTranslations("explore");
+  const router = useRouter();
+  const [q, setQ] = useState("");
+  const [tab, setTab] = useState<"trending" | "risk" | "leaderboard">(
+    "trending"
+  );
+  const [chainFilter, setChainFilter] = useState("all");
 
-  const [activeQuery, setActiveQuery] = useState("")
+  const [activeQuery, setActiveQuery] = useState("");
 
-  const { data, loading, error } = useExplore()
+  const { data, loading, error } = useExplore();
 
   const matchesQuery = (w: ExploreWallet, query: string) => {
-    if (!query) return true
-    const needle = query.toLowerCase().trim()
+    if (!query) {
+      return true;
+    }
+    const needle = query.toLowerCase().trim();
     return (
       w.address.toLowerCase().includes(needle) ||
       w.chain.toLowerCase().includes(needle) ||
       (w.reasoning ?? "").toLowerCase().includes(needle) ||
       w.riskFactors.some((f) => f.toLowerCase().includes(needle))
-    )
-  }
+    );
+  };
 
   const categoryCounts = useMemo(() => {
-    const m = new Map<string, number>()
-    for (const c of data.categories) m.set(c.id, c.count)
-    return m
-  }, [data.categories])
+    const m = new Map<string, number>();
+    for (const c of data.categories) {
+      m.set(c.id, c.count);
+    }
+    return m;
+  }, [data.categories]);
 
   const categoriesTotal = useMemo(
     () => data.categories.reduce((s, c) => s + c.count, 0),
-    [data.categories],
-  )
+    [data.categories]
+  );
 
   function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
-    setActiveQuery(q.trim())
+    e.preventDefault();
+    setActiveQuery(q.trim());
   }
 
   function handleTagClick(tag: string) {
-    setQ(tag)
-    setActiveQuery(tag)
+    setQ(tag);
+    setActiveQuery(tag);
   }
 
   function handleClearQuery() {
-    setQ("")
-    setActiveQuery("")
+    setQ("");
+    setActiveQuery("");
   }
 
   function handleWalletClick(w: ExploreWallet) {
-    router.push(`/analyze?chain=${w.chain}&address=${encodeURIComponent(w.address)}`)
+    router.push(
+      `/analyze?chain=${w.chain}&address=${encodeURIComponent(w.address)}`
+    );
   }
 
   function handleRecentClick(r: ExploreRecent) {
-    router.push(`/analysis/${r.id}`)
+    router.push(`/analysis/${r.id}`);
   }
 
   const trendingFiltered = data.trending
     .filter((w) => chainFilter === "all" || w.chain === chainFilter)
-    .filter((w) => matchesQuery(w, activeQuery))
+    .filter((w) => matchesQuery(w, activeQuery));
 
-  const riskFiltered = data.risk.filter((w) => matchesQuery(w, activeQuery))
-  const leaderboardFiltered = data.leaderboard.filter((w) => matchesQuery(w, activeQuery))
+  const riskFiltered = data.risk.filter((w) => matchesQuery(w, activeQuery));
+  const leaderboardFiltered = data.leaderboard.filter((w) =>
+    matchesQuery(w, activeQuery)
+  );
 
   const availableChains = useMemo(
     () => Array.from(new Set(data.trending.map((w) => w.chain))).slice(0, 4),
-    [data.trending],
-  )
+    [data.trending]
+  );
 
   return (
     <div className="flex flex-col">
-      <Topbar title={t("title")} subtitle={t("subtitle")} />
+      <Topbar subtitle={t("subtitle")} title={t("title")} />
 
       <div className="flex flex-col gap-8 p-7">
         {/* Hero section */}
-        <div className="relative rounded-3xl border border-border/50 bg-gradient-to-b from-card to-card/50 p-9 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-accent/8 via-transparent to-primary/8 pointer-events-none" />
+        <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-b from-card to-card/50 p-9">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-accent/8 via-transparent to-primary/8" />
 
           <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center text-accent">
-                <CompassIcon className="w-4 h-4" strokeWidth={2} />
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent/30 bg-accent/20 text-accent">
+                <CompassIcon className="h-4 w-4" strokeWidth={2} />
               </div>
-              <span className="text-[10px] font-heading font-bold uppercase tracking-[0.2em] text-accent">
+              <span className="font-bold font-heading text-[10px] text-accent uppercase tracking-[0.2em]">
                 {t("hero.eyebrow")}
               </span>
             </div>
 
-            <h1 className="text-3xl font-heading font-bold mb-2 leading-tight">
-              {t("hero.heading")} <span className="text-accent">{t("hero.headingHighlight")}</span> {t("hero.headingRest")}
+            <h1 className="mb-2 font-bold font-heading text-3xl leading-tight">
+              {t("hero.heading")}{" "}
+              <span className="text-accent">{t("hero.headingHighlight")}</span>{" "}
+              {t("hero.headingRest")}
             </h1>
 
-            <p className="text-sm text-muted-foreground mb-6 max-w-2xl leading-relaxed">
+            <p className="mb-6 max-w-2xl text-muted-foreground text-sm leading-relaxed">
               {t("hero.description", {
                 count: data.stats.uniqueAddresses.toLocaleString(),
                 chains: data.stats.chains || 7,
               })}
             </p>
 
-            <form onSubmit={handleSearch} className="flex flex-col gap-4">
-              <div className="relative flex gap-3 mb-4">
+            <form className="flex flex-col gap-4" onSubmit={handleSearch}>
+              <div className="relative mb-4 flex gap-3">
                 <div className="relative flex-1">
-                  <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/50" strokeWidth={2} />
-                  <input
-                    type="text"
-                    placeholder={t("searchPlaceholder")}
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                    className="h-14 w-full rounded-2xl border border-border bg-muted/50 pl-14 pr-36 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                  <SearchIcon
+                    className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-muted-foreground/50"
+                    strokeWidth={2}
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                    <span className="text-[10px] font-mono text-muted-foreground border border-border rounded px-2 py-1">⌘ K</span>
-                    <Button type="submit" variant="default" size="sm" className="gap-1">
-                      <ArrowRightIcon className="w-4 h-4" />
+                  <input
+                    className="h-14 w-full rounded-2xl border border-border bg-muted/50 pr-36 pl-14 text-foreground text-sm placeholder:text-muted-foreground/50 focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder={t("searchPlaceholder")}
+                    type="text"
+                    value={q}
+                  />
+                  <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-2">
+                    <span className="rounded border border-border px-2 py-1 font-mono text-[10px] text-muted-foreground">
+                      ⌘ K
+                    </span>
+                    <Button
+                      className="gap-1"
+                      size="sm"
+                      type="submit"
+                      variant="default"
+                    >
+                      <ArrowRightIcon className="h-4 w-4" />
                       {t("hero.searchCta")}
                     </Button>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-[10px] font-heading uppercase tracking-[0.3em] text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="font-heading text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
                   {t("hero.suggested")}
                 </span>
                 {TAGS.map((tag) => (
                   <button
+                    className="rounded-full border border-border bg-transparent px-3 py-1.5 text-muted-foreground text-xs transition-colors hover:border-primary/50 hover:text-foreground"
                     key={tag}
-                    type="button"
                     onClick={() => handleTagClick(tag)}
-                    className="px-3 py-1.5 rounded-full border border-border bg-transparent text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
+                    type="button"
                   >
                     {tag}
                   </button>
@@ -240,16 +294,38 @@ export default function SearchPage() {
               </div>
             </form>
 
-            <div className="grid grid-cols-4 gap-6 mt-8 pt-8 border-t border-border/50">
+            <div className="mt-8 grid grid-cols-4 gap-6 border-border/50 border-t pt-8">
               {[
-                { value: data.stats.uniqueAddresses.toLocaleString(), label: t("stats.indexed"), color: "text-primary" },
-                { value: String(data.stats.chains || 0), label: t("stats.chains"), color: "text-accent" },
-                { value: data.stats.risky.toLocaleString(), label: t("stats.risky"), color: "text-destructive" },
-                { value: "24h", label: t("stats.refresh"), color: "text-green-500" },
+                {
+                  value: data.stats.uniqueAddresses.toLocaleString(),
+                  label: t("stats.indexed"),
+                  color: "text-primary",
+                },
+                {
+                  value: String(data.stats.chains || 0),
+                  label: t("stats.chains"),
+                  color: "text-accent",
+                },
+                {
+                  value: data.stats.risky.toLocaleString(),
+                  label: t("stats.risky"),
+                  color: "text-destructive",
+                },
+                {
+                  value: "24h",
+                  label: t("stats.refresh"),
+                  color: "text-green-500",
+                },
               ].map((stat, i) => (
                 <div key={i}>
-                  <div className={`font-heading font-bold text-2xl ${stat.color}`}>{stat.value}</div>
-                  <div className="text-xs text-muted-foreground font-mono mt-1">{stat.label}</div>
+                  <div
+                    className={`font-bold font-heading text-2xl ${stat.color}`}
+                  >
+                    {stat.value}
+                  </div>
+                  <div className="mt-1 font-mono text-muted-foreground text-xs">
+                    {stat.label}
+                  </div>
                 </div>
               ))}
             </div>
@@ -258,30 +334,36 @@ export default function SearchPage() {
 
         {/* Categories grid */}
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-heading font-bold uppercase tracking-[0.2em] text-muted-foreground">
+          <div className="mb-4 flex items-center justify-between">
+            <span className="font-bold font-heading text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
               {t("categoriesLabel")}
             </span>
-            <span className="text-xs text-muted-foreground font-mono">
-              {t("categoriesTotal", { total: categoriesTotal.toLocaleString() })}
+            <span className="font-mono text-muted-foreground text-xs">
+              {t("categoriesTotal", {
+                total: categoriesTotal.toLocaleString(),
+              })}
             </span>
           </div>
           <div className="grid grid-cols-4 gap-3">
             {CATEGORY_IDS.map((id) => (
               <button
+                className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:border-primary/30"
                 key={id}
                 type="button"
-                className="relative text-left p-5 rounded-2xl border border-border bg-card hover:border-primary/30 hover:-translate-y-0.5 transition-all group overflow-hidden"
               >
                 <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="mb-3 flex items-center justify-between">
                     <span className="text-lg">{CATEGORY_ICONS[id]}</span>
-                    <span className="font-heading font-bold text-lg text-primary">
+                    <span className="font-bold font-heading text-lg text-primary">
                       {(categoryCounts.get(id) ?? 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="font-semibold text-sm mb-1">{t(`categories.${id}.label`)}</div>
-                  <div className="text-xs text-muted-foreground leading-tight">{t(`categories.${id}.desc`)}</div>
+                  <div className="mb-1 font-semibold text-sm">
+                    {t(`categories.${id}.label`)}
+                  </div>
+                  <div className="text-muted-foreground text-xs leading-tight">
+                    {t(`categories.${id}.desc`)}
+                  </div>
                 </div>
               </button>
             ))}
@@ -291,15 +373,21 @@ export default function SearchPage() {
         {activeQuery && (
           <div className="flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2.5 text-sm">
             <div className="flex items-center gap-2 text-foreground">
-              <SearchIcon className="w-3.5 h-3.5 text-primary" strokeWidth={2} />
+              <SearchIcon
+                className="h-3.5 w-3.5 text-primary"
+                strokeWidth={2}
+              />
               <span>
-                {t("activeFilter")}: <span className="font-mono font-semibold text-primary">{activeQuery}</span>
+                {t("activeFilter")}:{" "}
+                <span className="font-mono font-semibold text-primary">
+                  {activeQuery}
+                </span>
               </span>
             </div>
             <button
-              type="button"
+              className="font-heading text-muted-foreground text-xs uppercase tracking-wide hover:text-foreground"
               onClick={handleClearQuery}
-              className="text-xs text-muted-foreground hover:text-foreground font-heading uppercase tracking-wide"
+              type="button"
             >
               {t("clearFilter")}
             </button>
@@ -307,25 +395,25 @@ export default function SearchPage() {
         )}
 
         {error && (
-          <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-destructive text-sm">
             {t("error")}
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-3 flex flex-col gap-6">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div className="flex gap-1 p-1 bg-muted rounded-xl border border-border">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+          <div className="flex flex-col gap-6 lg:col-span-3">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex gap-1 rounded-xl border border-border bg-muted p-1">
                 {(["trending", "risk", "leaderboard"] as const).map((id) => (
                   <button
-                    key={id}
-                    type="button"
-                    onClick={() => setTab(id)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    className={`rounded-lg px-4 py-2 font-medium text-sm transition-all ${
                       tab === id
                         ? "bg-card text-primary shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
+                    key={id}
+                    onClick={() => setTab(id)}
+                    type="button"
                   >
                     {t(`tabs.${id}`)}
                   </button>
@@ -335,26 +423,26 @@ export default function SearchPage() {
               {tab === "trending" && availableChains.length > 0 && (
                 <div className="flex gap-2">
                   <button
-                    type="button"
-                    onClick={() => setChainFilter("all")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-heading uppercase tracking-wider transition-all ${
+                    className={`rounded-lg px-3 py-1.5 font-heading text-xs uppercase tracking-wider transition-all ${
                       chainFilter === "all"
-                        ? "bg-primary/20 border border-primary/50 text-primary"
+                        ? "border border-primary/50 bg-primary/20 text-primary"
                         : "border border-border text-muted-foreground hover:border-primary/30"
                     }`}
+                    onClick={() => setChainFilter("all")}
+                    type="button"
                   >
                     {t("chainFilter.all")}
                   </button>
                   {availableChains.map((c) => (
                     <button
-                      key={c}
-                      type="button"
-                      onClick={() => setChainFilter(c)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-heading uppercase tracking-wider transition-all ${
+                      className={`rounded-lg px-3 py-1.5 font-heading text-xs uppercase tracking-wider transition-all ${
                         chainFilter === c
-                          ? "bg-primary/20 border border-primary/50 text-primary"
+                          ? "border border-primary/50 bg-primary/20 text-primary"
                           : "border border-border text-muted-foreground hover:border-primary/30"
                       }`}
+                      key={c}
+                      onClick={() => setChainFilter(c)}
+                      type="button"
                     >
                       {c}
                     </button>
@@ -366,53 +454,77 @@ export default function SearchPage() {
             {/* Trending */}
             {tab === "trending" && (
               <div className="space-y-3">
-                {loading && <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>}
+                {loading && (
+                  <Card className="p-6 text-muted-foreground text-sm">
+                    {t("loading")}
+                  </Card>
+                )}
                 {!loading && trendingFiltered.length === 0 && (
-                  <Card className="p-6 text-sm text-muted-foreground">
+                  <Card className="p-6 text-muted-foreground text-sm">
                     {activeQuery ? t("noMatches") : t("trending.empty")}
                   </Card>
                 )}
                 {trendingFiltered.map((item, i) => {
-                  const verdict = verdictOf(item.score)
+                  const verdict = verdictOf(item.score);
                   return (
                     <Card
+                      className="cursor-pointer p-4 transition-colors hover:bg-muted/50"
                       key={`${item.chain}:${item.address}`}
-                      className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
                       onClick={() => handleWalletClick(item)}
                     >
-                      <div className="grid grid-cols-[28px_44px_1fr_140px_110px_auto] gap-3 items-center">
-                        <span className="font-heading font-bold text-sm text-muted-foreground text-center">#{i + 1}</span>
-                        <div className="w-8 h-8 rounded-lg bg-primary/20 text-primary flex items-center justify-center text-[10px] font-heading font-bold">
+                      <div className="grid grid-cols-[28px_44px_1fr_140px_110px_auto] items-center gap-3">
+                        <span className="text-center font-bold font-heading text-muted-foreground text-sm">
+                          #{i + 1}
+                        </span>
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 font-bold font-heading text-[10px] text-primary">
                           {item.chain.slice(0, 3).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-semibold font-mono">{truncate(item.address)}</span>
-                            <VerdictBadge verdict={verdict} label={t(`verdict.${verdict}`)} />
+                          <div className="mb-1 flex items-center gap-2">
+                            <span className="font-mono font-semibold text-sm">
+                              {truncate(item.address)}
+                            </span>
+                            <VerdictBadge
+                              label={t(`verdict.${verdict}`)}
+                              verdict={verdict}
+                            />
                           </div>
-                          <div className="text-xs text-muted-foreground line-clamp-1">{item.reasoning ?? "—"}</div>
+                          <div className="line-clamp-1 text-muted-foreground text-xs">
+                            {item.reasoning ?? "—"}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 justify-end">
+                        <div className="flex items-center justify-end gap-2">
                           <Sparkline
-                            values={Array.from({ length: 12 }, (_, x) => Math.sin(i + x * 0.6) * 10 + item.score)}
                             color="var(--primary)"
+                            values={Array.from(
+                              { length: 12 },
+                              (_, x) => Math.sin(i + x * 0.6) * 10 + item.score
+                            )}
                           />
                           <div>
-                            <div className="font-heading font-bold text-lg text-primary">{item.score}</div>
-                            <div className="text-[9px] text-muted-foreground">{t("trending.scoreLabel")}</div>
+                            <div className="font-bold font-heading text-lg text-primary">
+                              {item.score}
+                            </div>
+                            <div className="text-[9px] text-muted-foreground">
+                              {t("trending.scoreLabel")}
+                            </div>
                           </div>
                         </div>
-                        <div className="text-xs text-muted-foreground font-mono">
-                          <div className="text-foreground font-bold text-sm">{item.lookups}</div>
-                          <div className="text-[9px]">{t("trending.lookupsLabel")}</div>
+                        <div className="font-mono text-muted-foreground text-xs">
+                          <div className="font-bold text-foreground text-sm">
+                            {item.lookups}
+                          </div>
+                          <div className="text-[9px]">
+                            {t("trending.lookupsLabel")}
+                          </div>
                         </div>
-                        <Button variant="outline" size="sm" className="gap-1">
-                          <ArrowRightIcon className="w-3 h-3" />
+                        <Button className="gap-1" size="sm" variant="outline">
+                          <ArrowRightIcon className="h-3 w-3" />
                           {t("trending.view")}
                         </Button>
                       </div>
                     </Card>
-                  )
+                  );
                 })}
               </div>
             )}
@@ -420,40 +532,62 @@ export default function SearchPage() {
             {/* Risk list */}
             {tab === "risk" && (
               <Card className="overflow-hidden">
-                <div className="bg-destructive/10 border-b border-destructive/30 px-5 py-3 flex items-center gap-2">
-                  <AlertCircleIcon className="w-4 h-4 text-destructive" strokeWidth={2} />
-                  <span className="text-[10px] font-heading font-bold uppercase tracking-wider text-destructive">
+                <div className="flex items-center gap-2 border-destructive/30 border-b bg-destructive/10 px-5 py-3">
+                  <AlertCircleIcon
+                    className="h-4 w-4 text-destructive"
+                    strokeWidth={2}
+                  />
+                  <span className="font-bold font-heading text-[10px] text-destructive uppercase tracking-wider">
                     {t("risk.heading")}
                   </span>
                 </div>
                 <div className="divide-y divide-border">
-                  {loading && <div className="p-6 text-sm text-muted-foreground">{t("loading")}</div>}
+                  {loading && (
+                    <div className="p-6 text-muted-foreground text-sm">
+                      {t("loading")}
+                    </div>
+                  )}
                   {!loading && riskFiltered.length === 0 && (
-                    <div className="p-6 text-sm text-muted-foreground">{t("risk.empty")}</div>
+                    <div className="p-6 text-muted-foreground text-sm">
+                      {t("risk.empty")}
+                    </div>
                   )}
                   {riskFiltered.map((item) => (
                     <div
+                      className="grid grid-cols-[44px_52px_1fr_auto_auto] items-center gap-4 p-4 transition-colors hover:bg-muted/30"
                       key={`${item.chain}:${item.address}`}
-                      className="grid grid-cols-[44px_52px_1fr_auto_auto] gap-4 p-4 items-center hover:bg-muted/30 transition-colors"
                     >
-                      <div className="font-heading font-bold text-2xl text-destructive text-center">{item.score}</div>
-                      <div className="w-9 h-9 rounded-lg bg-destructive/20 text-destructive flex items-center justify-center text-[9px] font-heading font-bold">
+                      <div className="text-center font-bold font-heading text-2xl text-destructive">
+                        {item.score}
+                      </div>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/20 font-bold font-heading text-[9px] text-destructive">
                         {item.chain.slice(0, 3).toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-sm font-mono">{truncate(item.address)}</span>
-                          <span className="text-[10px] border border-destructive/50 bg-destructive/10 text-destructive px-2 py-0.5 rounded">
+                        <div className="mb-1 flex items-center gap-2">
+                          <span className="font-mono font-semibold text-sm">
+                            {truncate(item.address)}
+                          </span>
+                          <span className="rounded border border-destructive/50 bg-destructive/10 px-2 py-0.5 text-[10px] text-destructive">
                             {t("risk.highRisk")}
                           </span>
                         </div>
-                        <div className="text-xs text-muted-foreground font-mono truncate">
-                          {item.riskFactors.length > 0 ? item.riskFactors.slice(0, 2).join(" · ") : (item.reasoning ?? "—")}
+                        <div className="truncate font-mono text-muted-foreground text-xs">
+                          {item.riskFactors.length > 0
+                            ? item.riskFactors.slice(0, 2).join(" · ")
+                            : (item.reasoning ?? "—")}
                         </div>
                       </div>
-                      <Button variant="ghost" size="sm">{t("risk.report")}</Button>
-                      <Button variant="outline" size="sm" className="gap-1" onClick={() => handleWalletClick(item)}>
-                        <ArrowRightIcon className="w-3 h-3" />
+                      <Button size="sm" variant="ghost">
+                        {t("risk.report")}
+                      </Button>
+                      <Button
+                        className="gap-1"
+                        onClick={() => handleWalletClick(item)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <ArrowRightIcon className="h-3 w-3" />
                         {t("risk.investigate")}
                       </Button>
                     </div>
@@ -465,40 +599,63 @@ export default function SearchPage() {
             {/* Leaderboard */}
             {tab === "leaderboard" && (
               <Card className="overflow-hidden">
-                <div className="bg-green-500/10 border-b border-green-500/30 px-5 py-3 flex items-center gap-2">
-                  <ShieldCheckIcon className="w-4 h-4 text-green-600" strokeWidth={2} />
-                  <span className="text-[10px] font-heading font-bold uppercase tracking-wider text-green-600">
+                <div className="flex items-center gap-2 border-green-500/30 border-b bg-green-500/10 px-5 py-3">
+                  <ShieldCheckIcon
+                    className="h-4 w-4 text-green-600"
+                    strokeWidth={2}
+                  />
+                  <span className="font-bold font-heading text-[10px] text-green-600 uppercase tracking-wider">
                     {t("leaderboard.heading")}
                   </span>
                 </div>
                 <div className="divide-y divide-border">
-                  {loading && <div className="p-6 text-sm text-muted-foreground">{t("loading")}</div>}
+                  {loading && (
+                    <div className="p-6 text-muted-foreground text-sm">
+                      {t("loading")}
+                    </div>
+                  )}
                   {!loading && leaderboardFiltered.length === 0 && (
-                    <div className="p-6 text-sm text-muted-foreground">{t("leaderboard.empty")}</div>
+                    <div className="p-6 text-muted-foreground text-sm">
+                      {t("leaderboard.empty")}
+                    </div>
                   )}
                   {leaderboardFiltered.map((item, idx) => (
                     <div
+                      className="grid grid-cols-[48px_52px_1fr_200px_80px_auto] items-center gap-4 p-4 transition-colors hover:bg-muted/30"
                       key={`${item.chain}:${item.address}`}
-                      className="grid grid-cols-[48px_52px_1fr_200px_80px_auto] gap-4 p-4 items-center hover:bg-muted/30 transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        {idx < 3 && <span className="text-lg">{"🥇🥈🥉"[idx]}</span>}
-                        <span className="font-heading font-bold text-sm text-muted-foreground">#{idx + 1}</span>
+                        {idx < 3 && (
+                          <span className="text-lg">{"🥇🥈🥉"[idx]}</span>
+                        )}
+                        <span className="font-bold font-heading text-muted-foreground text-sm">
+                          #{idx + 1}
+                        </span>
                       </div>
-                      <div className="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-600 flex items-center justify-center text-[9px] font-heading font-bold">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/20 font-bold font-heading text-[9px] text-blue-600">
                         {item.chain.slice(0, 3).toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <div className="text-sm font-semibold font-mono">{truncate(item.address)}</div>
-                        <div className="text-xs text-muted-foreground font-mono mt-1 truncate">{item.reasoning ?? "—"}</div>
+                        <div className="font-mono font-semibold text-sm">
+                          {truncate(item.address)}
+                        </div>
+                        <div className="mt-1 truncate font-mono text-muted-foreground text-xs">
+                          {item.reasoning ?? "—"}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {item.confidence !== null
-                          ? `conf. ${Math.round(item.confidence * 100)}%`
-                          : "—"}
+                      <div className="text-muted-foreground text-xs">
+                        {item.confidence === null
+                          ? "—"
+                          : `conf. ${Math.round(item.confidence * 100)}%`}
                       </div>
-                      <div className="font-heading font-bold text-xl text-green-600">{item.score}</div>
-                      <Button variant="outline" size="sm" onClick={() => handleWalletClick(item)}>
+                      <div className="font-bold font-heading text-green-600 text-xl">
+                        {item.score}
+                      </div>
+                      <Button
+                        onClick={() => handleWalletClick(item)}
+                        size="sm"
+                        variant="outline"
+                      >
                         {t("leaderboard.details")}
                       </Button>
                     </div>
@@ -511,27 +668,37 @@ export default function SearchPage() {
           {/* Sidebar */}
           <aside className="flex flex-col gap-4">
             <Card className="p-4">
-              <div className="flex items-center gap-2 mb-4">
-                <ClockIcon className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2} />
-                <span className="text-[10px] font-heading font-bold uppercase tracking-wider text-muted-foreground">
+              <div className="mb-4 flex items-center gap-2">
+                <ClockIcon
+                  className="h-3.5 w-3.5 text-muted-foreground"
+                  strokeWidth={2}
+                />
+                <span className="font-bold font-heading text-[10px] text-muted-foreground uppercase tracking-wider">
                   {t("sidebar.recentTitle")}
                 </span>
               </div>
               <div className="space-y-2">
                 {data.recent.length === 0 && (
-                  <div className="text-xs text-muted-foreground">{t("sidebar.recentEmpty")}</div>
+                  <div className="text-muted-foreground text-xs">
+                    {t("sidebar.recentEmpty")}
+                  </div>
                 )}
                 {data.recent.map((r) => (
                   <button
+                    className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors hover:bg-muted/50"
                     key={r.id}
-                    type="button"
                     onClick={() => handleRecentClick(r)}
-                    className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors text-left"
+                    type="button"
                   >
-                    <SearchIcon className="w-3 h-3 text-muted-foreground flex-shrink-0" strokeWidth={2} />
+                    <SearchIcon
+                      className="h-3 w-3 flex-shrink-0 text-muted-foreground"
+                      strokeWidth={2}
+                    />
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-foreground truncate font-mono">{truncate(r.address)}</div>
-                      <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                      <div className="truncate font-medium font-mono text-foreground text-xs">
+                        {truncate(r.address)}
+                      </div>
+                      <div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
                         {r.chain} · {formatRelative(r.requestedAt, "pt-BR")}
                       </div>
                     </div>
@@ -539,46 +706,59 @@ export default function SearchPage() {
                 ))}
               </div>
               {data.recent.length > 0 && (
-                <button type="button" className="mt-3 text-xs text-muted-foreground hover:text-foreground font-heading tracking-wide uppercase">
+                <button
+                  className="mt-3 font-heading text-muted-foreground text-xs uppercase tracking-wide hover:text-foreground"
+                  type="button"
+                >
                   {t("sidebar.recentClear")}
                 </button>
               )}
             </Card>
 
             <Card className="p-4 backdrop-blur">
-              <span className="text-[10px] font-heading font-bold uppercase tracking-wider text-muted-foreground block mb-4">
+              <span className="mb-4 block font-bold font-heading text-[10px] text-muted-foreground uppercase tracking-wider">
                 {t("sidebar.chainDistribution")}
               </span>
               <div className="space-y-4">
                 {data.chainDistribution.length === 0 && (
-                  <div className="text-xs text-muted-foreground">—</div>
+                  <div className="text-muted-foreground text-xs">—</div>
                 )}
                 {data.chainDistribution.map((chain) => (
                   <div key={chain.chain}>
-                    <div className="flex justify-between text-xs mb-1.5">
-                      <span className="text-foreground capitalize">{chain.chain}</span>
-                      <span className="text-muted-foreground font-mono">{chain.pct}%</span>
+                    <div className="mb-1.5 flex justify-between text-xs">
+                      <span className="text-foreground capitalize">
+                        {chain.chain}
+                      </span>
+                      <span className="font-mono text-muted-foreground">
+                        {chain.pct}%
+                      </span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-muted/50 overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-primary/80 to-primary/40" style={{ width: `${chain.pct}%` }} />
+                    <div className="h-1.5 overflow-hidden rounded-full bg-muted/50">
+                      <div
+                        className="h-full bg-gradient-to-r from-primary/80 to-primary/40"
+                        style={{ width: `${chain.pct}%` }}
+                      />
                     </div>
                   </div>
                 ))}
               </div>
             </Card>
 
-            <Card className="p-4 bg-primary/10 border-primary/30">
-              <div className="flex items-center gap-2 mb-3">
-                <ZapIcon className="w-3.5 h-3.5 text-primary" strokeWidth={2.5} />
-                <span className="text-[10px] font-heading font-bold uppercase tracking-wider text-primary">
+            <Card className="border-primary/30 bg-primary/10 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <ZapIcon
+                  className="h-3.5 w-3.5 text-primary"
+                  strokeWidth={2.5}
+                />
+                <span className="font-bold font-heading text-[10px] text-primary uppercase tracking-wider">
                   {t("sidebar.proEyebrow")}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+              <p className="mb-3 text-muted-foreground text-xs leading-relaxed">
                 {t("sidebar.proDescription")}
               </p>
-              <Button variant="default" size="sm" className="w-full gap-1">
-                <ArrowRightIcon className="w-3 h-3" />
+              <Button className="w-full gap-1" size="sm" variant="default">
+                <ArrowRightIcon className="h-3 w-3" />
                 {t("sidebar.proCta")}
               </Button>
             </Card>
@@ -586,5 +766,5 @@ export default function SearchPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -186,6 +186,80 @@
     "observation": {
       "title": "Qué observar",
       "body": "Un score alto indica confianza, pero verifica factores de riesgo, mixers y concentración excesiva antes de decidir."
+    },
+    "input": {
+      "title": "Nuevo análisis",
+      "subtitle": "Pega una dirección y recibe un score auditable",
+      "heroHeading": "Pega una dirección y recibe un score auditable",
+      "heroSubtext": "Nuestro pipeline recopila datos on-chain, verifica sanciones y mixers, y genera un razonamiento completo de IA en menos de 3 segundos.",
+      "addressLabel": "Dirección de la wallet",
+      "addressPlaceholder": "0x742d35Cc6634C0532925a3b844Bc9e7595f4e2bc",
+      "paste": "pegar",
+      "chainLabel": "Red",
+      "chainAutodetect": "(auto-detección disponible)",
+      "analyzeBtn": "Analizar con IA",
+      "clearBtn": "Limpiar",
+      "pipelineOnline": "pipeline online",
+      "remaining": "{count}/{limit} restantes",
+      "samplesLabel": "Prueba un ejemplo",
+      "whatTitle": "QUÉ ANALIZA LA IA",
+      "whatSignals": "42 señales",
+      "recentTitle": "ANÁLISIS RECIENTES",
+      "viewAll": "Ver todos",
+      "tipsTitle": "CONSEJOS",
+      "tip0": "La caché de 20 min devuelve inmediatamente y programa una actualización en segundo plano.",
+      "tip1": "El razonamiento está versionado — puedes auditar la respuesta de la IA en el futuro.",
+      "tip2": "Recalcular fuerza una nueva ejecución ignorando la caché.",
+      "errors": {
+        "empty": "La dirección es obligatoria.",
+        "invalidEvm": "Dirección inválida. Usa formato 0x con 40 caracteres hexadecimales."
+      }
+    },
+    "pipeline": {
+      "title": "ANALIZANDO",
+      "cancel": "Cancelar",
+      "processing": "procesando",
+      "stageDetect": "Detectando red",
+      "stageDetectDetail": "Identificando chain a partir del formato de la dirección",
+      "stageFetch": "Recopilando on-chain",
+      "stageFetchDetail": "transacciones, contrapartes, edad, volumen",
+      "stageNormalize": "Normalización",
+      "stageNormalizeDetail": "agregando señales en features estructuradas",
+      "stageSanctions": "Verificando sanciones",
+      "stageSanctionsDetail": "OFAC + listas comunitarias",
+      "stageMixer": "Detectando mixers",
+      "stageMixerDetail": "Tornado Cash, Wasabi, Samourai",
+      "stageAi": "Razonamiento de IA",
+      "stageAiDetail": "modelo · prompt versionado",
+      "stageScore": "Score final",
+      "stageScoreDetail": "confianza validada",
+      "stageActive": "en curso…",
+      "stageDone": "ok"
+    },
+    "result": {
+      "back": "Nuevo análisis",
+      "share": "Compartir",
+      "export": "Exportar PDF",
+      "addressLabel": "Wallet analizada",
+      "reasoningTitle": "RAZONAMIENTO DE IA",
+      "factorsTitle": "FACTORES DETECTADOS",
+      "factorsPositive": "✓ FACTORES POSITIVOS",
+      "factorsRisk": "△ FACTORES DE RIESGO",
+      "factorsCount": "{pos} positivos · {neg} riesgos",
+      "factorsDescription": "Señales concretas que el pipeline de IA extrajo de los datos on-chain.",
+      "observeTitle": "QUÉ OBSERVAR",
+      "observeBody": "Un score alto indica confianza general, pero verifica siempre los factores de riesgo, historial de mixers y concentración antes de grandes transacciones.",
+      "pipelineTitle": "PIPELINE",
+      "metaScore": "Score",
+      "metaConfidence": "Confianza",
+      "metaVerdict": "Verdict",
+      "metaChain": "Red",
+      "verdictTrusted": "Confiable",
+      "verdictAttention": "Atención",
+      "verdictRisk": "Alto riesgo",
+      "cached": "EN CACHÉ",
+      "completed": "COMPLETADO",
+      "copied": "¡Copiado!"
     }
   },
   "history": {
@@ -362,10 +436,22 @@
     "faq": {
       "eyebrow": "PREGUNTAS FRECUENTES",
       "items": [
-        ["¿Puedo cancelar cuando quiera?", "Sí. La cancelación es inmediata y mantienes acceso hasta el final del ciclo pagado. Sin penalizaciones."],
-        ["¿Cómo funciona el upgrade?", "Cobramos prorrateado el periodo restante. El cambio es inmediato y los nuevos límites se aplican al instante."],
-        ["¿Guardáis mis direcciones?", "Solo las que analizas. Nunca recolectamos wallets automáticamente. Puedes borrar el historial cuando quieras."],
-        ["¿Necesito factura?", "Emitimos NFS-e automáticamente para clientes Brasil. Añade tu CNPJ en Gestionar suscripción."]
+        [
+          "¿Puedo cancelar cuando quiera?",
+          "Sí. La cancelación es inmediata y mantienes acceso hasta el final del ciclo pagado. Sin penalizaciones."
+        ],
+        [
+          "¿Cómo funciona el upgrade?",
+          "Cobramos prorrateado el periodo restante. El cambio es inmediato y los nuevos límites se aplican al instante."
+        ],
+        [
+          "¿Guardáis mis direcciones?",
+          "Solo las que analizas. Nunca recolectamos wallets automáticamente. Puedes borrar el historial cuando quieras."
+        ],
+        [
+          "¿Necesito factura?",
+          "Emitimos NFS-e automáticamente para clientes Brasil. Añade tu CNPJ en Gestionar suscripción."
+        ]
       ]
     },
     "account": "Cuenta"
@@ -422,14 +508,38 @@
     "categoriesLabel": "Categorías · Navegar por entidad",
     "categoriesTotal": "{total} direcciones",
     "categories": {
-      "exchange": { "label": "Exchanges", "desc": "CEX custodiales · hot & cold wallets verificadas" },
-      "defi": { "label": "DeFi", "desc": "Protocolos auditados · vaults · routers" },
-      "mixer": { "label": "Mixers", "desc": "Tornado · Wasabi · Samourai · proxies" },
-      "sanctions": { "label": "Sanciones", "desc": "OFAC · UK HMT · EU consolidated" },
-      "bridge": { "label": "Bridges", "desc": "Wormhole · Across · Stargate · LayerZero" },
-      "nft": { "label": "NFT", "desc": "Marketplaces · contratos de creadores · royalty splitters" },
-      "stablecoin": { "label": "Stablecoins", "desc": "USDC · USDT · DAI · PYUSD · issuers" },
-      "whale": { "label": "Whales", "desc": "Carteras con gran movimiento anual" }
+      "exchange": {
+        "label": "Exchanges",
+        "desc": "CEX custodiales · hot & cold wallets verificadas"
+      },
+      "defi": {
+        "label": "DeFi",
+        "desc": "Protocolos auditados · vaults · routers"
+      },
+      "mixer": {
+        "label": "Mixers",
+        "desc": "Tornado · Wasabi · Samourai · proxies"
+      },
+      "sanctions": {
+        "label": "Sanciones",
+        "desc": "OFAC · UK HMT · EU consolidated"
+      },
+      "bridge": {
+        "label": "Bridges",
+        "desc": "Wormhole · Across · Stargate · LayerZero"
+      },
+      "nft": {
+        "label": "NFT",
+        "desc": "Marketplaces · contratos de creadores · royalty splitters"
+      },
+      "stablecoin": {
+        "label": "Stablecoins",
+        "desc": "USDC · USDT · DAI · PYUSD · issuers"
+      },
+      "whale": {
+        "label": "Whales",
+        "desc": "Carteras con gran movimiento anual"
+      }
     },
     "tabs": {
       "trending": "Trending",

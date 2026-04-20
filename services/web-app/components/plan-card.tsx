@@ -1,24 +1,24 @@
-import Link from "next/link"
-import { CheckIcon, ZapIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { CheckIcon, ZapIcon } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface PlanFeature {
-  label: string
-  included: boolean
+  included: boolean;
+  label: string;
 }
 
 interface PlanCardProps {
-  name: string
-  price: string
-  period?: string
-  description: string
-  features: PlanFeature[]
-  featured?: boolean
-  current?: boolean
-  ctaLabel?: string
-  ctaHref?: string
-  onUpgrade?: () => void
+  ctaHref?: string;
+  ctaLabel?: string;
+  current?: boolean;
+  description: string;
+  featured?: boolean;
+  features: PlanFeature[];
+  name: string;
+  onUpgrade?: () => void;
+  period?: string;
+  price: string;
 }
 
 export function PlanCard({
@@ -39,12 +39,12 @@ export function PlanCard({
         "relative flex flex-col rounded-2xl border p-6",
         featured
           ? "border-primary/35 bg-primary/5 shadow-[0_0_40px_oklch(0.74_0.19_66/12%)]"
-          : "border-border bg-card",
+          : "border-border bg-card"
       )}
     >
       {featured && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary/15 px-3 py-0.5 text-[10px] font-bold tracking-wider text-primary uppercase">
+          <span className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary/15 px-3 py-0.5 font-bold text-[10px] text-primary uppercase tracking-wider">
             <ZapIcon className="size-2.5" strokeWidth={3} />
             Popular
           </span>
@@ -52,27 +52,35 @@ export function PlanCard({
       )}
 
       <div className="mb-6">
-        <p className="font-heading text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase">
+        <p className="font-bold font-heading text-muted-foreground text-xs uppercase tracking-[0.2em]">
           {name}
         </p>
         <div className="mt-3 flex items-baseline gap-1">
-          <span className="font-heading text-3xl font-bold text-foreground">{price}</span>
-          <span className="text-sm text-muted-foreground">{period}</span>
+          <span className="font-bold font-heading text-3xl text-foreground">
+            {price}
+          </span>
+          <span className="text-muted-foreground text-sm">{period}</span>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">{description}</p>
+        <p className="mt-2 text-muted-foreground text-xs">{description}</p>
       </div>
 
       <ul className="mb-6 flex flex-1 flex-col gap-2.5">
         {features.map((f) => (
-          <li key={f.label} className="flex items-center gap-2.5 text-sm">
+          <li className="flex items-center gap-2.5 text-sm" key={f.label}>
             <CheckIcon
               className={cn(
                 "size-3.5 shrink-0",
-                f.included ? "text-primary" : "text-muted-foreground/30",
+                f.included ? "text-primary" : "text-muted-foreground/30"
               )}
               strokeWidth={3}
             />
-            <span className={f.included ? "text-foreground" : "text-muted-foreground/50 line-through"}>
+            <span
+              className={
+                f.included
+                  ? "text-foreground"
+                  : "text-muted-foreground/50 line-through"
+              }
+            >
               {f.label}
             </span>
           </li>
@@ -80,13 +88,13 @@ export function PlanCard({
       </ul>
 
       {current ? (
-        <Button variant="outline" disabled className="w-full cursor-default">
+        <Button className="w-full cursor-default" disabled variant="outline">
           Plano atual
         </Button>
       ) : onUpgrade ? (
         <Button
-          onClick={onUpgrade}
           className={cn("w-full cursor-pointer", featured && "glow-gold")}
+          onClick={onUpgrade}
           variant={featured ? "default" : "outline"}
         >
           {ctaLabel ?? "Assinar"}
@@ -101,5 +109,5 @@ export function PlanCard({
         </Button>
       ) : null}
     </div>
-  )
+  );
 }

@@ -1,35 +1,33 @@
-import { act, renderHook, waitFor } from "@testing-library/react"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/api", () => ({
   startAnalysis: vi.fn(),
   pollAnalysis: vi.fn(),
   lookupCachedAnalysis: vi.fn().mockResolvedValue(null),
-}))
+}));
 
-import { pollAnalysis, startAnalysis } from "@/lib/api"
-import { useWalletScore } from "./use-wallet-score"
+import { pollAnalysis, startAnalysis } from "@/lib/api";
+import { useWalletScore } from "./use-wallet-score";
 
-const mockStart = vi.mocked(startAnalysis)
-const mockPoll = vi.mocked(pollAnalysis)
+const mockStart = vi.mocked(startAnalysis);
+const mockPoll = vi.mocked(pollAnalysis);
 
 afterEach(() => {
-  vi.restoreAllMocks()
-})
+  vi.restoreAllMocks();
+});
 
 describe("useWalletScore", () => {
   it("starts in idle phase", () => {
-    const { result } = renderHook(() =>
-      useWalletScore("ethereum", "0xabc"),
-    )
+    const { result } = renderHook(() => useWalletScore("ethereum", "0xabc"));
 
-    expect(result.current.phase).toBe("idle")
-    expect(result.current.processId).toBeNull()
-    expect(result.current.result).toBeNull()
-  })
+    expect(result.current.phase).toBe("idle");
+    expect(result.current.processId).toBeNull();
+    expect(result.current.result).toBeNull();
+  });
 
   it("transitions through submitting → polling → completed", async () => {
-    mockStart.mockResolvedValueOnce({ processId: "proc-1" })
+    mockStart.mockResolvedValueOnce({ processId: "proc-1" });
     mockPoll.mockResolvedValueOnce({
       status: "completed",
       processId: "proc-1",
@@ -44,67 +42,61 @@ describe("useWalletScore", () => {
         modelVersion: "v1",
         promptVersion: "v1",
       },
-    })
+    });
 
-    const { result } = renderHook(() =>
-      useWalletScore("ethereum", "0xabc"),
-    )
+    const { result } = renderHook(() => useWalletScore("ethereum", "0xabc"));
 
     await act(async () => {
-      await result.current.submit()
-    })
+      await result.current.submit();
+    });
 
     await waitFor(() => {
-      expect(result.current.phase).toBe("completed")
-    })
+      expect(result.current.phase).toBe("completed");
+    });
 
-    expect(result.current.processId).toBe("proc-1")
-    expect(result.current.result?.score).toBe(85)
-  })
+    expect(result.current.processId).toBe("proc-1");
+    expect(result.current.result?.score).toBe(85);
+  });
 
   it("sets error phase when startAnalysis fails", async () => {
-    mockStart.mockRejectedValueOnce(new Error("Network error"))
+    mockStart.mockRejectedValueOnce(new Error("Network error"));
 
-    const { result } = renderHook(() =>
-      useWalletScore("ethereum", "0xabc"),
-    )
+    const { result } = renderHook(() => useWalletScore("ethereum", "0xabc"));
 
     await act(async () => {
-      await result.current.submit()
-    })
+      await result.current.submit();
+    });
 
     await waitFor(() => {
-      expect(result.current.phase).toBe("error")
-      expect(result.current.error).toBe("Network error")
-    })
-  })
+      expect(result.current.phase).toBe("error");
+      expect(result.current.error).toBe("Network error");
+    });
+  });
 
   it("sets error phase when backend returns error status", async () => {
-    mockStart.mockResolvedValueOnce({ processId: "proc-err" })
+    mockStart.mockResolvedValueOnce({ processId: "proc-err" });
     mockPoll.mockResolvedValueOnce({
       status: "failed",
       processId: "proc-err",
       chain: "ethereum",
       address: "0xabc",
       error: "Chain nao suportada",
-    })
+    });
 
-    const { result } = renderHook(() =>
-      useWalletScore("ethereum", "0xabc"),
-    )
+    const { result } = renderHook(() => useWalletScore("ethereum", "0xabc"));
 
     await act(async () => {
-      await result.current.submit()
-    })
+      await result.current.submit();
+    });
 
     await waitFor(() => {
-      expect(result.current.phase).toBe("error")
-      expect(result.current.error).toBe("Chain nao suportada")
-    })
-  })
+      expect(result.current.phase).toBe("error");
+      expect(result.current.error).toBe("Chain nao suportada");
+    });
+  });
 
   it("resets back to idle", async () => {
-    mockStart.mockResolvedValueOnce({ processId: "proc-r" })
+    mockStart.mockResolvedValueOnce({ processId: "proc-r" });
     mockPoll.mockResolvedValueOnce({
       status: "completed",
       processId: "proc-r",
@@ -119,25 +111,23 @@ describe("useWalletScore", () => {
         modelVersion: "v1",
         promptVersion: "v1",
       },
-    })
+    });
 
-    const { result } = renderHook(() =>
-      useWalletScore("ethereum", "0xabc"),
-    )
+    const { result } = renderHook(() => useWalletScore("ethereum", "0xabc"));
 
     await act(async () => {
-      await result.current.submit()
-    })
+      await result.current.submit();
+    });
 
     await waitFor(() => {
-      expect(result.current.phase).toBe("completed")
-    })
+      expect(result.current.phase).toBe("completed");
+    });
 
     act(() => {
-      result.current.reset()
-    })
+      result.current.reset();
+    });
 
-    expect(result.current.phase).toBe("idle")
-    expect(result.current.result).toBeNull()
-  })
-})
+    expect(result.current.phase).toBe("idle");
+    expect(result.current.result).toBeNull();
+  });
+});

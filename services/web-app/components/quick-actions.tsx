@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
 import {
   ArrowUpRightIcon,
   ClipboardListIcon,
   SearchIcon,
   SparklesIcon,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandDialog,
@@ -19,16 +19,16 @@ import {
   CommandList,
   CommandSeparator,
   CommandShortcut,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 
 interface QuickActionsProps {
-  chain: string
-  address: string
+  address: string;
+  chain: string;
 }
 
 export function QuickActions({ chain, address }: QuickActionsProps) {
-  const [open, setOpen] = useState(false)
-  const router = useRouter()
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   const actions = useMemo(
     () => [
@@ -43,35 +43,36 @@ export function QuickActions({ chain, address }: QuickActionsProps) {
         shortcut: "S",
         onSelect: () =>
           router.push(
-            "/analyze?chain=ethereum&address=0x0000000000000000000000000000000000000000",
+            "/analyze?chain=ethereum&address=0x0000000000000000000000000000000000000000"
           ),
         icon: ClipboardListIcon,
       },
       {
         label: `Duplicar ${chain}:${address}`,
         shortcut: "D",
-        onSelect: () => router.push(`/analyze?chain=${chain}&address=${address}`),
+        onSelect: () =>
+          router.push(`/analyze?chain=${chain}&address=${address}`),
         icon: SparklesIcon,
       },
     ],
-    [address, chain, router],
-  )
+    [address, chain, router]
+  );
 
   return (
     <>
       <Button
-        variant="outline"
         className="cursor-pointer"
         onClick={() => setOpen(true)}
+        variant="outline"
       >
         <ArrowUpRightIcon data-icon="inline-start" />
         Ações rapidas
       </Button>
       <CommandDialog
-        open={open}
-        onOpenChange={setOpen}
-        title="Ações rapidas"
         description="Atalhos do primeiro shell do web-app."
+        onOpenChange={setOpen}
+        open={open}
+        title="Ações rapidas"
       >
         <Command>
           <CommandInput placeholder="Buscar acao..." />
@@ -82,8 +83,8 @@ export function QuickActions({ chain, address }: QuickActionsProps) {
                 <CommandItem
                   key={action.label}
                   onSelect={() => {
-                    setOpen(false)
-                    action.onSelect()
+                    setOpen(false);
+                    action.onSelect();
                   }}
                 >
                   <action.icon />
@@ -97,5 +98,5 @@ export function QuickActions({ chain, address }: QuickActionsProps) {
         </Command>
       </CommandDialog>
     </>
-  )
+  );
 }
