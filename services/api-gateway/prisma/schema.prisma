@@ -17,16 +17,16 @@ enum AnalysisStatus {
 }
 
 model AnalysisRequest {
-  id          String         @id @default(cuid())
-  userId      String         @map("user_id")
-  publicId    Int?           @map("public_id")
-  chain       String
-  address     String
-  status      AnalysisStatus @default(PENDING)
-  requestedAt DateTime       @default(now()) @map("requested_at")
-  completedAt DateTime?      @map("completed_at")
-  failedAt    DateTime?      @map("failed_at")
-  failureReason String?      @map("failure_reason")
+  id            String         @id @default(cuid())
+  userId        String         @map("user_id")
+  publicId      Int?           @map("public_id")
+  chain         String
+  address       String
+  status        AnalysisStatus @default(PENDING)
+  requestedAt   DateTime       @default(now()) @map("requested_at")
+  completedAt   DateTime?      @map("completed_at")
+  failedAt      DateTime?      @map("failed_at")
+  failureReason String?        @map("failure_reason")
 
   // Resultado inline (preenchido ao consumir wallet.score.calculated)
   score           Int?
@@ -45,6 +45,7 @@ model AnalysisRequest {
   @@index([status])
   @@index([chain, address])
   @@index([userId, chain, address])
+  @@index([userId, completedAt])
   @@map("analysis_requests")
 }
 
