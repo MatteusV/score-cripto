@@ -261,6 +261,7 @@ func newEventFlowTestEnvWithProviders(t *testing.T, topology events.Topology, pr
 			providers,
 			publisher,
 			infraProvider.Normalize,
+			nil,
 		),
 		topology,
 	)

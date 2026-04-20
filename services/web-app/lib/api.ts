@@ -19,13 +19,26 @@ export interface ScoreResult {
   score: number;
 }
 
+export type AnalysisStage =
+  | "detect"
+  | "fetch"
+  | "normalize"
+  | "sanctions"
+  | "mixer"
+  | "ai"
+  | "score";
+
+export type AnalysisStageState = "started" | "completed" | "failed";
+
 export interface AnalysisResponse {
   address: string;
   chain: string;
+  currentStage?: AnalysisStage | null;
   error?: string;
   processId: string;
   publicId?: number | null;
   result?: ScoreResult;
+  stageState?: AnalysisStageState | null;
   status: AnalysisStatus;
 }
 

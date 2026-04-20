@@ -34,6 +34,9 @@ export class AnalysisRequestInMemoryRepository
       riskFactors: null,
       modelVersion: null,
       promptVersion: null,
+      currentStage: null,
+      stageState: null,
+      stageUpdatedAt: null,
     };
 
     this.items.push(item);
@@ -66,6 +69,9 @@ export class AnalysisRequestInMemoryRepository
       riskFactors: null,
       modelVersion: null,
       promptVersion: null,
+      currentStage: null,
+      stageState: null,
+      stageUpdatedAt: null,
     };
 
     this.items.push(item);
@@ -278,5 +284,28 @@ export class AnalysisRequestInMemoryRepository
     const risky = scores.filter((s) => s < 40).length;
 
     return { summary: { total, avgScore, trusted, attention, risky } };
+  }
+
+  async updateStage(
+    id: string,
+    stage: string,
+    state: string
+  ): Promise<AnalysisRequestDTO | null> {
+    const index = this.items.findIndex((item) => item.id === id);
+    if (index === -1) {
+      return null;
+    }
+    const item = this.items[index];
+    const shouldPromoteToProcessing =
+      item.status === "PENDING" && state === "started";
+    const updated: AnalysisRequestDTO = {
+      ...item,
+      currentStage: stage,
+      stageState: state,
+      stageUpdatedAt: new Date(),
+      status: shouldPromoteToProcessing ? "PROCESSING" : item.status,
+    };
+    this.items[index] = updated;
+    return updated;
   }
 }

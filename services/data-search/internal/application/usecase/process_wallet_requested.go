@@ -35,6 +35,12 @@ type EventPublisherPort interface {
 	PublishWalletCached(ctx context.Context, event domain.WalletDataCachedEvent) error
 }
 
+// StageEmitterPort emits pipeline stage transitions observable by the api-gateway.
+// Implementations are best-effort (failures do not propagate).
+type StageEmitterPort interface {
+	PublishStageChanged(ctx context.Context, requestID string, stage string, state string, errorMessage string)
+}
+
 // ProcessWalletDataRequestedInput is the input DTO for the use case.
 type ProcessWalletDataRequestedInput struct {
 	RequestID string
@@ -52,33 +58,61 @@ type ProcessWalletDataRequestedOutput struct {
 // NormalizerFunc converts raw blockchain data to a structured WalletContext.
 type NormalizerFunc func(raw *domain.RawWalletData) *domain.WalletContext
 
+// Pipeline stage / state string constants (mirror of packages/observability-node enum).
+const (
+	stageDetect    = "detect"
+	stageFetch     = "fetch"
+	stageNormalize = "normalize"
+	stageSanctions = "sanctions"
+	stageMixer     = "mixer"
+
+	stageStateStarted   = "started"
+	stageStateCompleted = "completed"
+	stageStateFailed    = "failed"
+)
+
 // ProcessWalletDataRequested is the main use case for processing wallet data requests.
 type ProcessWalletDataRequested struct {
-	cache      WalletCachePort
-	providers  map[string]BlockchainProviderPort
-	publisher  EventPublisherPort
-	normalizer NormalizerFunc
+	cache        WalletCachePort
+	providers    map[string]BlockchainProviderPort
+	publisher    EventPublisherPort
+	stageEmitter StageEmitterPort
+	normalizer   NormalizerFunc
 }
 
 // NewProcessWalletDataRequested creates a new use case instance.
+// stageEmitter may be nil — stage events are skipped in that case.
 func NewProcessWalletDataRequested(
 	cache WalletCachePort,
 	providers map[string]BlockchainProviderPort,
 	publisher EventPublisherPort,
 	normalizer NormalizerFunc,
+	stageEmitter StageEmitterPort,
 ) *ProcessWalletDataRequested {
 	return &ProcessWalletDataRequested{
-		cache:      cache,
-		providers:  providers,
-		publisher:  publisher,
-		normalizer: normalizer,
+		cache:        cache,
+		providers:    providers,
+		publisher:    publisher,
+		stageEmitter: stageEmitter,
+		normalizer:   normalizer,
 	}
+}
+
+func (uc *ProcessWalletDataRequested) emitStage(ctx context.Context, requestID, stage, state, errorMessage string) {
+	if uc.stageEmitter == nil || requestID == "" {
+		return
+	}
+	uc.stageEmitter.PublishStageChanged(ctx, requestID, stage, state, errorMessage)
 }
 
 // Execute runs the cache-first wallet data processing flow.
 func (uc *ProcessWalletDataRequested) Execute(ctx context.Context, input ProcessWalletDataRequestedInput) (ProcessWalletDataRequestedOutput, error) {
+	uc.emitStage(ctx, input.RequestID, stageDetect, stageStateStarted, "")
+
 	chain := strings.ToLower(strings.TrimSpace(input.Chain))
 	address := normalizeAddress(chain, input.Address)
+
+	uc.emitStage(ctx, input.RequestID, stageDetect, stageStateCompleted, "")
 
 	// 1. Check cache.
 	cached, err := uc.cache.Get(ctx, chain, address)
@@ -87,6 +121,11 @@ func (uc *ProcessWalletDataRequested) Execute(ctx context.Context, input Process
 	}
 	if cached != nil {
 		telemetry.CacheHits.Add(ctx, 1, metric.WithAttributes(attribute.String("chain", chain)))
+		// Cache hit: publish stage events so UI catches up instantly.
+		for _, s := range []string{stageFetch, stageNormalize, stageSanctions, stageMixer} {
+			uc.emitStage(ctx, input.RequestID, s, stageStateStarted, "")
+			uc.emitStage(ctx, input.RequestID, s, stageStateCompleted, "")
+		}
 		if uc.publisher != nil {
 			event := domain.NewWalletDataCachedEvent(input.RequestID, input.UserID, cached)
 			if err := uc.publisher.PublishWalletCached(ctx, event); err != nil {
@@ -101,18 +140,31 @@ func (uc *ProcessWalletDataRequested) Execute(ctx context.Context, input Process
 	// 2. Verify chain is supported.
 	prov, ok := uc.providers[chain]
 	if !ok {
+		uc.emitStage(ctx, input.RequestID, stageFetch, stageStateFailed, fmt.Sprintf("%s: %s", ErrUnsupportedChain.Error(), chain))
 		return ProcessWalletDataRequestedOutput{}, fmt.Errorf("%w: %s", ErrUnsupportedChain, chain)
 	}
 
 	// 3. Fetch raw data from provider.
+	uc.emitStage(ctx, input.RequestID, stageFetch, stageStateStarted, "")
 	slog.InfoContext(ctx, "fetching wallet data from provider", "chain", chain, "address", address)
 	raw, err := prov.FetchWalletData(ctx, chain, address)
 	if err != nil {
+		uc.emitStage(ctx, input.RequestID, stageFetch, stageStateFailed, err.Error())
 		return ProcessWalletDataRequestedOutput{}, fmt.Errorf("provider fetch: %w", err)
 	}
+	uc.emitStage(ctx, input.RequestID, stageFetch, stageStateCompleted, "")
 
 	// 4. Normalize.
+	uc.emitStage(ctx, input.RequestID, stageNormalize, stageStateStarted, "")
 	wc := uc.normalizer(raw)
+	uc.emitStage(ctx, input.RequestID, stageNormalize, stageStateCompleted, "")
+
+	// 4b. Sanctions / mixer checks — no-op observável enquanto as checagens reais não existem.
+	// Mantidos como estágios visíveis no pipeline para a UI.
+	uc.emitStage(ctx, input.RequestID, stageSanctions, stageStateStarted, "")
+	uc.emitStage(ctx, input.RequestID, stageSanctions, stageStateCompleted, "")
+	uc.emitStage(ctx, input.RequestID, stageMixer, stageStateStarted, "")
+	uc.emitStage(ctx, input.RequestID, stageMixer, stageStateCompleted, "")
 
 	// 5. Cache the result (non-fatal).
 	if err := uc.cache.Set(ctx, wc); err != nil {

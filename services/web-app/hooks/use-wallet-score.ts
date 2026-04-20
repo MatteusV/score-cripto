@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   type AnalysisResponse,
+  type AnalysisStage,
+  type AnalysisStageState,
   type AnalysisStatus,
   lookupCachedAnalysis,
   pollAnalysis,
@@ -19,11 +21,13 @@ export type WalletScorePhase =
 
 export interface WalletScoreState {
   backendStatus: AnalysisStatus | null;
+  currentStage: AnalysisStage | null;
   error: string | null;
   fromCache: boolean;
   phase: WalletScorePhase;
   processId: string | null;
   result: ScoreResult | null;
+  stageState: AnalysisStageState | null;
 }
 
 const POLL_INTERVAL_MS = 2500;
@@ -37,6 +41,8 @@ const initialState: WalletScoreState = {
   error: null,
   backendStatus: null,
   fromCache: false,
+  currentStage: null,
+  stageState: null,
 };
 
 export function useWalletScore(chain: string, address: string) {
@@ -116,6 +122,8 @@ export function useWalletScore(chain: string, address: string) {
           setState((prev) => ({
             ...prev,
             backendStatus: response.status,
+            currentStage: response.currentStage ?? prev.currentStage,
+            stageState: response.stageState ?? prev.stageState,
           }));
 
           timerRef.current = setTimeout(tick, POLL_INTERVAL_MS);
@@ -156,10 +164,40 @@ export function useWalletScore(chain: string, address: string) {
           return;
         }
         try {
-          const data = JSON.parse(e.data) as { status: AnalysisStatus };
-          setState((prev) => ({ ...prev, backendStatus: data.status }));
+          const data = JSON.parse(e.data) as {
+            status: AnalysisStatus;
+            currentStage?: AnalysisStage | null;
+            stageState?: AnalysisStageState | null;
+          };
+          setState((prev) => ({
+            ...prev,
+            backendStatus: data.status,
+            currentStage: data.currentStage ?? prev.currentStage,
+            stageState: data.stageState ?? prev.stageState,
+          }));
         } catch {
           /* ignora parse error de status intermediário */
+        }
+      });
+
+      es.addEventListener("stage", (e: MessageEvent) => {
+        if (controller.signal.aborted) {
+          return;
+        }
+        try {
+          const data = JSON.parse(e.data) as {
+            status?: AnalysisStatus;
+            stage?: AnalysisStage;
+            stageState?: AnalysisStageState;
+          };
+          setState((prev) => ({
+            ...prev,
+            backendStatus: data.status ?? prev.backendStatus,
+            currentStage: data.stage ?? prev.currentStage,
+            stageState: data.stageState ?? prev.stageState,
+          }));
+        } catch {
+          /* ignora parse error de stage update */
         }
       });
 
@@ -247,6 +285,8 @@ export function useWalletScore(chain: string, address: string) {
         error: null,
         backendStatus: null,
         fromCache: false,
+        currentStage: null,
+        stageState: null,
       });
 
       try {
@@ -266,6 +306,8 @@ export function useWalletScore(chain: string, address: string) {
               error: null,
               backendStatus: "completed",
               fromCache: true,
+              currentStage: "score",
+              stageState: "completed",
             });
             return;
           }

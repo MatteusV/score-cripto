@@ -17,8 +17,17 @@ interface ResultShellProps {
 }
 
 export function ResultShell({ chain, address }: ResultShellProps) {
-  const { phase, result, error, backendStatus, fromCache, submit, reset } =
-    useWalletScore(chain, address);
+  const {
+    phase,
+    result,
+    error,
+    backendStatus,
+    fromCache,
+    currentStage,
+    stageState,
+    submit,
+    reset,
+  } = useWalletScore(chain, address);
   const t = useTranslations("analyze");
   const router = useRouter();
 
@@ -35,10 +44,12 @@ export function ResultShell({ chain, address }: ResultShellProps) {
         address={address}
         backendStatus={backendStatus}
         chain={chain}
+        currentStage={currentStage}
         onCancel={() => {
           reset();
           router.push("/analyze");
         }}
+        stageState={stageState}
       />
     );
   }

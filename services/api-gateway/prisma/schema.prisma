@@ -37,6 +37,11 @@ model AnalysisRequest {
   modelVersion    String? @map("model_version")
   promptVersion   String? @map("prompt_version")
 
+  // Progresso do pipeline (stage atual + estado)
+  currentStage   String?   @map("current_stage")
+  stageState     String?   @map("stage_state")
+  stageUpdatedAt DateTime? @map("stage_updated_at")
+
   translations AnalysisTranslation[]
 
   @@unique([userId, publicId])

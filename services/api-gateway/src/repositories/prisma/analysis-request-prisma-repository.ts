@@ -311,4 +311,30 @@ export class AnalysisRequestPrismaRepository
       },
     };
   }
+
+  async updateStage(
+    id: string,
+    stage: string,
+    state: string
+  ): Promise<AnalysisRequestDTO | null> {
+    const existing = await this.prisma.analysisRequest.findUnique({
+      where: { id },
+      select: { status: true },
+    });
+    if (!existing) {
+      return null;
+    }
+    const shouldPromoteToProcessing =
+      existing.status === "PENDING" && state === "started";
+    const record = await this.prisma.analysisRequest.update({
+      where: { id },
+      data: {
+        currentStage: stage,
+        stageState: state,
+        stageUpdatedAt: new Date(),
+        ...(shouldPromoteToProcessing ? { status: "PROCESSING" } : {}),
+      },
+    });
+    return toDTO(record);
+  }
 }

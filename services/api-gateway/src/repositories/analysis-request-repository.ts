@@ -61,4 +61,9 @@ export interface AnalysisRequestRepository {
     from: Date,
     to: Date
   ) => Promise<{ summary: AnalysisSummary }>;
+  updateStage: (
+    id: string,
+    stage: string,
+    state: string
+  ) => Promise<AnalysisRequestDTO | null>;
 }

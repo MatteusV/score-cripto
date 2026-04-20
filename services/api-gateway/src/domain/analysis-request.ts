@@ -18,6 +18,9 @@ export interface AnalysisRequestDTO {
   score: number | null;
   status: string;
   userId: string;
+  currentStage: string | null;
+  stageState: string | null;
+  stageUpdatedAt: Date | null;
 }
 
 export interface AnalysisTranslationDTO {

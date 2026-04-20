@@ -1,13 +1,16 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { AnalysisStatus } from "@/lib/api";
+import type {
+  AnalysisStage,
+  AnalysisStageState,
+  AnalysisStatus,
+} from "@/lib/api";
 
 interface Stage {
   detailKey: string;
-  key: string;
+  key: AnalysisStage;
   labelKey: string;
 }
 
@@ -29,76 +32,29 @@ const STAGES: Stage[] = [
   { key: "score", labelKey: "stageScore", detailKey: "stageScoreDetail" },
 ];
 
-// Map backendStatus to maximum stage we allow animation to advance to
-const STATUS_STAGE_CAP: Record<AnalysisStatus, number> = {
-  pending: 2,
-  processing: 6,
-  completed: 7,
-  failed: 6,
-};
-
 interface PipelinePanelProps {
   address: string;
   backendStatus: AnalysisStatus | null;
   chain: string;
+  currentStage: AnalysisStage | null;
   onCancel: () => void;
+  stageState: AnalysisStageState | null;
 }
 
 export function PipelinePanel({
   chain,
   address,
   backendStatus,
+  currentStage,
+  stageState,
   onCancel,
 }: PipelinePanelProps) {
   const t = useTranslations("analyze.pipeline");
-  const [stageIdx, setStageIdx] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const stageCap = STATUS_STAGE_CAP[backendStatus ?? "pending"];
+  const stageIdx = deriveStageIdx(currentStage, stageState, backendStatus);
   const pct = Math.round((stageIdx / STAGES.length) * 100);
   const radius = 84;
   const circumference = 2 * Math.PI * radius;
-
-  useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setStageIdx((prev) => {
-        const next = prev + 1;
-        if (next >= stageCap) {
-          if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-          }
-          return stageCap;
-        }
-        return next;
-      });
-    }, 480);
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // When backend completes or cap changes, allow animation to catch up
-  useEffect(() => {
-    if (stageIdx < stageCap && !timerRef.current) {
-      timerRef.current = setInterval(() => {
-        setStageIdx((prev) => {
-          const next = prev + 1;
-          const currentCap = STATUS_STAGE_CAP[backendStatus ?? "pending"];
-          if (next >= currentCap) {
-            if (timerRef.current) {
-              clearInterval(timerRef.current);
-              timerRef.current = null;
-            }
-            return currentCap;
-          }
-          return next;
-        });
-      }, 480);
-    }
-  }, [stageCap, stageIdx, backendStatus]);
 
   const truncAddr = `${address.slice(0, 10)}…${address.slice(-6)}`;
 
@@ -315,4 +271,22 @@ export function PipelinePanel({
       </div>
     </div>
   );
+}
+
+function deriveStageIdx(
+  currentStage: AnalysisStage | null,
+  stageState: AnalysisStageState | null,
+  backendStatus: AnalysisStatus | null
+): number {
+  if (backendStatus === "completed") {
+    return STAGES.length;
+  }
+  if (!currentStage) {
+    return 0;
+  }
+  const idx = STAGES.findIndex((s) => s.key === currentStage);
+  if (idx < 0) {
+    return 0;
+  }
+  return stageState === "completed" ? idx + 1 : idx;
 }

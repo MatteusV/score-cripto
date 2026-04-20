@@ -89,12 +89,13 @@ func main() {
 		slog.Warn("HELIUS_API_KEY not set — solana chain is unavailable")
 	}
 
-	// Wire use case.
+	// Wire use case (publisher doubles as stage emitter).
 	uc := usecase.NewProcessWalletDataRequested(
 		redisCache,
 		providers,
 		pub,
 		infraProvider.Normalize,
+		pub,
 	)
 
 	// Create consumer.

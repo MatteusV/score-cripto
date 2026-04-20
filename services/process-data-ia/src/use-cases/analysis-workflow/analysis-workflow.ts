@@ -1,5 +1,6 @@
 import { config } from "../../config.js";
 import {
+  publishAnalysisStageChanged,
   publishScoreCalculated,
   publishScoreFailed,
 } from "../../events/publisher.js";
@@ -20,6 +21,7 @@ import { hashWalletContext } from "./hash-wallet-context.js";
 type ScoringFn = (input: WalletContextInput) => Promise<ScoringResult>;
 type PublishCalculatedFn = typeof publishScoreCalculated;
 type PublishFailedFn = typeof publishScoreFailed;
+type PublishStageFn = typeof publishAnalysisStageChanged;
 
 interface AnalysisWorkflowInput {
   requestId: string;
@@ -49,19 +51,22 @@ export class AnalysisWorkflow {
   private readonly scoringFn: ScoringFn;
   private readonly publishCalculated: PublishCalculatedFn;
   private readonly publishFailed: PublishFailedFn;
+  private readonly publishStage: PublishStageFn;
 
   constructor(
     getCachedScore: GetCachedScoreUseCase,
     persistScore: PersistScoreUseCase,
     scoringFn: ScoringFn,
     publishCalculated: PublishCalculatedFn,
-    publishFailed: PublishFailedFn
+    publishFailed: PublishFailedFn,
+    publishStage: PublishStageFn = publishAnalysisStageChanged
   ) {
     this.getCachedScore = getCachedScore;
     this.persistScore = persistScore;
     this.scoringFn = scoringFn;
     this.publishCalculated = publishCalculated;
     this.publishFailed = publishFailed;
+    this.publishStage = publishStage;
   }
 
   async execute(input: AnalysisWorkflowInput): Promise<AnalysisWorkflowOutput> {
@@ -90,6 +95,10 @@ export class AnalysisWorkflow {
     }
 
     if (cachedScore) {
+      // Cache hit: emite estágios finais pra UI acompanhar instantâneamente
+      this.publishStage({ requestId, stage: "ai", state: "started" });
+      this.publishStage({ requestId, stage: "ai", state: "completed" });
+      this.publishStage({ requestId, stage: "score", state: "started" });
       this.publishCalculated({
         requestId,
         chain: walletContext.chain,
@@ -102,12 +111,14 @@ export class AnalysisWorkflow {
         modelVersion: cachedScore.modelVersion,
         promptVersion: cachedScore.promptVersion,
       });
+      this.publishStage({ requestId, stage: "score", state: "completed" });
       return { processedData: cachedScore, cachedResult: true };
     }
 
     // 2. Cache miss — score com IA, fallback heurístico em caso de erro
     let scoringResult: ScoringResult;
 
+    this.publishStage({ requestId, stage: "ai", state: "started" });
     try {
       scoringResult = await this.scoringFn(walletContext);
     } catch (error) {
@@ -127,8 +138,10 @@ export class AnalysisWorkflow {
         durationMs: 0,
       };
     }
+    this.publishStage({ requestId, stage: "ai", state: "completed" });
 
     // 3. Persiste score com TTL
+    this.publishStage({ requestId, stage: "score", state: "started" });
     let processedData: ProcessedData;
     try {
       const result = await this.persistScore.execute({
@@ -155,6 +168,12 @@ export class AnalysisWorkflow {
         { err: reason },
         "[AnalysisWorkflow] Failed to persist score"
       );
+      this.publishStage({
+        requestId,
+        stage: "score",
+        state: "failed",
+        errorMessage: reason,
+      });
       this.publishFailed({ requestId, reason });
       throw error;
     }
@@ -183,6 +202,8 @@ export class AnalysisWorkflow {
         reason: "Event publish failure after successful scoring",
       });
     }
+
+    this.publishStage({ requestId, stage: "score", state: "completed" });
 
     return { processedData, cachedResult: false };
   }

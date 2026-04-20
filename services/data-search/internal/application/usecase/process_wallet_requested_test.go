@@ -79,7 +79,7 @@ func TestProcessWalletDataRequested_CacheHit(t *testing.T) {
 
 	uc := usecase.NewProcessWalletDataRequested(cache, map[string]usecase.BlockchainProviderPort{
 		"ethereum": provider,
-	}, pub, stubNormalizer)
+	}, pub, stubNormalizer, nil)
 
 	out, err := uc.Execute(context.Background(), usecase.ProcessWalletDataRequestedInput{
 		RequestID: "req-1",
@@ -127,7 +127,7 @@ func TestProcessWalletDataRequested_CacheMiss_FetchAndPublish(t *testing.T) {
 
 	uc := usecase.NewProcessWalletDataRequested(cache, map[string]usecase.BlockchainProviderPort{
 		"ethereum": provider,
-	}, pub, stubNormalizer)
+	}, pub, stubNormalizer, nil)
 
 	out, err := uc.Execute(context.Background(), usecase.ProcessWalletDataRequestedInput{
 		RequestID: "req-1",
@@ -160,7 +160,7 @@ func TestProcessWalletDataRequested_UnsupportedChain(t *testing.T) {
 
 	uc := usecase.NewProcessWalletDataRequested(cache, map[string]usecase.BlockchainProviderPort{
 		"ethereum": &mockProvider{chains: []string{"ethereum"}},
-	}, pub, stubNormalizer)
+	}, pub, stubNormalizer, nil)
 
 	_, err := uc.Execute(context.Background(), usecase.ProcessWalletDataRequestedInput{
 		RequestID: "req-1",
@@ -191,7 +191,7 @@ func TestProcessWalletDataRequested_ProviderError(t *testing.T) {
 
 	uc := usecase.NewProcessWalletDataRequested(cache, map[string]usecase.BlockchainProviderPort{
 		"ethereum": provider,
-	}, pub, stubNormalizer)
+	}, pub, stubNormalizer, nil)
 
 	_, err := uc.Execute(context.Background(), usecase.ProcessWalletDataRequestedInput{
 		RequestID: "req-1",
@@ -219,7 +219,7 @@ func TestProcessWalletDataRequested_CacheSetError_NonFatal(t *testing.T) {
 
 	uc := usecase.NewProcessWalletDataRequested(cache, map[string]usecase.BlockchainProviderPort{
 		"ethereum": provider,
-	}, pub, stubNormalizer)
+	}, pub, stubNormalizer, nil)
 
 	out, err := uc.Execute(context.Background(), usecase.ProcessWalletDataRequestedInput{
 		RequestID: "req-1",
@@ -248,7 +248,7 @@ func TestProcessWalletDataRequested_PublishError_NonFatal(t *testing.T) {
 
 	uc := usecase.NewProcessWalletDataRequested(cache, map[string]usecase.BlockchainProviderPort{
 		"ethereum": provider,
-	}, pub, stubNormalizer)
+	}, pub, stubNormalizer, nil)
 
 	out, err := uc.Execute(context.Background(), usecase.ProcessWalletDataRequestedInput{
 		RequestID: "req-1",

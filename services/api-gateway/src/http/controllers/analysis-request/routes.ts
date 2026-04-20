@@ -341,6 +341,8 @@ export async function analysisRequestHandler(app: FastifyInstance) {
               ),
             chain: z.string(),
             address: z.string(),
+            currentStage: z.string().nullable().optional(),
+            stageState: z.string().nullable().optional(),
             result: ScoreResultSchema.optional(),
           }),
           401: z.object({ error: z.string() }).describe("Não autenticado"),
@@ -380,6 +382,8 @@ export async function analysisRequestHandler(app: FastifyInstance) {
         status,
         chain: analysisRequest.chain,
         address: analysisRequest.address,
+        currentStage: analysisRequest.currentStage,
+        stageState: analysisRequest.stageState,
       };
 
       if (analysisRequest.status !== "COMPLETED") {
@@ -434,9 +438,13 @@ export async function analysisRequestHandler(app: FastifyInstance) {
         reply.raw.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
       };
 
-      // Status imediato
+      // Status imediato (inclui stage corrente para reidratação do client)
       const currentStatus = analysis.status.toLowerCase();
-      sendEvent("status", { status: currentStatus });
+      sendEvent("status", {
+        status: currentStatus,
+        currentStage: analysis.currentStage,
+        stageState: analysis.stageState,
+      });
 
       // Se já terminou, envia resultado e fecha
       if (analysis.status === "COMPLETED") {
@@ -462,24 +470,33 @@ export async function analysisRequestHandler(app: FastifyInstance) {
         return;
       }
 
-      // Aguarda evento do bus in-process
+      // Aguarda eventos do bus in-process (stage updates + resultado final)
       return new Promise<void>((resolve) => {
         const cleanup = (closeStream = true) => {
           clearTimeout(timer);
-          analysisEventBus.off(id, onDone);
+          analysisEventBus.off(id, onEvent);
           if (closeStream) {
             reply.raw.end();
           }
           resolve();
         };
 
-        const onDone = (event: {
-          status: "completed" | "failed";
+        const onEvent = (event: {
+          status: string;
+          stage?: string;
+          stageState?: string;
           result?: unknown;
           error?: string;
+          errorMessage?: string;
         }) => {
-          sendEvent("result", event);
-          cleanup();
+          const isTerminal =
+            event.status === "completed" || event.status === "failed";
+          if (isTerminal) {
+            sendEvent("result", event);
+            cleanup();
+            return;
+          }
+          sendEvent("stage", event);
         };
 
         const timer = setTimeout(() => {
@@ -489,7 +506,7 @@ export async function analysisRequestHandler(app: FastifyInstance) {
           cleanup();
         }, SSE_TIMEOUT_MS);
 
-        analysisEventBus.once(id, onDone);
+        analysisEventBus.on(id, onEvent);
 
         // Cleanup quando cliente desconectar
         request.raw.on("close", () => cleanup(false));
@@ -713,6 +730,8 @@ export async function analysisRequestHandler(app: FastifyInstance) {
             status: z.enum(["pending", "processing", "completed", "failed"]),
             chain: z.string(),
             address: z.string(),
+            currentStage: z.string().nullable().optional(),
+            stageState: z.string().nullable().optional(),
             result: ScoreResultSchema.optional(),
           }),
           401: z.object({ error: z.string() }),
@@ -751,6 +770,8 @@ export async function analysisRequestHandler(app: FastifyInstance) {
         status,
         chain: analysisRequest.chain,
         address: analysisRequest.address,
+        currentStage: analysisRequest.currentStage,
+        stageState: analysisRequest.stageState,
       };
 
       if (analysisRequest.status !== "COMPLETED") {

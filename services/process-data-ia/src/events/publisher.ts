@@ -1,4 +1,7 @@
 import {
+  ANALYSIS_STAGE_CHANGED_ROUTING_KEY,
+  type AnalysisStage,
+  type AnalysisStageState,
   getCorrelationId,
   publishWithCorrelation,
 } from "@score-cripto/observability-node";
@@ -140,5 +143,27 @@ export function publishScoreFailed(data: {
     event: "wallet.score.failed",
     timestamp: new Date().toISOString(),
     data,
+  });
+}
+
+export function publishAnalysisStageChanged(data: {
+  requestId: string;
+  stage: AnalysisStage;
+  state: AnalysisStageState;
+  errorMessage?: string;
+}): boolean {
+  const now = new Date().toISOString();
+  return publishEvent(ANALYSIS_STAGE_CHANGED_ROUTING_KEY, {
+    event: "analysis.stage.changed",
+    schemaVersion: "1",
+    timestamp: now,
+    data: {
+      requestId: data.requestId,
+      stage: data.stage,
+      state: data.state,
+      service: "process-data-ia",
+      at: now,
+      ...(data.errorMessage ? { errorMessage: data.errorMessage } : {}),
+    },
   });
 }

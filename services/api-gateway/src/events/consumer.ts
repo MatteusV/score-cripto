@@ -1,5 +1,11 @@
 import type { Logger } from "@score-cripto/observability-node";
-import { withCorrelation } from "@score-cripto/observability-node";
+import {
+  ANALYSIS_STAGES,
+  ANALYSIS_STAGE_CHANGED_ROUTING_KEY,
+  ANALYSIS_STAGE_SERVICES,
+  ANALYSIS_STAGE_STATES,
+  withCorrelation,
+} from "@score-cripto/observability-node";
 import amqplib, { type Channel, type ChannelModel } from "amqplib";
 import { z } from "zod";
 import { config } from "../config.js";
@@ -9,6 +15,7 @@ import { AnalysisRequestPrismaRepository } from "../repositories/prisma/analysis
 import { prisma } from "../services/database.js";
 import { CompleteAnalysisRequestUseCase } from "../use-cases/analysis-request/complete-analysis-request-use-case.js";
 import { FailAnalysisRequestUseCase } from "../use-cases/analysis-request/fail-analysis-request-use-case.js";
+import { UpdateAnalysisStageUseCase } from "../use-cases/analysis-request/update-analysis-stage-use-case.js";
 import { analysisEventBus } from "./analysis-event-bus.js";
 import { assertDlqForQueue, dlqArgumentsFor } from "./dlq-topology.js";
 import { assertRetryQueueFor, scheduleRetry } from "./retry-topology.js";
@@ -18,6 +25,7 @@ const EXCHANGE_TYPE = "topic";
 
 const QUEUE_CALCULATED = "api-gateway.wallet.score.calculated";
 const QUEUE_FAILED = "api-gateway.wallet.score.failed";
+const QUEUE_STAGE_CHANGED = "api-gateway.analysis.stage.changed";
 
 const ScoreCalculatedEventSchema = z.object({
   event: z.literal("wallet.score.calculated"),
@@ -45,9 +53,61 @@ const ScoreFailedEventSchema = z.object({
   }),
 });
 
+const StageChangedEventSchema = z.object({
+  event: z.literal("analysis.stage.changed"),
+  schemaVersion: z.string(),
+  timestamp: z.string(),
+  data: z.object({
+    requestId: z.string(),
+    stage: z.enum(ANALYSIS_STAGES),
+    state: z.enum(ANALYSIS_STAGE_STATES),
+    service: z.enum(ANALYSIS_STAGE_SERVICES),
+    at: z.string(),
+    errorMessage: z.string().optional(),
+  }),
+});
+
 const repository = new AnalysisRequestPrismaRepository(prisma);
 const completeUseCase = new CompleteAnalysisRequestUseCase(repository);
 const failUseCase = new FailAnalysisRequestUseCase(repository);
+const updateStageUseCase = new UpdateAnalysisStageUseCase(repository);
+
+export async function handleStageChanged(
+  raw: string,
+  log: Logger = logger
+): Promise<void> {
+  const parsed = StageChangedEventSchema.safeParse(JSON.parse(raw));
+
+  if (!parsed.success) {
+    log.error(
+      { errors: parsed.error.flatten() },
+      "Invalid analysis.stage.changed payload"
+    );
+    throw new Error("invalid_payload");
+  }
+
+  const { requestId, stage, state, service, errorMessage } = parsed.data.data;
+
+  log.info({ requestId, stage, state, service }, "stage.changed received");
+
+  const { analysisRequest } = await updateStageUseCase.execute({
+    id: requestId,
+    stage,
+    state,
+  });
+
+  if (!analysisRequest) {
+    log.warn({ requestId }, "stage.changed for unknown analysis — dropping");
+    return;
+  }
+
+  analysisEventBus.emit(requestId, {
+    status: analysisRequest.status.toLowerCase(),
+    stage,
+    stageState: state,
+    ...(errorMessage ? { errorMessage } : {}),
+  });
+}
 
 export async function handleScoreCalculated(
   raw: string,
@@ -102,6 +162,8 @@ export async function handleScoreCalculated(
   // Notifica conexões SSE aguardando este resultado
   analysisEventBus.emit(requestId, {
     status: "completed",
+    stage: "score",
+    stageState: "completed",
     result: {
       score,
       confidence,
@@ -146,7 +208,11 @@ export async function handleScoreFailed(
   });
 
   // Notifica conexões SSE aguardando este resultado
-  analysisEventBus.emit(requestId, { status: "failed", error: reason });
+  analysisEventBus.emit(requestId, {
+    status: "failed",
+    stageState: "failed",
+    error: reason,
+  });
 }
 
 let connection: ChannelModel | null = null;
@@ -163,6 +229,7 @@ export async function startConsumer(): Promise<void> {
 
     await assertDlqForQueue(channel, QUEUE_CALCULATED);
     await assertDlqForQueue(channel, QUEUE_FAILED);
+    await assertDlqForQueue(channel, QUEUE_STAGE_CHANGED);
 
     await assertRetryQueueFor(
       channel,
@@ -175,6 +242,12 @@ export async function startConsumer(): Promise<void> {
       QUEUE_FAILED,
       EXCHANGE_NAME,
       "wallet.score.failed"
+    );
+    await assertRetryQueueFor(
+      channel,
+      QUEUE_STAGE_CHANGED,
+      EXCHANGE_NAME,
+      ANALYSIS_STAGE_CHANGED_ROUTING_KEY
     );
 
     await channel.assertQueue(QUEUE_CALCULATED, {
@@ -192,6 +265,16 @@ export async function startConsumer(): Promise<void> {
       arguments: dlqArgumentsFor(QUEUE_FAILED),
     });
     await channel.bindQueue(QUEUE_FAILED, EXCHANGE_NAME, "wallet.score.failed");
+
+    await channel.assertQueue(QUEUE_STAGE_CHANGED, {
+      durable: true,
+      arguments: dlqArgumentsFor(QUEUE_STAGE_CHANGED),
+    });
+    await channel.bindQueue(
+      QUEUE_STAGE_CHANGED,
+      EXCHANGE_NAME,
+      ANALYSIS_STAGE_CHANGED_ROUTING_KEY
+    );
 
     channel.prefetch(1);
 
@@ -254,6 +337,40 @@ export async function startConsumer(): Promise<void> {
       });
     });
 
+    channel.consume(QUEUE_STAGE_CHANGED, (msg) => {
+      if (!msg) {
+        return;
+      }
+      withCorrelation(msg, async (correlationId) => {
+        const msgLog = logger.child({
+          correlationId,
+          queue: QUEUE_STAGE_CHANGED,
+        });
+        try {
+          await handleStageChanged(msg.content.toString(), msgLog);
+          channel?.ack(msg);
+        } catch (error) {
+          const e = error as Error;
+          msgLog.error(
+            { err: e.message },
+            "analysis.stage.changed handler error"
+          );
+          if (e.message === "invalid_payload") {
+            channel?.nack(msg, false, false);
+            return;
+          }
+          if (channel) {
+            const scheduled = scheduleRetry(channel, msg, QUEUE_STAGE_CHANGED);
+            if (scheduled) {
+              channel.ack(msg);
+            } else {
+              channel.nack(msg, false, false);
+            }
+          }
+        }
+      });
+    });
+
     connection.on("close", () => {
       logger.warn("RabbitMQ consumer connection closed");
       connection = null;
@@ -265,7 +382,7 @@ export async function startConsumer(): Promise<void> {
     });
 
     logger.info(
-      { queues: [QUEUE_CALCULATED, QUEUE_FAILED] },
+      { queues: [QUEUE_CALCULATED, QUEUE_FAILED, QUEUE_STAGE_CHANGED] },
       "Consumer started"
     );
   } catch (error) {
