@@ -388,6 +388,11 @@
       "upgradingStripe": "Abriendo Stripe…"
     }
   },
+  "theme": {
+    "toggle": "Alternar tema",
+    "light": "Tema claro",
+    "dark": "Tema oscuro"
+  },
   "locale": {
     "label": "Idioma",
     "pt-BR": "Português",

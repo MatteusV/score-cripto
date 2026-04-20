@@ -388,6 +388,11 @@
       "upgradingStripe": "Opening Stripe…"
     }
   },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light theme",
+    "dark": "Dark theme"
+  },
   "locale": {
     "label": "Language",
     "pt-BR": "Português",
