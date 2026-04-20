@@ -1,0 +1,304 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   Score Cripto — Colors & Type
+   Dark-first cyberpunk trust brand.
+   Authored in oklch(), exported also as hex/rgb for reference.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Google Fonts (swap to local @font-face if offline) */
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap");
+
+:root {
+  /* ── Font families ────────────────────────────────────────────────────── */
+  --font-heading: "Orbitron", ui-monospace, "SF Mono", monospace;
+  --font-sans:    "Exo 2", "Avenir Next", system-ui, sans-serif;
+  --font-mono:    "Fira Code", "SF Mono", "Cascadia Code", monospace;
+
+  /* ── Type scale (fluid-optional) ──────────────────────────────────────── */
+  --fs-micro:   10px;  /* eyebrow labels, tracked */
+  --fs-xs:      12px;  /* small meta, chain names */
+  --fs-sm:      14px;  /* body small, form inputs */
+  --fs-base:    16px;  /* body */
+  --fs-md:      18px;  /* emphasized body */
+  --fs-lg:      20px;  /* section sub */
+  --fs-xl:      24px;  /* h3 */
+  --fs-2xl:     30px;  /* h2 */
+  --fs-3xl:     36px;  /* h1 marketing */
+  --fs-4xl:     48px;  /* hero mobile */
+  --fs-5xl:     60px;  /* hero desktop */
+
+  --lh-tight:   1.05;
+  --lh-snug:    1.2;
+  --lh-normal:  1.5;
+  --lh-relaxed: 1.7;
+
+  --tracking-tight:   -0.02em;
+  --tracking-normal:   0em;
+  --tracking-wide:     0.05em;
+  --tracking-wider:    0.1em;
+  --tracking-widest:   0.2em;
+  --tracking-mega:     0.3em;
+
+  --fw-light:    300;
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+  --fw-black:    900;
+
+  /* ── Shape tokens ─────────────────────────────────────────────────────── */
+  --radius:       0.75rem;             /* 12px base */
+  --radius-sm:    calc(var(--radius) * 0.6);
+  --radius-md:    calc(var(--radius) * 0.8);
+  --radius-lg:    var(--radius);
+  --radius-xl:    calc(var(--radius) * 1.4);
+  --radius-2xl:   calc(var(--radius) * 1.8);
+  --radius-3xl:   calc(var(--radius) * 2.2);
+  --radius-full:  9999px;
+
+  /* ── Spacing ──────────────────────────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   DARK THEME (canonical) — applied at :root.dark OR by default.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root,
+:root.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Brand hues */
+  --gold:        oklch(0.74 0.19 66);   /* #F59E0B */
+  --gold-soft:   oklch(0.74 0.19 66 / 12%);
+  --gold-ring:   oklch(0.74 0.19 66 / 25%);
+  --purple:      oklch(0.59 0.22 295);  /* #8B5CF6 */
+  --purple-soft: oklch(0.59 0.22 295 / 12%);
+  --green:       oklch(0.69 0.19 162);  /* #10B981 */
+  --red:         oklch(0.63 0.24 28);   /* #EF4444 */
+  --blue:        oklch(0.60 0.17 253);  /* #3B82F6 */
+  --amber:       oklch(0.74 0.16 85);
+
+  /* Surfaces */
+  --background:          oklch(0.09 0.03 263);         /* #0A1220 */
+  --foreground:          oklch(0.97 0.005 210);        /* #F8FAFC */
+  --card:                oklch(0.13 0.025 265);        /* #111827 */
+  --card-2:              oklch(0.16 0.03 258);         /* #162032 */
+  --card-foreground:     oklch(0.97 0.005 210);
+  --popover:             oklch(0.12 0.028 263);
+  --popover-foreground:  oklch(0.97 0.005 210);
+  --sidebar:             oklch(0.11 0.028 263);        /* #0D1625 */
+  --sidebar-foreground:  oklch(0.97 0.005 210);
+
+  /* Semantic */
+  --primary:              var(--gold);
+  --primary-foreground:   oklch(0.09 0.03 263);
+  --primary-dim:          var(--gold-soft);
+  --accent:               var(--purple);
+  --accent-foreground:    oklch(0.97 0.005 210);
+  --accent-dim:           var(--purple-soft);
+  --secondary:            oklch(0.18 0.03 263);
+  --secondary-foreground: oklch(0.97 0.005 210);
+  --muted:                oklch(0.16 0.025 260);
+  --muted-foreground:     oklch(0.59 0.02 230);        /* #94A3B8 */
+  --muted-dim:            oklch(0.36 0.02 245);        /* #475569 */
+  --destructive:          var(--red);
+
+  /* Lines & focus */
+  --border:       oklch(1 0 0 / 6%);                   /* rgba(255,255,255,0.06) */
+  --border-gold:  var(--gold-ring);
+  --input:        oklch(1 0 0 / 9%);
+  --ring:         oklch(0.74 0.19 66 / 60%);
+
+  /* Chart / data-viz series */
+  --chart-1: var(--gold);
+  --chart-2: var(--purple);
+  --chart-3: var(--green);
+  --chart-4: var(--red);
+  --chart-5: var(--blue);
+
+  /* Body grid overlay colour */
+  --grid-line: oklch(0.74 0.19 66 / 2.5%);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   LIGHT THEME — new, tuned to preserve gold + purple identity.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root.light,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Brand hues (slightly darkened for contrast on light bg) */
+  --gold:        oklch(0.68 0.18 66);   /* ≈ #C77700 */
+  --gold-soft:   oklch(0.68 0.18 66 / 14%);
+  --gold-ring:   oklch(0.68 0.18 66 / 30%);
+  --purple:      oklch(0.52 0.22 295);  /* ≈ #6D3FE0 */
+  --purple-soft: oklch(0.52 0.22 295 / 12%);
+  --green:       oklch(0.58 0.18 162);
+  --red:         oklch(0.56 0.22 28);
+  --blue:        oklch(0.54 0.18 253);
+  --amber:       oklch(0.72 0.16 85);
+
+  /* Surfaces */
+  --background:          oklch(0.985 0.003 240);       /* near-white, subtle cool */
+  --foreground:          oklch(0.16 0.03 263);         /* deep navy */
+  --card:                oklch(1 0 0);                 /* pure white */
+  --card-2:              oklch(0.97 0.01 250);
+  --card-foreground:     oklch(0.16 0.03 263);
+  --popover:             oklch(1 0 0);
+  --popover-foreground:  oklch(0.16 0.03 263);
+  --sidebar:             oklch(0.975 0.005 250);
+  --sidebar-foreground:  oklch(0.16 0.03 263);
+
+  /* Semantic */
+  --primary:              var(--gold);
+  --primary-foreground:   oklch(1 0 0);
+  --primary-dim:          var(--gold-soft);
+  --accent:               var(--purple);
+  --accent-foreground:    oklch(1 0 0);
+  --accent-dim:           var(--purple-soft);
+  --secondary:            oklch(0.94 0.01 250);
+  --secondary-foreground: oklch(0.16 0.03 263);
+  --muted:                oklch(0.95 0.01 250);
+  --muted-foreground:     oklch(0.48 0.02 245);
+  --muted-dim:            oklch(0.72 0.015 245);
+  --destructive:          var(--red);
+
+  /* Lines & focus */
+  --border:       oklch(0.16 0.03 263 / 10%);
+  --border-gold:  var(--gold-ring);
+  --input:        oklch(0.16 0.03 263 / 6%);
+  --ring:         oklch(0.68 0.18 66 / 45%);
+
+  /* Chart */
+  --chart-1: var(--gold);
+  --chart-2: var(--purple);
+  --chart-3: var(--green);
+  --chart-4: var(--red);
+  --chart-5: var(--blue);
+
+  /* Grid overlay tuned for light */
+  --grid-line: oklch(0.68 0.18 66 / 5%);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Semantic text styles — apply with @extend/class or direct selector.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.h1, h1.display {
+  font-family: var(--font-heading);
+  font-weight: var(--fw-bold);
+  font-size: clamp(var(--fs-4xl), 6vw, var(--fs-5xl));
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--foreground);
+}
+
+.h2 {
+  font-family: var(--font-heading);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-wide);
+  color: var(--foreground);
+}
+
+.h3 {
+  font-family: var(--font-heading);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-wide);
+  color: var(--foreground);
+}
+
+.h4 {
+  font-family: var(--font-heading);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-md);
+  letter-spacing: var(--tracking-wider);
+  color: var(--foreground);
+}
+
+.eyebrow,
+.label-tracked {
+  font-family: var(--font-heading);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tracking-mega);
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.body,
+p.body {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-base);
+  line-height: var(--lh-relaxed);
+  color: var(--foreground);
+}
+
+.body-sm {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-relaxed);
+  color: var(--muted-foreground);
+}
+
+.mono,
+code,
+.address {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0;
+  color: var(--foreground);
+}
+
+.score-numeric {
+  font-family: var(--font-heading);
+  font-weight: var(--fw-bold);
+  font-size: 3.5rem;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Utility surfaces
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.glass-panel {
+  background: color-mix(in oklab, var(--card) 80%, transparent);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.glow-gold {
+  text-shadow: 0 0 24px oklch(0.74 0.19 66 / 40%);
+}
+
+.glow-line {
+  box-shadow:
+    0 0 0 1px var(--gold-ring),
+    0 0 20px -4px var(--gold-soft),
+    inset 0 1px 0 oklch(1 0 0 / 4%);
+}
+
+.body-grid-bg {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 60px 60px;
+  background-attachment: fixed;
+}
