@@ -1,9 +1,9 @@
 import type { Logger } from "@score-cripto/observability-node";
 import {
-  ANALYSIS_STAGES,
   ANALYSIS_STAGE_CHANGED_ROUTING_KEY,
   ANALYSIS_STAGE_SERVICES,
   ANALYSIS_STAGE_STATES,
+  ANALYSIS_STAGES,
   withCorrelation,
 } from "@score-cripto/observability-node";
 import amqplib, { type Channel, type ChannelModel } from "amqplib";

@@ -87,7 +87,10 @@ export const AnalysisRequestScalarFieldEnum = {
   positiveFactors: 'positiveFactors',
   riskFactors: 'riskFactors',
   modelVersion: 'modelVersion',
-  promptVersion: 'promptVersion'
+  promptVersion: 'promptVersion',
+  currentStage: 'currentStage',
+  stageState: 'stageState',
+  stageUpdatedAt: 'stageUpdatedAt'
 } as const
 
 export type AnalysisRequestScalarFieldEnum = (typeof AnalysisRequestScalarFieldEnum)[keyof typeof AnalysisRequestScalarFieldEnum]

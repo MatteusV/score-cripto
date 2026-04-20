@@ -54,6 +54,9 @@ export type AnalysisRequestMinAggregateOutputType = {
   reasoning: string | null
   modelVersion: string | null
   promptVersion: string | null
+  currentStage: string | null
+  stageState: string | null
+  stageUpdatedAt: Date | null
 }
 
 export type AnalysisRequestMaxAggregateOutputType = {
@@ -72,6 +75,9 @@ export type AnalysisRequestMaxAggregateOutputType = {
   reasoning: string | null
   modelVersion: string | null
   promptVersion: string | null
+  currentStage: string | null
+  stageState: string | null
+  stageUpdatedAt: Date | null
 }
 
 export type AnalysisRequestCountAggregateOutputType = {
@@ -92,6 +98,9 @@ export type AnalysisRequestCountAggregateOutputType = {
   riskFactors: number
   modelVersion: number
   promptVersion: number
+  currentStage: number
+  stageState: number
+  stageUpdatedAt: number
   _all: number
 }
 
@@ -124,6 +133,9 @@ export type AnalysisRequestMinAggregateInputType = {
   reasoning?: true
   modelVersion?: true
   promptVersion?: true
+  currentStage?: true
+  stageState?: true
+  stageUpdatedAt?: true
 }
 
 export type AnalysisRequestMaxAggregateInputType = {
@@ -142,6 +154,9 @@ export type AnalysisRequestMaxAggregateInputType = {
   reasoning?: true
   modelVersion?: true
   promptVersion?: true
+  currentStage?: true
+  stageState?: true
+  stageUpdatedAt?: true
 }
 
 export type AnalysisRequestCountAggregateInputType = {
@@ -162,6 +177,9 @@ export type AnalysisRequestCountAggregateInputType = {
   riskFactors?: true
   modelVersion?: true
   promptVersion?: true
+  currentStage?: true
+  stageState?: true
+  stageUpdatedAt?: true
   _all?: true
 }
 
@@ -269,6 +287,9 @@ export type AnalysisRequestGroupByOutputType = {
   riskFactors: runtime.JsonValue | null
   modelVersion: string | null
   promptVersion: string | null
+  currentStage: string | null
+  stageState: string | null
+  stageUpdatedAt: Date | null
   _count: AnalysisRequestCountAggregateOutputType | null
   _avg: AnalysisRequestAvgAggregateOutputType | null
   _sum: AnalysisRequestSumAggregateOutputType | null
@@ -312,6 +333,9 @@ export type AnalysisRequestWhereInput = {
   riskFactors?: Prisma.JsonNullableFilter<"AnalysisRequest">
   modelVersion?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
   promptVersion?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
+  currentStage?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
+  stageState?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
+  stageUpdatedAt?: Prisma.DateTimeNullableFilter<"AnalysisRequest"> | Date | string | null
   translations?: Prisma.AnalysisTranslationListRelationFilter
 }
 
@@ -333,6 +357,9 @@ export type AnalysisRequestOrderByWithRelationInput = {
   riskFactors?: Prisma.SortOrderInput | Prisma.SortOrder
   modelVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   promptVersion?: Prisma.SortOrderInput | Prisma.SortOrder
+  currentStage?: Prisma.SortOrderInput | Prisma.SortOrder
+  stageState?: Prisma.SortOrderInput | Prisma.SortOrder
+  stageUpdatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   translations?: Prisma.AnalysisTranslationOrderByRelationAggregateInput
 }
 
@@ -358,6 +385,9 @@ export type AnalysisRequestWhereUniqueInput = Prisma.AtLeast<{
   riskFactors?: Prisma.JsonNullableFilter<"AnalysisRequest">
   modelVersion?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
   promptVersion?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
+  currentStage?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
+  stageState?: Prisma.StringNullableFilter<"AnalysisRequest"> | string | null
+  stageUpdatedAt?: Prisma.DateTimeNullableFilter<"AnalysisRequest"> | Date | string | null
   translations?: Prisma.AnalysisTranslationListRelationFilter
 }, "id" | "userId_publicId">
 
@@ -379,6 +409,9 @@ export type AnalysisRequestOrderByWithAggregationInput = {
   riskFactors?: Prisma.SortOrderInput | Prisma.SortOrder
   modelVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   promptVersion?: Prisma.SortOrderInput | Prisma.SortOrder
+  currentStage?: Prisma.SortOrderInput | Prisma.SortOrder
+  stageState?: Prisma.SortOrderInput | Prisma.SortOrder
+  stageUpdatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AnalysisRequestCountOrderByAggregateInput
   _avg?: Prisma.AnalysisRequestAvgOrderByAggregateInput
   _max?: Prisma.AnalysisRequestMaxOrderByAggregateInput
@@ -407,6 +440,9 @@ export type AnalysisRequestScalarWhereWithAggregatesInput = {
   riskFactors?: Prisma.JsonNullableWithAggregatesFilter<"AnalysisRequest">
   modelVersion?: Prisma.StringNullableWithAggregatesFilter<"AnalysisRequest"> | string | null
   promptVersion?: Prisma.StringNullableWithAggregatesFilter<"AnalysisRequest"> | string | null
+  currentStage?: Prisma.StringNullableWithAggregatesFilter<"AnalysisRequest"> | string | null
+  stageState?: Prisma.StringNullableWithAggregatesFilter<"AnalysisRequest"> | string | null
+  stageUpdatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AnalysisRequest"> | Date | string | null
 }
 
 export type AnalysisRequestCreateInput = {
@@ -427,6 +463,9 @@ export type AnalysisRequestCreateInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: string | null
   promptVersion?: string | null
+  currentStage?: string | null
+  stageState?: string | null
+  stageUpdatedAt?: Date | string | null
   translations?: Prisma.AnalysisTranslationCreateNestedManyWithoutAnalysisInput
 }
 
@@ -448,6 +487,9 @@ export type AnalysisRequestUncheckedCreateInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: string | null
   promptVersion?: string | null
+  currentStage?: string | null
+  stageState?: string | null
+  stageUpdatedAt?: Date | string | null
   translations?: Prisma.AnalysisTranslationUncheckedCreateNestedManyWithoutAnalysisInput
 }
 
@@ -469,6 +511,9 @@ export type AnalysisRequestUpdateInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentStage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stageState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stageUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   translations?: Prisma.AnalysisTranslationUpdateManyWithoutAnalysisNestedInput
 }
 
@@ -490,6 +535,9 @@ export type AnalysisRequestUncheckedUpdateInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentStage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stageState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stageUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   translations?: Prisma.AnalysisTranslationUncheckedUpdateManyWithoutAnalysisNestedInput
 }
 
@@ -511,6 +559,9 @@ export type AnalysisRequestCreateManyInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: string | null
   promptVersion?: string | null
+  currentStage?: string | null
+  stageState?: string | null
+  stageUpdatedAt?: Date | string | null
 }
 
 export type AnalysisRequestUpdateManyMutationInput = {
@@ -531,6 +582,9 @@ export type AnalysisRequestUpdateManyMutationInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentStage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stageState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stageUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AnalysisRequestUncheckedUpdateManyInput = {
@@ -551,6 +605,9 @@ export type AnalysisRequestUncheckedUpdateManyInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentStage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stageState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stageUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AnalysisRequestUserIdPublicIdCompoundUniqueInput = {
@@ -576,6 +633,9 @@ export type AnalysisRequestCountOrderByAggregateInput = {
   riskFactors?: Prisma.SortOrder
   modelVersion?: Prisma.SortOrder
   promptVersion?: Prisma.SortOrder
+  currentStage?: Prisma.SortOrder
+  stageState?: Prisma.SortOrder
+  stageUpdatedAt?: Prisma.SortOrder
 }
 
 export type AnalysisRequestAvgOrderByAggregateInput = {
@@ -600,6 +660,9 @@ export type AnalysisRequestMaxOrderByAggregateInput = {
   reasoning?: Prisma.SortOrder
   modelVersion?: Prisma.SortOrder
   promptVersion?: Prisma.SortOrder
+  currentStage?: Prisma.SortOrder
+  stageState?: Prisma.SortOrder
+  stageUpdatedAt?: Prisma.SortOrder
 }
 
 export type AnalysisRequestMinOrderByAggregateInput = {
@@ -618,6 +681,9 @@ export type AnalysisRequestMinOrderByAggregateInput = {
   reasoning?: Prisma.SortOrder
   modelVersion?: Prisma.SortOrder
   promptVersion?: Prisma.SortOrder
+  currentStage?: Prisma.SortOrder
+  stageState?: Prisma.SortOrder
+  stageUpdatedAt?: Prisma.SortOrder
 }
 
 export type AnalysisRequestSumOrderByAggregateInput = {
@@ -699,6 +765,9 @@ export type AnalysisRequestCreateWithoutTranslationsInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: string | null
   promptVersion?: string | null
+  currentStage?: string | null
+  stageState?: string | null
+  stageUpdatedAt?: Date | string | null
 }
 
 export type AnalysisRequestUncheckedCreateWithoutTranslationsInput = {
@@ -719,6 +788,9 @@ export type AnalysisRequestUncheckedCreateWithoutTranslationsInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: string | null
   promptVersion?: string | null
+  currentStage?: string | null
+  stageState?: string | null
+  stageUpdatedAt?: Date | string | null
 }
 
 export type AnalysisRequestCreateOrConnectWithoutTranslationsInput = {
@@ -755,6 +827,9 @@ export type AnalysisRequestUpdateWithoutTranslationsInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentStage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stageState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stageUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AnalysisRequestUncheckedUpdateWithoutTranslationsInput = {
@@ -775,6 +850,9 @@ export type AnalysisRequestUncheckedUpdateWithoutTranslationsInput = {
   riskFactors?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   modelVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentStage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stageState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stageUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -826,6 +904,9 @@ export type AnalysisRequestSelect<ExtArgs extends runtime.Types.Extensions.Inter
   riskFactors?: boolean
   modelVersion?: boolean
   promptVersion?: boolean
+  currentStage?: boolean
+  stageState?: boolean
+  stageUpdatedAt?: boolean
   translations?: boolean | Prisma.AnalysisRequest$translationsArgs<ExtArgs>
   _count?: boolean | Prisma.AnalysisRequestCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["analysisRequest"]>
@@ -848,6 +929,9 @@ export type AnalysisRequestSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   riskFactors?: boolean
   modelVersion?: boolean
   promptVersion?: boolean
+  currentStage?: boolean
+  stageState?: boolean
+  stageUpdatedAt?: boolean
 }, ExtArgs["result"]["analysisRequest"]>
 
 export type AnalysisRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -868,6 +952,9 @@ export type AnalysisRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   riskFactors?: boolean
   modelVersion?: boolean
   promptVersion?: boolean
+  currentStage?: boolean
+  stageState?: boolean
+  stageUpdatedAt?: boolean
 }, ExtArgs["result"]["analysisRequest"]>
 
 export type AnalysisRequestSelectScalar = {
@@ -888,9 +975,12 @@ export type AnalysisRequestSelectScalar = {
   riskFactors?: boolean
   modelVersion?: boolean
   promptVersion?: boolean
+  currentStage?: boolean
+  stageState?: boolean
+  stageUpdatedAt?: boolean
 }
 
-export type AnalysisRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "publicId" | "chain" | "address" | "status" | "requestedAt" | "completedAt" | "failedAt" | "failureReason" | "score" | "confidence" | "reasoning" | "positiveFactors" | "riskFactors" | "modelVersion" | "promptVersion", ExtArgs["result"]["analysisRequest"]>
+export type AnalysisRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "publicId" | "chain" | "address" | "status" | "requestedAt" | "completedAt" | "failedAt" | "failureReason" | "score" | "confidence" | "reasoning" | "positiveFactors" | "riskFactors" | "modelVersion" | "promptVersion" | "currentStage" | "stageState" | "stageUpdatedAt", ExtArgs["result"]["analysisRequest"]>
 export type AnalysisRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   translations?: boolean | Prisma.AnalysisRequest$translationsArgs<ExtArgs>
   _count?: boolean | Prisma.AnalysisRequestCountOutputTypeDefaultArgs<ExtArgs>
@@ -921,6 +1011,9 @@ export type $AnalysisRequestPayload<ExtArgs extends runtime.Types.Extensions.Int
     riskFactors: runtime.JsonValue | null
     modelVersion: string | null
     promptVersion: string | null
+    currentStage: string | null
+    stageState: string | null
+    stageUpdatedAt: Date | null
   }, ExtArgs["result"]["analysisRequest"]>
   composites: {}
 }
@@ -1362,6 +1455,9 @@ export interface AnalysisRequestFieldRefs {
   readonly riskFactors: Prisma.FieldRef<"AnalysisRequest", 'Json'>
   readonly modelVersion: Prisma.FieldRef<"AnalysisRequest", 'String'>
   readonly promptVersion: Prisma.FieldRef<"AnalysisRequest", 'String'>
+  readonly currentStage: Prisma.FieldRef<"AnalysisRequest", 'String'>
+  readonly stageState: Prisma.FieldRef<"AnalysisRequest", 'String'>
+  readonly stageUpdatedAt: Prisma.FieldRef<"AnalysisRequest", 'DateTime'>
 }
     
 

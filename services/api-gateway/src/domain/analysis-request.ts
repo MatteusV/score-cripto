@@ -5,6 +5,7 @@ export interface AnalysisRequestDTO {
   chain: string;
   completedAt: Date | null;
   confidence: number | null;
+  currentStage: string | null;
   failedAt: Date | null;
   failureReason: string | null;
   id: string;
@@ -16,11 +17,10 @@ export interface AnalysisRequestDTO {
   requestedAt: Date;
   riskFactors: string[] | null;
   score: number | null;
-  status: string;
-  userId: string;
-  currentStage: string | null;
   stageState: string | null;
   stageUpdatedAt: Date | null;
+  status: string;
+  userId: string;
 }
 
 export interface AnalysisTranslationDTO {

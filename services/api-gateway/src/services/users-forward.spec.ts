@@ -19,8 +19,13 @@ function makeResponse(
   status: number,
   body: object | string | null = null
 ): Response {
-  const text =
-    body === null ? "" : typeof body === "string" ? body : JSON.stringify(body);
+  if (typeof body === "string") {
+    return new Response(body, {
+      status,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  const text = JSON.stringify(body);
   return new Response(text, {
     status,
     headers: { "Content-Type": "application/json" },
